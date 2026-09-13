@@ -1,5 +1,13 @@
 # Changelog
 
+## Satellite and mission layer components
+
+- Separate catalog loading, orbit calculations, display, tracking and interaction
+  into instance-owned satellite components.
+- Separate mission ingestion, paths, placement, cards, roster, replay and camera
+  operations, retaining existing layer controls and satellite coordination.
+- Cancel late mission source work and reject malformed launch snapshots.
+
 ## Fire layer components
 
 - Split fire source loading, state, rendering, cards, selection and viewport work

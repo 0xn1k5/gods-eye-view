@@ -1,5 +1,14 @@
 # God's Eye View Current State
 
+Satellite and mission layers expose separate factories through `./layers/satellites`
+and `./layers/launches`. Each owns its catalog, render state, tracking, interaction
+and teardown. Source adapters retain the existing CelesTrak and Launch Library
+endpoints; standalone entries provide scene services and the satellite dependency.
+The mission factory separates paths, replay, camera, panel, overlays and placement.
+Pending mission requests abort on disable/destruction and malformed launch
+snapshots preserve the last accepted display. Catalog groups, propagation cadence,
+tracking intent, replay timing, controls and source attribution remain unchanged.
+
 The fire layer now exposes `./layers/firms`: an instance factory with separate
 snapshot requests, records, rendering, cards, selection, viewport scheduling and
 terrain-anchor batching. The standalone entry supplies the existing FIRMS source
