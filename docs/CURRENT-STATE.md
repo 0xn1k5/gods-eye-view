@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+Traffic and bikeshare expose factories through `./layers/traffic` and
+`./layers/bikeshare`. Traffic separates road requests, ingestion, animation,
+flow matching, styling, viewport lifecycle and development timing. Each source
+owns its decoded flow cache; cancelled bodies cannot refill it. Bikeshare
+separates its city registry, station source, parsing, rendering, selection and
+proximity lifecycle. Existing standalone sources, live/simulated labels, road
+budgets, station availability and polling behavior are retained.
+
 Installations and proximity context now expose `./layers/installations` and
 `./layers/awareness` factories. Each owns its records, selection, presentation,
 navigation and lifecycle. The standalone entries supply existing scene operations

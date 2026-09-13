@@ -1,5 +1,11 @@
 # Changelog
 
+## Traffic and bikeshare components
+
+- Separate traffic loading, animation, styling and lifecycle into factory-owned components.
+- Give each flow source its own bounded decode cache and cancellation checks.
+- Separate bikeshare registry, station requests, rendering, selection and proximity handling.
+
 ## Installation and context components
 
 - Separate mapped-site requests, records, placement, selection and viewport lifecycle.
