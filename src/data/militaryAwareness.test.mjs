@@ -43,7 +43,7 @@ import {
 } from './militaryAwarenessEngine.js';
 import { NAVIGATION_AUTHORITY_EVENT } from '../navigationPolicy.js';
 
-const militaryAwarenessSource = fs.readFileSync(
+const militaryAwarenessSource = readLayerSource(
   new URL('./militaryAwareness.js', import.meta.url),
   'utf8',
 );

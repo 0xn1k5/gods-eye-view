@@ -1,5 +1,14 @@
 # God's Eye View Current State
 
+Installations and proximity context now expose `./layers/installations` and
+`./layers/awareness` factories. Each owns its records, selection, presentation,
+navigation and lifecycle. The standalone entries supply existing scene operations
+and the aircraft/vessel/installation instances used for proximity queries.
+Installation requests use a bounded source adapter; explicit nearby-place search
+remains separate from ordinary mapped-site loading. Invalid snapshots retain the
+previous display, and cancelled requests cannot publish a later failure state.
+Viewport limits, saturation retry, placement, query caps and controls are retained.
+
 Satellite and mission layers expose separate factories through `./layers/satellites`
 and `./layers/launches`. Each owns its catalog, render state, tracking, interaction
 and teardown. Source adapters retain the existing CelesTrak and Launch Library
