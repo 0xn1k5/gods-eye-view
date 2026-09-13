@@ -138,3 +138,5 @@ export {
   radioTunerPointerPosition,
   buildRadioTunerTicks,
 } from '../../ui/radioTunerModel.js';
+
+export { normalizeRadioCountryInput } from '../../data/radioCountry.js';
