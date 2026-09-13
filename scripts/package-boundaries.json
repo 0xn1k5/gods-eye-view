@@ -694,5 +694,27 @@
       "src/layers/earthquakes/source.js"
     ],
     "external": ["cesium"]
+  },
+  "fire-layer": {
+    "exports": ["./layers/firms"],
+    "modules": [
+      "src/data/firmsAdapt.js",
+      "src/data/firmsLabels.js",
+      "src/data/iconOrientation.js",
+      "src/layers/firms/anchors.js",
+      "src/layers/firms/cards.js",
+      "src/layers/firms/index.js",
+      "src/layers/firms/ingestion.js",
+      "src/layers/firms/lifecycle.js",
+      "src/layers/firms/model.js",
+      "src/layers/firms/policy.js",
+      "src/layers/firms/queries.js",
+      "src/layers/firms/rendering.js",
+      "src/layers/firms/selection.js",
+      "src/layers/firms/source.js",
+      "src/layers/firms/state.js",
+      "src/layers/firms/viewport.js"
+    ],
+    "external": ["cesium"]
   }
 }

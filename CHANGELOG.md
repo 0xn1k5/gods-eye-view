@@ -1,5 +1,12 @@
 # Changelog
 
+## Fire layer components
+
+- Split fire source loading, state, rendering, cards, selection and viewport work
+  into reusable components with application-owned scene services.
+- Cancel late refreshes, retain good data after malformed responses, and preserve
+  selection identity without repeating a user-selection notification on refresh.
+
 ## Earthquake components
 
 - Separate earthquake snapshot loading, record validation, and display ownership.

@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+The fire layer now exposes `./layers/firms`: an instance factory with separate
+snapshot requests, records, rendering, cards, selection, viewport scheduling and
+terrain-anchor batching. The standalone entry supplies the existing FIRMS source
+and scene services. Disable and teardown cancel pending refreshes; malformed
+snapshots preserve the last good display. Refresh restoration keeps selection
+identity without announcing a new user selection. Source/label, LOD thresholds,
+card limits, fire identities, altitude placement and analyst records are retained.
+
 Earthquake rendering is exposed through `./layers/earthquakes`. The layer owns
 its entities and request lifecycle; the application supplies the overlay host
 and snapshot source. The standalone adapter keeps the existing USGS daily feed,

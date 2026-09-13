@@ -147,6 +147,7 @@
     "./layers/military": "./src/layers/military/index.js",
     "./aircraft": "./src/layers/aircraft/index.js",
     "./layers/vessels": "./src/layers/vessels/index.js",
-    "./layers/earthquakes": "./src/layers/earthquakes/index.js"
+    "./layers/earthquakes": "./src/layers/earthquakes/index.js",
+    "./layers/firms": "./src/layers/firms/index.js"
   }
 }

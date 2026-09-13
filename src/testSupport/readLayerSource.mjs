@@ -6,9 +6,12 @@ import { fileURLToPath } from 'node:url';
 export function readLayerSource(file) {
   const path = file instanceof URL ? fileURLToPath(file) : file;
   if (
-    !['flights.js', 'militaryFlights.js', 'aisLiveVessels.js'].includes(
-      basename(path),
-    )
+    ![
+      'flights.js',
+      'militaryFlights.js',
+      'aisLiveVessels.js',
+      'firmsHeatmap.js',
+    ].includes(basename(path))
   )
     return readFileSync(path, 'utf8');
   const directory = join(
@@ -17,7 +20,9 @@ export function readLayerSource(file) {
       ? '../layers/flights'
       : basename(path) === 'militaryFlights.js'
         ? '../layers/military'
-        : '../layers/vessels',
+        : basename(path) === 'firmsHeatmap.js'
+          ? '../layers/firms'
+          : '../layers/vessels',
   );
   return readdirSync(directory)
     .filter((name) => name.endsWith('.js'))
