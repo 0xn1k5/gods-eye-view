@@ -1,5 +1,24 @@
 # God's Eye View Current State
 
+## Military-flight components and aircraft mechanics
+
+`gods-eye-view/layers/military` exports `createMilitaryFlightLayer`. It uses the
+same normalized observation contract as civil flights, with separate military
+classification, styling, model and tracking policy. Each instance owns its
+contacts, history, scratch objects, model loads and cancellation lifetime.
+Applications supply the existing scene services and resolve model asset URLs;
+`src/data/militaryFlights.js` keeps the standalone layer API and adsb.lol source.
+A source may retain a bounded stale-status reason; the standalone cached-feed
+behavior remains unchanged.
+
+`gods-eye-view/aircraft` exports the existing shared classification, icon,
+metadata, motion, altitude, model-anchor, proximity and selection calculations.
+It also exports `createMilitaryRegistry`, an explicitly constructed owner for
+known military identities and active-layer transitions. Its optional background
+poll consumes normalized records from the supplied source. Source replacement
+and disposal abort pending work and clear retained identities; construction
+starts no network request. Both standalone aircraft layers use one registry.
+
 ## Civil-flight components
 
 `gods-eye-view/layers/flights` exports `createCivilFlightLayer`. Each instance

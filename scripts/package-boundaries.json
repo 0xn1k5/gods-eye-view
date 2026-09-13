@@ -610,5 +610,59 @@
       "src/layers/flights/tracking.js"
     ],
     "external": ["cesium"]
+  },
+  "military-flights": {
+    "exports": ["./layers/military"],
+    "modules": [
+      "src/data/aircraftClass.js",
+      "src/data/aircraftIcons.js",
+      "src/data/aircraftMeta.js",
+      "src/data/aircraftNearbyPolicy.js",
+      "src/data/cockpitAirLod.js",
+      "src/data/cockpitContactDot.js",
+      "src/data/contactMatch.js",
+      "src/data/iconOrientation.js",
+      "src/data/layerState.js",
+      "src/data/modelVisualAnchor.js",
+      "src/data/motionModel.js",
+      "src/data/renderAltitude.js",
+      "src/data/trackedModelRegime.js",
+      "src/data/trackingClickGesture.js",
+      "src/layers/military/controller.js",
+      "src/layers/military/index.js",
+      "src/layers/military/ingestion.js",
+      "src/layers/military/lifecycle.js",
+      "src/layers/military/motion.js",
+      "src/layers/military/policy.js",
+      "src/layers/military/queries.js",
+      "src/layers/military/rendering.js",
+      "src/layers/military/state.js",
+      "src/layers/military/testing.js",
+      "src/layers/military/tracking.js"
+    ],
+    "external": ["cesium"]
+  },
+  "aircraft-mechanics": {
+    "exports": ["./aircraft"],
+    "modules": [
+      "src/data/aircraftClass.js",
+      "src/data/aircraftIcons.js",
+      "src/data/aircraftMeta.js",
+      "src/data/aircraftNearbyPolicy.js",
+      "src/data/cockpitAirLod.js",
+      "src/data/cockpitContactDot.js",
+      "src/data/contactMatch.js",
+      "src/data/iconOrientation.js",
+      "src/data/layerState.js",
+      "src/data/modelVisualAnchor.js",
+      "src/data/motionModel.js",
+      "src/data/renderAltitude.js",
+      "src/data/routePlausible.js",
+      "src/data/trackedModelRegime.js",
+      "src/data/trackingClickGesture.js",
+      "src/layers/aircraft/classification.js",
+      "src/layers/aircraft/index.js"
+    ],
+    "external": ["cesium"]
   }
 }

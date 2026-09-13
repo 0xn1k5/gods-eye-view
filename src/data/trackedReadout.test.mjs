@@ -252,7 +252,7 @@ test('tracking layers write gevLabelModel and expose only their cached display p
     assert.ok(source.includes('.gevDisplayPosition ='), `${name} exposes a display-position cache`);
   }
   assert.match(sources['flights.js'], /gevDisplayPosition\s*=\s*parts\.motion\._trackedDisplayCached/);
-  assert.ok(sources['militaryFlights.js'].includes('gevDisplayPosition = _trackedDisplayCached'));
+  assert.match(sources['militaryFlights.js'], /gevDisplayPosition\s*=\s*parts\.motion\._trackedDisplayCached/);
   assert.ok(sources['satellites.js'].includes('gevDisplayPosition = _trackedDisplayCached'));
   assert.equal(sources['flights.js'].includes('_trackedEntity.label.text'), false);
   assert.equal(sources['militaryFlights.js'].includes('_trackedEntity.label.text'), false);
