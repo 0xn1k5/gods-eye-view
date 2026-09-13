@@ -1,14 +1,10 @@
 import * as Cesium from 'cesium';
 
-
-
 export const FOCUS_EVIDENCE_DEV = import.meta.env?.DEV === true;
-
 
 /** Amber tint for known-military aircraft rendered by this layer (matches the military layer's icon color). */
 
 export const MIL_TINT = Cesium.Color.fromCssColorString('#FFB800');
-
 
 // --- Ground traffic (owner reversal 2026-07-03: "absolutely we should see planes
 // taxiing and landing") -----------------------------------------------------------
@@ -31,7 +27,6 @@ export const MIL_TINT = Cesium.Color.fromCssColorString('#FFB800');
 
 export const GROUND_SCALE = 0.8;
 
-
 // --- 3D model rendering (B3) ---------------------------------------------------------
 // When enabled, aircraft render as 3D glTF models once the camera is below MODEL_ALT_CEIL_M
 // (zoomed in); higher up they stay flat billboards. Eligibility is FRUSTUM-based (on-screen), and
@@ -40,33 +35,31 @@ export const GROUND_SCALE = 0.8;
 
 export const PLANE_MODEL_URL = '/models/airplane.glb';
 
-
 export const MODEL_ALT_CEIL_M = 800000;
- // m: below this camera altitude, draw 3D models (raised so it's easy to trigger)
+// m: below this camera altitude, draw 3D models (raised so it's easy to trigger)
 
 export const MODEL_MIN_PX = 24;
-        // floor so distant models stay visible WITHOUT ballooning into a giant
-                                // min-pixel blob (was 54 — far planes at the All radius became white
-                                // star-bursts); ~matches the 2D icon size so the model↔billboard read is consistent
+// floor so distant models stay visible WITHOUT ballooning into a giant
+// min-pixel blob (was 54 — far planes at the All radius became white
+// star-bursts); ~matches the 2D icon size so the model↔billboard read is consistent
 
 export const TRACKED_MODEL_MIN_PX = 40;
- // keep the glTF silhouette comparable to the selected 2D glyph at handoff
+// keep the glTF silhouette comparable to the selected 2D glyph at handoff
 
 export const TRACKED_MODEL_MAX_PX = 200;
- // owner-selected close-range tracked-target feel
+// owner-selected close-range tracked-target feel
 
 export const MODEL_NATIVE_RADIUS_M = 34.41;
 
-
 export const MODEL_SCALE = 1;
-          // airplane.glb is transform-applied and baked to real-world meters
+// airplane.glb is transform-applied and baked to real-world meters
 // Per-mode caps. Each model is its own draw call (no instancing yet), so these bound the frame cost.
 
 export const MODEL_MAX = 150;
-          // 'proximity' cap (the planes immediately around you)
+// 'proximity' cap (the planes immediately around you)
 
 export const MODEL_MAX_ALL = 350;
-      // 'all' cap (everything out to ~the horizon)
+// 'all' cap (everything out to ~the horizon)
 // Per-mode ADD / KEEP radii. The two modes differ by RADIUS, not just cap — otherwise they look
 // IDENTICAL whenever fewer than a cap's worth of planes are in range (field bug: Proximity and All
 // rendered the same). 'proximity' = a tight ring; 'all' = roughly to the horizon (state-scale). Each
@@ -75,24 +68,23 @@ export const MODEL_MAX_ALL = 350;
 // giant floating blob (the old 422 km airport-cluster bug), so far planes stay 2D dots; the cap +
 // on-screen priority then spend the model slots on planes you can actually see.
 
-export const MODEL_PROX_ADD_M  = 150000;
-  // proximity: model NEW planes within 150 km
+export const MODEL_PROX_ADD_M = 150000;
+// proximity: model NEW planes within 150 km
 
 export const MODEL_PROX_KEEP_M = 185000;
-  // proximity: KEEP modeled planes out to 185 km
-
+// proximity: KEEP modeled planes out to 185 km
 
 export const COCKPIT_MODEL_MAX = 60;
-         // max concurrent GLBs in cockpit (never raises the map cap)
+// max concurrent GLBs in cockpit (never raises the map cap)
 
-export const MODEL_ALL_ADD_M   = 400000;
-  // all: model NEW planes within 400 km (~to the horizon)
+export const MODEL_ALL_ADD_M = 400000;
+// all: model NEW planes within 400 km (~to the horizon)
 
-export const MODEL_ALL_KEEP_M  = 450000;
-  // all: KEEP modeled planes out to 450 km
+export const MODEL_ALL_KEEP_M = 450000;
+// all: KEEP modeled planes out to 450 km
 
 export const MODEL_HEADING_OFFSET_DEG = 180;
- // airplane.glb nose is opposite Cesium heading-0
+// airplane.glb nose is opposite Cesium heading-0
 // Owner launch-polish direction: models should read as clean light silhouettes,
 // with only a weak diffuse contribution from the existing approved textures.
 
@@ -107,30 +99,27 @@ export const MODEL_COLOR_BLEND_AMOUNT = 0.94;
 
 export const MODEL_BELLY_OFFSET_NATIVE = 6.719;
 
-
 export const CYAN_TRANSPARENT = Cesium.Color.CYAN.withAlpha(0);
-
 
 /** @constant {number} ERROR_BACKOFF_INTERVAL - Cooldown (ms) after transient errors */
 
 export const ERROR_BACKOFF_INTERVAL = 20000;
- // transient error retry
+// transient error retry
 /** @constant {number} POSITION_HISTORY_LIMIT - Max position samples kept per aircraft for dead reckoning */
 
 export const POSITION_HISTORY_LIMIT = 5;
 
-
-
 export const COCKPIT_CONTACT_SIZE_PX = 6;
 
-
-export const COCKPIT_CIVILIAN_COLOR = Cesium.Color.fromCssColorString('#DCEEFF');
-
+export const COCKPIT_CIVILIAN_COLOR =
+  Cesium.Color.fromCssColorString('#DCEEFF');
 
 export const TRACKED_BILLBOARD_SCALE_BY_DISTANCE = new Cesium.NearFarScalar(
-  1000, 3.0, 8000000, 0.5,
+  1000,
+  3.0,
+  8000000,
+  0.5,
 );
-
 
 // ---------------------------------------------------------------------------
 // Track-history trail state (PRD WS-F F1/F4): a fading polyline behind the
@@ -146,7 +135,6 @@ export const TRAIL_COLOR = '#00d4ff';
 /** @constant {number} Combined cap on trail vertices (backfill + live accumulation). */
 
 export const TRAIL_MAX_POINTS = 400;
-
 
 // ---------------------------------------------------------------------------
 // Render-behind smoothing (PRD WS-C C2 — approved product decision):
@@ -202,7 +190,6 @@ export const GROUND_FLOOR_WARM_MAX_ALT_M = 4500;
 
 export const GROUND_FLOOR_CLAMP_RADIUS_KM = 150;
 
-
 // ---------------------------------------------------------------------------
 // Icon orientation (2026-06-10 playtest fix): rotation is computed by
 // projecting each aircraft's course vector into WINDOW coordinates
@@ -230,7 +217,6 @@ export const COURSE_MAX_DPS = 60;
 
 export const COURSE_SLEW_DT_MAX_SEC = 0.25;
 
-
 // ---------------------------------------------------------------------------
 // adsbdb enrichment (best-effort, fail-silent). Bounded fan-out: max 4
 // concurrent requests, dispatches dripped ≥ENRICH_DISPATCH_GAP_MS apart
@@ -246,7 +232,6 @@ export const ENRICH_MAX_INFLIGHT = 4;
 /** Min ms between request dispatches — the drip that bounds the fan-out to ≤5/s. */
 
 export const ENRICH_DISPATCH_GAP_MS = 200;
-
 
 // ---------------------------------------------------------------------------
 // Ambient fleet type enrichment (2026-07-02 field data: OpenSky's live
@@ -293,7 +278,6 @@ export const ENRICH_AMBIENT_REFILL_WINDOW_MS = 5 * 60 * 1000;
 
 export const ENRICH_AMBIENT_PER_SWEEP = 150;
 
-
 // ---------------------------------------------------------------------------
 // Tracked-display reconciliation. _deadReckon gives the RAW position from real
 // fixes; at the warm-up→interpolation handoff (and on feed glitches / backfill
@@ -303,9 +287,7 @@ export const ENRICH_AMBIENT_PER_SWEEP = 150;
 // (the correction stays ~0 whenever motion is already continuous).
 // ---------------------------------------------------------------------------
 
-
 export const DR_CORRECTION_MS = 900;
-
 
 /** Bounded on-demand loading for the tracked model. The tracked regime is
  *  DEFAULT-ON and its driver runs every `scene.preUpdate`, so a missing or
@@ -317,7 +299,6 @@ export const DR_CORRECTION_MS = 900;
  *  so a latched failure degrades to exactly the pre-3D presentation. */
 
 export const TRACKED_MODEL_MAX_LOAD_FAILS = 3;
-
 
 export const TRACKED_MODEL_RETRY_BACKOFF_MS = 1500;
 
@@ -344,7 +325,6 @@ export const DISPLAY_CORRIDOR_LOOKAHEAD_SEC = RENDER_DELAY_SEC * 2;
  *  datum is subpixel. */
 
 export const DISPLAY_CORRIDOR_RADIUS_KM = 25;
-
 
 /** @constant {number} How far a contact may travel from the cell that supplied
  *  its held floor before that floor stops describing the ground under it.
@@ -425,7 +405,6 @@ export const FLOOR_EASE_MAX_STEP = 0.22;
  *  magnitude under GROUND_FLOOR_LIFT_M — invisible. */
 
 export const FLOOR_EASE_EPSILON_M = 0.02;
-
 
 /** @constant {number} How long a retired hold stays usable as a rehydration
  *  seed — three poll intervals.

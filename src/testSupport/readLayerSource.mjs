@@ -7,6 +7,9 @@ export function readLayerSource(file) {
   const path = file instanceof URL ? fileURLToPath(file) : file;
   if (basename(path) !== 'flights.js') return readFileSync(path, 'utf8');
   const directory = join(dirname(path), '../layers/flights');
-  return readdirSync(directory).filter((name) => name.endsWith('.js'))
-    .sort().map((name) => readFileSync(join(directory, name), 'utf8')).join('\n');
+  return readdirSync(directory)
+    .filter((name) => name.endsWith('.js'))
+    .sort()
+    .map((name) => readFileSync(join(directory, name), 'utf8'))
+    .join('\n');
 }
