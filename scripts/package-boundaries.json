@@ -763,5 +763,50 @@
       "src/layers/launches/testing.js"
     ],
     "external": ["cesium"]
+  },
+  "installations-layer": {
+    "exports": ["./layers/installations"],
+    "modules": [
+      "src/data/installationFeedback.js",
+      "src/data/militaryInstallationData.js",
+      "src/layers/installations/controls.js",
+      "src/layers/installations/index.js",
+      "src/layers/installations/ingestion.js",
+      "src/layers/installations/lifecycle.js",
+      "src/layers/installations/model.js",
+      "src/layers/installations/policy.js",
+      "src/layers/installations/rendering.js",
+      "src/layers/installations/selection.js",
+      "src/layers/installations/source.js",
+      "src/layers/installations/state.js",
+      "src/layers/installations/viewport.js"
+    ],
+    "external": ["cesium"]
+  },
+  "awareness-layer": {
+    "exports": ["./layers/awareness"],
+    "modules": [
+      "src/cockpitMath.js",
+      "src/data/iconOrientation.js",
+      "src/data/militaryAwarenessEngine.js",
+      "src/layers/awareness/controls.js",
+      "src/layers/awareness/dependencies.js",
+      "src/layers/awareness/focus.js",
+      "src/layers/awareness/history.js",
+      "src/layers/awareness/index.js",
+      "src/layers/awareness/ingestion.js",
+      "src/layers/awareness/lifecycle.js",
+      "src/layers/awareness/model.js",
+      "src/layers/awareness/navigation.js",
+      "src/layers/awareness/panel.js",
+      "src/layers/awareness/policy.js",
+      "src/layers/awareness/queries.js",
+      "src/layers/awareness/rendering.js",
+      "src/layers/awareness/state.js",
+      "src/layers/awareness/subject.js",
+      "src/layers/awareness/testing.js",
+      "src/ui/panelRailGeometry.js"
+    ],
+    "external": ["cesium"]
   }
 }

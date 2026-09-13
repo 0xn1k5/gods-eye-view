@@ -1,5 +1,12 @@
 # Changelog
 
+## Installation and context components
+
+- Separate mapped-site requests, records, placement, selection and viewport lifecycle.
+- Separate proximity queries, subject tracking, navigation/history, panel and direction rendering.
+- Retain source and ground-floor ownership in standalone composition; reject malformed
+  installation snapshots and ignore failures from cancelled requests.
+
 ## Satellite and mission layer components
 
 - Separate catalog loading, orbit calculations, display, tracking and interaction

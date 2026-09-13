@@ -150,6 +150,8 @@
     "./layers/earthquakes": "./src/layers/earthquakes/index.js",
     "./layers/firms": "./src/layers/firms/index.js",
     "./layers/satellites": "./src/layers/satellites/index.js",
-    "./layers/launches": "./src/layers/launches/index.js"
+    "./layers/launches": "./src/layers/launches/index.js",
+    "./layers/installations": "./src/layers/installations/index.js",
+    "./layers/awareness": "./src/layers/awareness/index.js"
   }
 }
