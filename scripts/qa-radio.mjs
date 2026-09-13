@@ -2036,6 +2036,11 @@ async function main() {
         // qa-cockpit-utility exercises scheduling with the real controller.
         manager.cockpitView.scheduleContextLayout();
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        // The paused synthetic controller also needs the accordion pass after
+        // the Context/HUD obstacle rectangles have settled. Measuring the old
+        // corridor here races the left lane against the newly visible card.
+        manager._syncLeftPanelAdaptiveLayout();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       };
       const prior = {
         cockpit: document.body.classList.contains('cockpit-mode'),
