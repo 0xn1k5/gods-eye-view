@@ -307,5 +307,21 @@
   "src/layers/earthquakes/index.js",
   "src/layers/earthquakes/model.js",
   "src/layers/earthquakes/source.js",
-  "src/layers/earthquakes/ownership.test.mjs"
+  "src/layers/earthquakes/ownership.test.mjs",
+  "src/data/firmsHeatmap.js",
+  "src/data/fireAnchors.js",
+  "src/layers/firms/anchors.js",
+  "src/layers/firms/cards.js",
+  "src/layers/firms/index.js",
+  "src/layers/firms/ingestion.js",
+  "src/layers/firms/lifecycle.js",
+  "src/layers/firms/model.js",
+  "src/layers/firms/policy.js",
+  "src/layers/firms/queries.js",
+  "src/layers/firms/rendering.js",
+  "src/layers/firms/selection.js",
+  "src/layers/firms/source.js",
+  "src/layers/firms/state.js",
+  "src/layers/firms/viewport.js",
+  "src/layers/firms/source.test.mjs"
 ]
