@@ -1,5 +1,11 @@
 # Changelog
 
+## Earthquake components
+
+- Separate earthquake snapshot loading, record validation, and display ownership.
+- Cancel pending earthquake refreshes on disable or destruction, retaining the
+  last good snapshot after malformed or failed refreshes.
+
 ## September 8, 2026
 
 Earthquake refreshes validate the complete feed and construct replacement entities before clearing the previous snapshot. Malformed rows and duplicate rendered IDs retain the last good entities, overlays, count and timestamp and report a malformed response; unknown magnitude is excluded from M2.5+ rendering.

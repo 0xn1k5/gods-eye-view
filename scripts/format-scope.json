@@ -302,5 +302,10 @@
   "src/layers/vessels/store.js",
   "src/layers/vessels/testing.js",
   "src/layers/vessels/tracking.js",
-  "src/layers/vessels/ownership.test.mjs"
+  "src/layers/vessels/ownership.test.mjs",
+  "src/data/earthquakes.js",
+  "src/layers/earthquakes/index.js",
+  "src/layers/earthquakes/model.js",
+  "src/layers/earthquakes/source.js",
+  "src/layers/earthquakes/ownership.test.mjs"
 ]

@@ -685,5 +685,14 @@
       "src/data/vesselLabels.js"
     ],
     "external": ["cesium"]
+  },
+  "earthquakes": {
+    "exports": ["./layers/earthquakes"],
+    "modules": [
+      "src/layers/earthquakes/index.js",
+      "src/layers/earthquakes/model.js",
+      "src/layers/earthquakes/source.js"
+    ],
+    "external": ["cesium"]
   }
 }
