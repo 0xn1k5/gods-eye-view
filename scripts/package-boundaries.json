@@ -808,5 +808,53 @@
       "src/ui/panelRailGeometry.js"
     ],
     "external": ["cesium"]
+  },
+  "traffic-layer": {
+    "exports": ["./layers/traffic"],
+    "modules": [
+      "src/data/flowMatch.js",
+      "src/data/tomtomTiles.js",
+      "src/data/trafficBounds.js",
+      "src/data/trafficFlowStyle.js",
+      "src/data/trafficPresetStyle.js",
+      "src/data/trafficQueue.js",
+      "src/layers/traffic/animation.js",
+      "src/layers/traffic/controls.js",
+      "src/layers/traffic/flow.js",
+      "src/layers/traffic/flowDecode.js",
+      "src/layers/traffic/flowSource.js",
+      "src/layers/traffic/index.js",
+      "src/layers/traffic/ingestion.js",
+      "src/layers/traffic/lifecycle.js",
+      "src/layers/traffic/model.js",
+      "src/layers/traffic/policy.js",
+      "src/layers/traffic/rendering.js",
+      "src/layers/traffic/source.js",
+      "src/layers/traffic/state.js",
+      "src/layers/traffic/style.js",
+      "src/layers/traffic/timing.js",
+      "src/layers/traffic/viewport.js"
+    ],
+    "external": ["cesium", "pbf", "@mapbox/vector-tile"]
+  },
+  "bikeshare-layer": {
+    "exports": ["./layers/bikeshare"],
+    "modules": [
+      "src/layers/bikeshare/controls.js",
+      "src/layers/bikeshare/index.js",
+      "src/layers/bikeshare/ingestion.js",
+      "src/layers/bikeshare/lifecycle.js",
+      "src/layers/bikeshare/model.js",
+      "src/layers/bikeshare/policy.js",
+      "src/layers/bikeshare/queries.js",
+      "src/layers/bikeshare/registry.js",
+      "src/layers/bikeshare/rendering.js",
+      "src/layers/bikeshare/selection.js",
+      "src/layers/bikeshare/source.js",
+      "src/layers/bikeshare/state.js",
+      "src/layers/bikeshare/testing.js",
+      "src/layers/bikeshare/viewport.js"
+    ],
+    "external": ["cesium"]
   }
 }
