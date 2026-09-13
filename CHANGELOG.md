@@ -1,5 +1,11 @@
 # Changelog
 
+## Camera layer components
+
+- Separate camera source requests, placement, frames, projection, cards and calibration.
+- Own visibility listeners and pending initialization within each layer lifetime.
+- Preserve existing camera catalogs, URL families, geometry and playback behavior.
+
 ## Traffic and bikeshare components
 
 - Separate traffic loading, animation, styling and lifecycle into factory-owned components.

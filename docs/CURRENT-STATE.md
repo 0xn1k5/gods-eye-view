@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+CCTV exposes a factory through `./layers/cctv`. Catalog and health requests,
+frame/media URLs, camera records, ground placement, geometry queues, playback,
+projection, cards, calibration and interaction have separate components. The
+standalone entry supplies application-owned scene, ground and activation services.
+Each layer owns its state and visibility listener; destruction cancels source
+reads and pending initialization. Malformed health responses retain prior health.
+Existing catalog fallback, camera poses, frame pacing and coverage controls remain.
+
 Traffic and bikeshare expose factories through `./layers/traffic` and
 `./layers/bikeshare`. Traffic separates road requests, ingestion, animation,
 flow matching, styling, viewport lifecycle and development timing. Each source
