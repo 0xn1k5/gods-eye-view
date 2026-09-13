@@ -857,5 +857,41 @@
       "src/layers/bikeshare/viewport.js"
     ],
     "external": ["cesium"]
+  },
+  "cctv-layer": {
+    "exports": ["./layers/cctv"],
+    "modules": [
+      "src/data/cctvCards.js",
+      "src/data/cctvGizmo.js",
+      "src/data/cctvLod.js",
+      "src/data/cctvViewshed.js",
+      "src/data/iconOrientation.js",
+      "src/data/trackingClickGesture.js",
+      "src/layers/cctv/calibration.js",
+      "src/layers/cctv/cards.js",
+      "src/layers/cctv/catalog.js",
+      "src/layers/cctv/controls.js",
+      "src/layers/cctv/frames.js",
+      "src/layers/cctv/geometry.js",
+      "src/layers/cctv/geometryQueue.js",
+      "src/layers/cctv/ground.js",
+      "src/layers/cctv/health.js",
+      "src/layers/cctv/hover.js",
+      "src/layers/cctv/index.js",
+      "src/layers/cctv/ingestion.js",
+      "src/layers/cctv/lifecycle.js",
+      "src/layers/cctv/model.js",
+      "src/layers/cctv/navigation.js",
+      "src/layers/cctv/policy.js",
+      "src/layers/cctv/presentation.js",
+      "src/layers/cctv/projection.js",
+      "src/layers/cctv/rendering.js",
+      "src/layers/cctv/selection.js",
+      "src/layers/cctv/source.js",
+      "src/layers/cctv/state.js",
+      "src/layers/cctv/testing.js",
+      "src/overlays/worldOverlayTokens.js"
+    ],
+    "external": ["cesium"]
   }
 }

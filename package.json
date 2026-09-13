@@ -154,6 +154,7 @@
     "./layers/installations": "./src/layers/installations/index.js",
     "./layers/awareness": "./src/layers/awareness/index.js",
     "./layers/traffic": "./src/layers/traffic/index.js",
-    "./layers/bikeshare": "./src/layers/bikeshare/index.js"
+    "./layers/bikeshare": "./src/layers/bikeshare/index.js",
+    "./layers/cctv": "./src/layers/cctv/index.js"
   }
 }
