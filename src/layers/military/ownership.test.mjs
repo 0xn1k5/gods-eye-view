@@ -4,24 +4,51 @@ import { createMilitaryFlightLayer } from './index.js';
 import { createFlightState } from './state.js';
 
 function services() {
-  const names = ['picking', 'sprites', 'trails', 'aircraftPresentation', 'camera',
-    'militaryRegistry', 'labels', 'groundFloor', 'meshFloor', 'geoid', 'focus',
-    'readout', 'context', 'render', 'recession'];
-  return { ...Object.fromEntries(names.map((name) => [name, {}])),
-    groundSnap: { createGroundSnap: () => ({ clear() {} }) } };
+  const names = [
+    'picking',
+    'sprites',
+    'trails',
+    'aircraftPresentation',
+    'camera',
+    'militaryRegistry',
+    'labels',
+    'groundFloor',
+    'meshFloor',
+    'geoid',
+    'focus',
+    'readout',
+    'context',
+    'render',
+    'recession',
+  ];
+  return {
+    ...Object.fromEntries(names.map((name) => [name, {}])),
+    groundSnap: { createGroundSnap: () => ({ clear() {} }) },
+  };
 }
 
 test('military layer instances isolate policy and restoration state without requesting a source', async () => {
   let requests = 0;
-  const source = { label: 'Fixture aircraft', getSnapshot() { requests++; } };
+  const source = {
+    label: 'Fixture aircraft',
+    getSnapshot() {
+      requests++;
+    },
+  };
   const first = createMilitaryFlightLayer({ source, services: services() });
   const second = createMilitaryFlightLayer({ source, services: services() });
   first.setParams({ models3dMode: 'all' });
   assert.equal(first.getParams().models3dMode, 'all');
   assert.equal(second.getParams().models3dMode, 'proximity');
   first.testing._setMilitaryTrackingRefreshOutcomeForTest({ ids: [] });
-  assert.equal((await first.resolveTrackingRestoreTarget('abc123')).status, 'missing');
-  assert.equal((await second.resolveTrackingRestoreTarget('abc123')).status, 'source-unavailable');
+  assert.equal(
+    (await first.resolveTrackingRestoreTarget('abc123')).status,
+    'missing',
+  );
+  assert.equal(
+    (await second.resolveTrackingRestoreTarget('abc123')).status,
+    'source-unavailable',
+  );
   assert.equal(requests, 0);
 });
 
@@ -33,8 +60,16 @@ test('military source omission fails before viewer initialization', () => {
 test('military state owns separate contact maps, motion scratch and ground sampling', () => {
   const first = createFlightState({ services: services() });
   const second = createFlightState({ services: services() });
-  for (const key of ['_flightData', '_billboards', '_positionHistory', '_groundSnap',
-    '_scratchCarto', '_models', '_activeUpdateControllers', 'lifetime']) {
+  for (const key of [
+    '_flightData',
+    '_billboards',
+    '_positionHistory',
+    '_groundSnap',
+    '_scratchCarto',
+    '_models',
+    '_activeUpdateControllers',
+    'lifetime',
+  ]) {
     assert.notEqual(first[key], second[key], key);
   }
 });
@@ -45,12 +80,23 @@ test('a normalized source can retain its stale reason without changing standalon
   supplied.groundFloor.warmGroundFloor = async () => {};
   supplied.meshFloor.sampleMeshFloorCells = () => {};
   supplied.militaryRegistry.registerMilitaryIcaos = () => {};
-  const layer = createMilitaryFlightLayer({ services: supplied, source: {
-    label: 'Fixture aircraft', async getSnapshot() { return {
-      source: 'Fixture aircraft', records: [], complete: true,
-      observedAtMs: 123000, stale: true, freshness: 'stale', reason,
-    }; },
-  } });
+  const layer = createMilitaryFlightLayer({
+    services: supplied,
+    source: {
+      label: 'Fixture aircraft',
+      async getSnapshot() {
+        return {
+          source: 'Fixture aircraft',
+          records: [],
+          complete: true,
+          observedAtMs: 123000,
+          stale: true,
+          freshness: 'stale',
+          reason,
+        };
+      },
+    },
+  });
   await layer.update({});
   assert.equal(layer.getStats().error, reason);
   assert.equal(layer.getStats().lastUpdate, 123000);

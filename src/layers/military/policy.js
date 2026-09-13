@@ -1,6 +1,5 @@
 import * as Cesium from 'cesium';
 
-
 /**
  * @module militaryFlights
  * @description Real-time military flight tracking layer powered by the adsb.lol API.
@@ -30,7 +29,6 @@ export const POSITION_HISTORY_LIMIT = 5;
 
 export const BILLBOARD_SCALE = 0.7;
 
-
 /** @constant {Cesium.Color} Default amber tint for untracked military billboards */
 
 export const MIL_ICON_COLOR = Cesium.Color.fromCssColorString('#FFB800');
@@ -38,7 +36,6 @@ export const MIL_ICON_COLOR = Cesium.Color.fromCssColorString('#FFB800');
 /** @constant {Cesium.Color} Lighter amber tint applied to the actively tracked aircraft */
 
 export const TRACKED_ICON_COLOR = Cesium.Color.fromCssColorString('#FFD166');
-
 
 // --- Ground traffic (owner reversal 2026-07-03; mirror of flights.js) ---------------
 // adsb.lol/readsb flags ground traffic with alt_baro === "ground" (no separate
@@ -58,7 +55,6 @@ export const TRACKED_ICON_COLOR = Cesium.Color.fromCssColorString('#FFD166');
 
 export const GROUND_SCALE = 0.8;
 
-
 // --- 3D model rendering (mirrors flights.js) -----------------------------------------
 // When enabled, military aircraft render as 3D glTF jet models once the camera is below
 // MODEL_ALT_CEIL_M (zoomed in); higher up they stay flat billboards. Eligibility is
@@ -69,18 +65,17 @@ export const GROUND_SCALE = 0.8;
 
 export const JET_MODEL_URL = '/models/jet.glb';
 
-
 export const MODEL_ALT_CEIL_M = 800000;
- // m: below this camera altitude, draw 3D models (raised so it's easy to trigger)
+// m: below this camera altitude, draw 3D models (raised so it's easy to trigger)
 
 export const MODEL_MIN_PX = 24;
-        // floor so distant models stay visible without ballooning into a min-pixel blob (mirror of flights.js, whose models now share this layer's ~30 m world size)
+// floor so distant models stay visible without ballooning into a min-pixel blob (mirror of flights.js, whose models now share this layer's ~30 m world size)
 
 export const TRACKED_MODEL_MIN_PX = 40;
- // keep the glTF silhouette comparable to the selected 2D glyph at handoff
+// keep the glTF silhouette comparable to the selected 2D glyph at handoff
 
 export const TRACKED_MODEL_MAX_PX = 200;
- // owner-selected close-range tracked-target feel
+// owner-selected close-range tracked-target feel
 
 export const MODEL_NATIVE_RADIUS_M = 29.83;
 
@@ -97,32 +92,32 @@ export const MODEL_SCALE = 1;
 // and All aren't identical when few planes are in range; on-screen planes win the cap (see flights.js).
 
 export const MODEL_MAX = 150;
-          // 'proximity' cap
+// 'proximity' cap
 
 export const MODEL_MAX_ALL = 350;
-      // 'all' cap
+// 'all' cap
 
-export const MODEL_PROX_ADD_M  = 150000;
-  // proximity: model NEW planes within 150 km
+export const MODEL_PROX_ADD_M = 150000;
+// proximity: model NEW planes within 150 km
 
 export const MODEL_PROX_KEEP_M = 185000;
-  // proximity: KEEP modeled planes out to 185 km
+// proximity: KEEP modeled planes out to 185 km
 
 // Cockpit keeps the standard Display radii but lowers the GLB budget. Contacts
 // inside the selected band remain AIR silhouettes when they cannot own a model;
 // contacts outside the band use compact dots.
 
 export const COCKPIT_MODEL_MAX = 60;
-         // max concurrent GLBs in cockpit (never raises the map cap)
+// max concurrent GLBs in cockpit (never raises the map cap)
 
-export const MODEL_ALL_ADD_M   = 400000;
-  // all: model NEW planes within 400 km (~to the horizon)
+export const MODEL_ALL_ADD_M = 400000;
+// all: model NEW planes within 400 km (~to the horizon)
 
-export const MODEL_ALL_KEEP_M  = 450000;
-  // all: KEEP modeled planes out to 450 km
+export const MODEL_ALL_KEEP_M = 450000;
+// all: KEEP modeled planes out to 450 km
 
 export const MODEL_HEADING_OFFSET_DEG = 180;
- // every aircraft GLB is exported nose -X in the shared transform-applied convention
+// every aircraft GLB is exported nose -X in the shared transform-applied convention
 // Preserve the layer's amber identity while reducing approved texture/livery
 // contribution to a weak diffuse hint, matching civilian launch presentation.
 
@@ -134,12 +129,9 @@ export const MODEL_COLOR_BLEND_AMOUNT = 0.94;
 
 export const PLANE_MODEL_URL = '/models/airplane.glb';
 
-
 export const PLANE_MODEL_SCALE = 1;
 
-
 export const PLANE_NATIVE_RADIUS_M = 34.41;
-
 
 export const PLANE_BELLY_OFFSET_NATIVE = 6.719;
 
@@ -156,15 +148,14 @@ export const MODEL_BELLY_OFFSET_NATIVE = 5.631;
 
 export const AMBER_TRANSPARENT = MIL_ICON_COLOR.withAlpha(0);
 
-
-
 export const COCKPIT_CONTACT_SIZE_PX = 6;
 
-
 export const TRACKED_BILLBOARD_SCALE_BY_DISTANCE = new Cesium.NearFarScalar(
-  1000, 3.0, 8000000, 0.5,
+  1000,
+  3.0,
+  8000000,
+  0.5,
 );
-
 
 // ---------------------------------------------------------------------------
 // Track-history trail state (PRD WS-F F2/F4): a fading polyline behind the
@@ -180,7 +171,6 @@ export const TRAIL_COLOR = '#FFB800';
 /** @constant {number} Combined cap on trail vertices (backfill + live accumulation). */
 
 export const TRAIL_MAX_POINTS = 400;
-
 
 // ---------------------------------------------------------------------------
 // Render-behind smoothing (mirrors flights.js): the fleet renders at
@@ -229,7 +219,6 @@ export const LANDED_MISSING_POLL_LIMIT = 1;
 
 export const GROUND_FLOOR_WARM_MAX_ALT_M = 4500;
 
-
 // ---------------------------------------------------------------------------
 // Nadir-stable icon orientation (mirrors flights.js): surface-normal alignment
 // degenerates when the camera looks straight down (the normal is parallel to
@@ -258,14 +247,12 @@ export const COURSE_MAX_DPS = 60;
 
 export const COURSE_SLEW_DT_MAX_SEC = 0.25;
 
-
 // -- Tracked-display reconciliation (see flights.js for the rationale): absorb a raw
 // position step (warm-up→interpolation handoff, feed glitch, backfill splice) into a
 // correction offset that decays to zero over DR_CORRECTION_MS, so the tracked icon,
 // camera, and trail head never visibly jump — with zero steady-state lag. --
 
 export const DR_CORRECTION_MS = 900;
-
 
 /** Bounded on-demand loading for the tracked model (mirror of flights.js). The
  *  tracked regime is DEFAULT-ON and its driver runs every `scene.preUpdate`, so
@@ -278,7 +265,6 @@ export const DR_CORRECTION_MS = 900;
  *  pre-3D presentation. */
 
 export const TRACKED_MODEL_MAX_LOAD_FAILS = 3;
-
 
 export const TRACKED_MODEL_RETRY_BACKOFF_MS = 1500;
 

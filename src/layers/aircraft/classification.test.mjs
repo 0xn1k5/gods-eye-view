@@ -4,7 +4,11 @@ import { createMilitaryRegistry } from './classification.js';
 
 test('classification instances have independent identities, listeners and active states', () => {
   let requests = 0;
-  const source = { getSnapshot() { requests++; } };
+  const source = {
+    getSnapshot() {
+      requests++;
+    },
+  };
   const first = createMilitaryRegistry({ source });
   const second = createMilitaryRegistry({ source });
   let firstEvents = 0;
@@ -26,9 +30,15 @@ test('classification instances have independent identities, listeners and active
 test('classification uses normalized identities and respects its polling interval and active layer', async () => {
   let time = 120000;
   let calls = 0;
-  const registry = createMilitaryRegistry({ now: () => time, source: {
-    async getSnapshot() { calls++; return { records: [{ id: 'abc123' }] }; },
-  } });
+  const registry = createMilitaryRegistry({
+    now: () => time,
+    source: {
+      async getSnapshot() {
+        calls++;
+        return { records: [{ id: 'abc123' }] };
+      },
+    },
+  });
   await registry.refreshMilitaryRegistryIfStale();
   await registry.refreshMilitaryRegistryIfStale();
   assert.equal(calls, 1);
@@ -48,15 +58,29 @@ test('source replacement rejects an old response and disposal cancels the curren
   let resolveNew;
   let oldSignal;
   let newSignal;
-  const registry = createMilitaryRegistry({ source: {
-    getSnapshot(query, { signal }) { oldSignal = signal; return new Promise((resolve) => { resolveOld = resolve; }); },
-  } });
+  const registry = createMilitaryRegistry({
+    source: {
+      getSnapshot(query, { signal }) {
+        oldSignal = signal;
+        return new Promise((resolve) => {
+          resolveOld = resolve;
+        });
+      },
+    },
+  });
   const old = registry.refreshMilitaryRegistryIfStale();
   const application = new AbortController();
-  registry.configureSource({ getSnapshot(query, { signal }) {
-    newSignal = signal;
-    return new Promise((resolve) => { resolveNew = resolve; });
-  } }, { signal: application.signal });
+  registry.configureSource(
+    {
+      getSnapshot(query, { signal }) {
+        newSignal = signal;
+        return new Promise((resolve) => {
+          resolveNew = resolve;
+        });
+      },
+    },
+    { signal: application.signal },
+  );
   const current = registry.refreshMilitaryRegistryIfStale();
   resolveOld({ records: [{ id: 'abc123' }] });
   await old;
@@ -73,9 +97,15 @@ test('source replacement rejects an old response and disposal cancels the curren
 test('a failed classification source preserves known identities and makes no fallback request', async () => {
   let time = 120000;
   let calls = 0;
-  const registry = createMilitaryRegistry({ now: () => time, source: {
-    async getSnapshot() { calls++; throw new Error('fixture source unavailable'); },
-  } });
+  const registry = createMilitaryRegistry({
+    now: () => time,
+    source: {
+      async getSnapshot() {
+        calls++;
+        throw new Error('fixture source unavailable');
+      },
+    },
+  });
   registry.registerMilitaryIcaos(['abc123']);
   time += 60000;
   await assert.doesNotReject(registry.refreshMilitaryRegistryIfStale());

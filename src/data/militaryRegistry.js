@@ -7,4 +7,5 @@ export const setMilitaryLayerActive = registry.setMilitaryLayerActive;
 export const onMilitaryLayerActiveChange = registry.onMilitaryLayerActiveChange;
 export const registerMilitaryIcaos = registry.registerMilitaryIcaos;
 export const isMilitaryIcao = registry.isMilitaryIcao;
-export const refreshMilitaryRegistryIfStale = registry.refreshMilitaryRegistryIfStale;
+export const refreshMilitaryRegistryIfStale =
+  registry.refreshMilitaryRegistryIfStale;
