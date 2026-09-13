@@ -382,7 +382,7 @@ test('vessel and fire layers announce valid clicks and never fly cameras', () =>
   }
   const vesselClick = body(
     vessels,
-    /handler\.setInputAction\(\(click\) => \{([\s\S]*?)\n  \}, Cesium\.ScreenSpaceEventType\.LEFT_CLICK\);/,
+    /handler\.setInputAction\(\s*\(click\) => \{([\s\S]*?)\n\s*\},\s*Cesium\.ScreenSpaceEventType\.LEFT_CLICK,?\s*\);/,
     'vessel click',
   );
   ordered(vesselClick, [
@@ -392,7 +392,7 @@ test('vessel and fire layers announce valid clicks and never fly cameras', () =>
   ], 'vessel sibling ownership');
   const vesselFocus = body(
     vessels,
-    /function selectAndFocusVessel\(record\) \{([\s\S]*?)\n\}/,
+    /function selectAndFocusVessel\(record\) \{([\s\S]*?)\n  \}/,
     'vessel focus helper',
   );
   assert.match(vesselFocus, /requestWorldFocus\(\{/);
