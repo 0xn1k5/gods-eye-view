@@ -17,6 +17,7 @@ export function readLayerSource(file) {
       'militaryAwareness.js',
       'traffic.js',
       'bikeshare.js',
+      'cctv.js',
     ].includes(basename(path))
   )
     return readFileSync(path, 'utf8');
@@ -40,7 +41,9 @@ export function readLayerSource(file) {
                     ? '../layers/traffic'
                     : basename(path) === 'bikeshare.js'
                       ? '../layers/bikeshare'
-                      : '../layers/vessels',
+                      : basename(path) === 'cctv.js'
+                        ? '../layers/cctv'
+                        : '../layers/vessels',
   );
   return readdirSync(directory)
     .filter((name) => name.endsWith('.js'))
