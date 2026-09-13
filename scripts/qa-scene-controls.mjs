@@ -192,6 +192,13 @@ try {
         window.__godsEyeView.styleManager.getControlState().recording,
     ),
   );
+  // A focused panel owns Escape to collapse one level. Release panel focus
+  // before testing the global playback shortcut; the canvas is not tabbable.
+  await page.evaluate(() => document.activeElement?.blur());
+  check(
+    'global playback shortcut has document focus',
+    await page.evaluate(() => document.activeElement === document.body),
+  );
   await page.keyboard.press('Escape');
   await page.waitForFunction(
     () =>
@@ -208,6 +215,15 @@ try {
         !window.__godsEyeView.styleManager.getControlState().recording,
     ),
   );
+  // Escape can also collapse the Scene accordion. Reopen it through its
+  // installed disclosure before testing the next visible user action.
+  if (
+    await page.$eval('#scene-panel', (panel) =>
+      panel.classList.contains('collapsed'),
+    )
+  )
+    await page.click('[data-collapse-target="scene-panel"]');
+  await page.waitForSelector('#scene-download-btn', { visible: true });
   await page.click('#scene-download-btn');
   const metadata = await page.evaluate(async () =>
     JSON.parse(await window.__sceneExports.at(-1)),
