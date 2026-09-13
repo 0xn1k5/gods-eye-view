@@ -3292,3 +3292,14 @@ Cesium post-render events over one-second windows and does not request extra
 frames. Typing fields, modified keys and key repeats do not toggle it. The
 readout starts hidden each session and releases its timer and frame listener
 when hidden or when the application is disposed.
+
+
+## Radio components
+
+The radio entry composes one layer from directory ingestion, station queries,
+selection, globe rendering and playback modules. Its source supplies directory
+metadata and click reporting; scene, ground and overlay services are provided
+explicitly. Each constructed layer owns its catalog, audio and lifecycle state.
+Existing catalog validation, category filters, tuning and voice playback behavior
+remain unchanged. Audio connects directly to the broadcaster after an explicit
+play action; the source does not relay or record streams.

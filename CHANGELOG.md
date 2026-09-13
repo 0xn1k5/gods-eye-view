@@ -59,6 +59,8 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+- Separate radio directory loading, station selection, globe presentation and playback into composed components with an explicit metadata source.
+
 ### Fixed
 
 - Traffic now retries a failed destination after city navigation without a layer
