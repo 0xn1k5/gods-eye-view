@@ -47,6 +47,13 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+### Fixed
+
+- Traffic now retries a failed destination after city navigation without a layer
+  toggle. Camera departure cancels pending work, arrival checks the final view,
+  and superseded requests cannot keep a newer view loading.
+
+
 - Extract vessel feed, store, rendering, selection, trail and card components with explicit source and scene services.
 - Bound contact retention for incomplete vessel observations, preserve source freshness and refresh history references in place.
 - Cancel pending vessel history during selection and layer teardown.

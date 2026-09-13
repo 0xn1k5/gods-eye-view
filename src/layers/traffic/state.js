@@ -32,6 +32,7 @@ export function createState({ services }) {
   /** @type {Function|null} Disposer returned by camera.changed event subscription */
 
   layerState._cameraRemover = null;
+  layerState._arrivalRemover = null;
 
   /** @type {ReturnType<typeof setTimeout>|null} Debounce timer for camera-change fetch */
 
@@ -215,6 +216,11 @@ export function createState({ services }) {
   /** @type {ReturnType<typeof setInterval>|null} Enable-time retry until the first load commits. */
 
   layerState._enableKickTimer = null;
+  // Failed destinations retry while parked, with a bounded backoff.
+  layerState._retryTimer = null;
+  layerState._retryDelayMs = 1500;
+  layerState._retryBoundsKey = null;
+  layerState._roadError = null;
 
   /** @type {number} 0–100 int — matched roads / roads with any flow candidates */
 
