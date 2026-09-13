@@ -1,3 +1,4 @@
+import { readLayerSource } from './testSupport/readLayerSource.mjs';
 import { readStylesheet } from './testSupport/readStylesheet.mjs';
 import { readFileSync as readRadioSource } from 'node:fs';
 const radioBindings = readRadioSource(new URL('./ui/radioBindings.js', import.meta.url), 'utf8');
@@ -11,7 +12,7 @@ import test from 'node:test';
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const ui = readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8');
 const radio = readFileSync(new URL('./data/radio.js', import.meta.url), 'utf8');
-const rocketLaunches = readFileSync(new URL('./data/rocketLaunches.js', import.meta.url), 'utf8');
+const rocketLaunches = readLayerSource(new URL('./data/rocketLaunches.js', import.meta.url), 'utf8');
 const realtime = readFileSync(new URL('./voice/gevRealtime.js', import.meta.url), 'utf8');
 const voice = ['tools', 'instructions'].map(name => readFileSync(new URL(`../server/providers/openai/${name}.js`, import.meta.url), 'utf8')).join('\n');
 const css = readStylesheet(new URL('../style.css', import.meta.url));
