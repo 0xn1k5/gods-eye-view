@@ -3269,3 +3269,11 @@ while the camera is stationary, backing off from 1.5 to 30 seconds. Failed road
 requests report an unavailable source. Leaving the traffic altitude range or
 disabling the layer cancels pending work; superseded road and flow requests cannot
 release the current request or keep its loading indicator active.
+
+### Optional frame-rate readout
+
+Backtick (`) toggles an FPS readout beneath the title logo. It counts actual
+Cesium post-render events over one-second windows and does not request extra
+frames. Typing fields, modified keys and key repeats do not toggle it. The
+readout starts hidden each session and releases its timer and frame listener
+when hidden or when the application is disposed.

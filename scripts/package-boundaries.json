@@ -520,7 +520,8 @@
       "src/ui/visualPresets.js",
       "src/worldFocus.js",
       "src/ui/uiLifetime.js",
-      "src/app/stateChannel.js"
+      "src/app/stateChannel.js",
+      "src/ui/frameRateMonitor.js"
     ],
     "external": ["cesium"]
   },
