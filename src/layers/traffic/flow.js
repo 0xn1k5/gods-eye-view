@@ -131,7 +131,8 @@ export function createFlow({ state: layerState, services, parts, source }) {
         );
       }
     } finally {
-      layerState._flowPending -= 1;
+      if (generation === layerState._loadGeneration)
+        layerState._flowPending -= 1;
     }
   }
 

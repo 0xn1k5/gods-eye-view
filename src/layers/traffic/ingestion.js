@@ -158,10 +158,21 @@ export function createIngestion({
     // Increment generation to invalidate any in-flight responses from prior calls
     const generation = ++layerState._loadGeneration;
     cancelActiveFetch();
+    clearTimeout(layerState._retryTimer);
+    layerState._retryTimer = null;
+    layerState._flowPending = 0;
+    layerState._activeFetchAbort = new AbortController();
+    const requestSignal = layerState._activeFetchAbort.signal;
     const clamped = parts.viewport.clampBounds(bounds);
 
     // Cache key: fixed-precision bounding-box string for deterministic lookups
     const cacheKey = `${clamped.south.toFixed(4)},${clamped.west.toFixed(4)},${clamped.north.toFixed(4)},${clamped.east.toFixed(4)}`;
+
+    if (cacheKey !== layerState._retryBoundsKey) {
+      layerState._retryBoundsKey = cacheKey;
+      layerState._retryDelayMs = 1500;
+    }
+    layerState._roadError = null;
 
     // Live mode: warm the flow-tile cache CONCURRENTLY with the Overpass road
     // fetch — sequential fetches doubled first-paint latency (field-test
@@ -172,7 +183,7 @@ export function createIngestion({
         layerState._enabled &&
         generation === layerState._loadGeneration
       ) {
-        fetchFlowForBounds(clamped, {}).catch(() => {
+        fetchFlowForBounds(clamped, { signal: requestSignal }).catch(() => {
           /* warm-up only */
         });
       }
@@ -233,7 +244,6 @@ export function createIngestion({
         renderedSomething = true;
       } else {
         // Fetch major roads first (smaller payload, faster response)
-        layerState._activeFetchAbort = new AbortController();
         console.log(`[Data:Traffic] Fast fetch major roads [${cacheKey}]`);
         const majorData = await fetchRoads(
           clamped.south,
@@ -243,7 +253,7 @@ export function createIngestion({
           {
             majorOnly: true,
             timeoutSec: 12,
-            signal: layerState._activeFetchAbort.signal,
+            signal: requestSignal,
           },
           trace,
         );
@@ -268,7 +278,6 @@ export function createIngestion({
       if (altitude > FAST_FETCH_ALTITUDE) return;
 
       // Detailed pass: fetch the full road graph (tertiary, residential, etc.)
-      layerState._activeFetchAbort = new AbortController();
       console.log(`[Data:Traffic] Full fetch local roads [${cacheKey}]`);
       const fullData = await fetchRoads(
         clamped.south,
@@ -278,7 +287,7 @@ export function createIngestion({
         {
           majorOnly: false,
           timeoutSec: 20,
-          signal: layerState._activeFetchAbort.signal,
+          signal: requestSignal,
         },
         trace,
       );
@@ -299,6 +308,8 @@ export function createIngestion({
       renderedSomething = true;
     } catch (e) {
       if (e?.name === 'AbortError') return;
+      if (generation === layerState._loadGeneration && !renderedSomething)
+        layerState._roadError = 'Road data temporarily unavailable';
       console.warn('[Data:Traffic] Fetch error:', e);
     } finally {
       if (generation === layerState._loadGeneration) {
@@ -310,9 +321,23 @@ export function createIngestion({
         if (!renderedSomething) {
           layerState._lastBounds = prevBounds;
           layerState._lastViewCenter = prevViewCenter;
+          if (layerState._enabled) {
+            layerState._retryTimer = setTimeout(() => {
+              layerState._retryTimer = null;
+              parts.viewport.onCameraChanged();
+            }, layerState._retryDelayMs);
+            layerState._retryDelayMs = Math.min(
+              layerState._retryDelayMs * 2,
+              30000,
+            );
+          }
+        } else {
+          layerState._retryDelayMs = 1500;
         }
       }
-      layerState._activeFetchAbort = null;
+      // Keep this generation's controller until superseded or disabled: flow
+      // can still be running after its paint deadline. An older finally must
+      // never clear the controller belonging to a newer destination.
     }
   }
   const methods = {

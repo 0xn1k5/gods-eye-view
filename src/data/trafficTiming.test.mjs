@@ -239,7 +239,7 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
     });
     trafficLayer.enable(viewer);
     assert.equal(traffic.getTrafficTimingDiagnostics().marksInstalled, 1);
-    assert.equal(moveEnd.listenerCount(), 1, 'marksInstalled must represent a live listener');
+    assert.equal(moveEnd.listenerCount(), 2, 'one timing listener plus the production arrival check');
     assert.equal(performance.getEntriesByName('traffic:stale:mark').length, 0);
     assert.equal(performance.getEntriesByName('traffic:stale:measure').length, 0);
 

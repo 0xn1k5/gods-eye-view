@@ -154,7 +154,7 @@ export function createControls({ state: layerState, services, parts, source }) {
         lastUpdate: layerState._lastUpdate,
         loading,
         mode: feed.mode,
-        error: feed.error,
+        error: layerState._roadError || feed.error,
         flowCoveragePct: layerState._flowCoveragePct,
         tilesFetched: getFlowSessionStats().tilesFetched,
         ...(TRAFFIC_TIMING_ENABLED

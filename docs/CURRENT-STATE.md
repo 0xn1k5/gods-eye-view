@@ -3261,3 +3261,11 @@ nanoid 3.3.19. Cesium remains on 1.138.0. Browser QA uses Puppeteer 25.10.0;
 image-processing tools use Sharp 0.35.4. QA scripts await Puppeteer's asynchronous
 executable-path lookup before testing or passing the path to Chrome. Supported Node versions remain
 24.14.x and 26.x. Use `npm ci` to reproduce the checked-in dependency tree.
+
+### Traffic city navigation
+
+Traffic checks the final camera view on arrival and retries a failed road request
+while the camera is stationary, backing off from 1.5 to 30 seconds. Failed road
+requests report an unavailable source. Leaving the traffic altitude range or
+disabling the layer cancels pending work; superseded road and flow requests cannot
+release the current request or keep its loading indicator active.

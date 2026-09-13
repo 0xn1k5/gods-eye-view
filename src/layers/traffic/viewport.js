@@ -189,6 +189,14 @@ export function createViewport({ state: layerState, services, parts, source }) {
     // viewport hits the overlap/center-shift skip in step 3 and the dots
     // (cleared here) never reload (H5). Clearing the gate forces a fresh fetch.
     if (alt > ACTIVATION_ALTITUDE) {
+      clearTimeout(layerState._fetchTimeout);
+      clearTimeout(layerState._retryTimer);
+      layerState._retryTimer = null;
+      parts.ingestion.cancelActiveFetch();
+      layerState._loadGeneration++;
+      layerState._fetching = false;
+      layerState._flowPending = 0;
+      layerState._roadError = null;
       parts.animation.clearDots();
       layerState._lastBounds = null;
       layerState._lastViewCenter = null;

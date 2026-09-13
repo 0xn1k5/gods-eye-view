@@ -98,6 +98,11 @@ export function createLifecycle({
       // on the camera and leaving it mutated affects every other camera.changed
       // listener in the app.
       viewer.camera.changed.addEventListener(parts.viewport.onCameraChanged);
+      // Always inspect the final view, even when the last flight step is below
+      // camera.changed's movement threshold.
+      layerState._arrivalRemover = viewer.camera.moveEnd.addEventListener(
+        parts.viewport.onCameraChanged,
+      );
       layerState._prevPercentageChanged = viewer.camera.percentageChanged;
       viewer.camera.percentageChanged = 0.05;
 
@@ -117,7 +122,8 @@ export function createLifecycle({
           layerState._enableKickTimer = null;
           return;
         }
-        if (!layerState._fetching) parts.viewport.onCameraChanged();
+        if (!layerState._fetching && !layerState._retryTimer)
+          parts.viewport.onCameraChanged();
       }, 1500);
     },
 
@@ -133,8 +139,14 @@ export function createLifecycle({
       clearTimeout(layerState._fetchTimeout);
       clearInterval(layerState._enableKickTimer);
       layerState._enableKickTimer = null;
+      clearTimeout(layerState._retryTimer);
+      layerState._retryTimer = null;
+      layerState._retryDelayMs = 1500;
       parts.ingestion.cancelActiveFetch();
       layerState._loadGeneration++;
+      layerState._fetching = false;
+      layerState._flowPending = 0;
+      layerState._roadError = null;
       parts.animation.clearDots();
       layerState._lastViewCenter = null;
       // A stale outage from the last session would misreport a fresh enable —
@@ -155,6 +167,8 @@ export function createLifecycle({
       }
 
       viewer.camera.changed.removeEventListener(parts.viewport.onCameraChanged);
+      layerState._arrivalRemover?.();
+      layerState._arrivalRemover = null;
       // Restore the camera's global percentageChanged so other layers/listeners
       // keep their expected sensitivity.
       if (layerState._prevPercentageChanged != null) {
