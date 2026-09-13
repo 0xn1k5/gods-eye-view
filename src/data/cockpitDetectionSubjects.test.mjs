@@ -109,11 +109,11 @@ test('Cockpit lifecycle publishes one normalized aircraft identity to both detec
     ['commercial', FLIGHTS_SOURCE],
     ['military', MILITARY_SOURCE],
   ]) {
-    const consumer = /function (?:parts\.\w+\.)?_applyCockpitState\(detail = \{\}\) \{[\s\S]*?\n\}/
+    const consumer = /function\s*(?:parts\.\w+\.)?_applyCockpitState\(\s*detail\s*=\s*\{\},?\s*\)\s*\{[\s\S]*?\n {0,2}\}/
       .exec(source)?.[0];
     assert.ok(consumer, `${name} Cockpit consumer is defined`);
     assert.match(consumer, /detail\?\.subjectId/);
-    assert.match(consumer, /\.trim\(\)\.toLowerCase\(\)/);
+    assert.match(consumer, /\.trim\(\s*,?\s*\)\s*\.toLowerCase\(\s*,?\s*\)/);
     assert.doesNotMatch(consumer, /layerId/,
       `${name} must also suppress a duplicate subject originating in the sibling AIR feed`);
   }

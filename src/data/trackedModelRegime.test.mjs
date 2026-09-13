@@ -933,14 +933,14 @@ test('both layers gate the tracked-model load and record its failures', async ()
   const { readFile } = await import('node:fs/promises');
   for (const name of ['flights.js', 'militaryFlights.js']) {
     const source = readLayerSource(new URL(`./${name}`, import.meta.url));
-    assert.match(source, /!(?:flightState\.)?_trackedModel && !(?:flightState\.)?_trackedModelLoading && (?:parts\.\w+\.)?_trackedModelLoadAllowed\(\)/,
+    assert.match(source, /!(?:flightState\.)?_trackedModel\s*&&\s*!(?:flightState\.)?_trackedModelLoading\s*&&\s*(?:parts\.\w+\.)?_trackedModelLoadAllowed\(\s*,?\s*\)/,
       `${name}: the driver asks permission before starting another tracked-model load`);
-    assert.match(source, /(?:parts\.\w+\.)?_noteTrackedModelLoadFailure\(trackedSpec\.url, err\)/,
+    assert.match(source, /(?:parts\.\w+\.)?_noteTrackedModelLoadFailure\(\s*trackedSpec\.url,\s*err,?\s*\)/,
       `${name}: a rejected load is recorded against this selection, not silently retried`);
     // The reset must be reachable from the real teardown, not only a test seam.
-    assert.match(source, /(?:parts\.\w+\.)?_releaseTrackedModel\(\);\n  (?:parts\.\w+\.)?_resetTrackedSelectionState\(\);/,
+    assert.match(source, /(?:parts\.\w+\.)?_releaseTrackedModel\(\s*,?\s*\);\n\s*(?:parts\.\w+\.)?_resetTrackedSelectionState\(\s*,?\s*\);/,
       `${name}: deselect clears the per-selection latches in the production path`);
-    assert.match(source, /(?:flightState\.)?_trackedIcao = icao24;\n  (?:parts\.\w+\.)?_resetTrackedSelectionState\(\);/,
+    assert.match(source, /(?:flightState\.)?_trackedIcao\s*=\s*icao24;\n\s*(?:parts\.\w+\.)?_resetTrackedSelectionState\(\s*,?\s*\);/,
       `${name}: selecting a contact starts from a clean per-selection state`);
   }
 });
@@ -949,15 +949,15 @@ test('the tracked regime never consults the fleet models3d toggle', async () => 
   const { readFile } = await import('node:fs/promises');
   for (const name of ['flights.js', 'militaryFlights.js']) {
     const source = readLayerSource(new URL(`./${name}`, import.meta.url));
-    const regime = /function (?:parts\.\w+\.)?_trackedModelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    const regime = /^([ \t]*)function _trackedModelRegimeActive\b[\s\S]*?\n\1\}/m.exec(source)?.[0];
     assert.ok(regime, `${name}: _trackedModelRegimeActive is defined`);
-    assert.doesNotMatch(regime, /(?:flightState\.)?_models3dEnabled|(?:parts\.\w+\.)?_modelRegimeActive\(\)/,
+    assert.doesNotMatch(regime, /(?:flightState\.)?_models3dEnabled|(?:parts\.\w+\.)?_modelRegimeActive\(\s*,?\s*\)/,
       `${name}: the tracked contact's handoff is default-on, not gated on the fleet toggle`);
     assert.match(regime, /trackedModelZoomActive\(/,
       `${name}: the tracked contact uses the shared hysteretic zoom policy`);
     // The FLEET must still obey the toggle — the budget decision stays the operator's.
-    const fleet = /function (?:parts\.\w+\.)?_modelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
-    assert.match(fleet, /if \(!(?:flightState\.)?_models3dEnabled\) return false;/,
+    const fleet = /^([ \t]*)function _modelRegimeActive\b[\s\S]*?\n\1\}/m.exec(source)?.[0];
+    assert.match(fleet, /if\s*\(\s*!(?:flightState\.)?_models3dEnabled,?\s*\)\s*return\s*false;/,
       `${name}: the fleet regime still obeys the DISPLAY-rail 3D toggle`);
   }
 });

@@ -251,7 +251,7 @@ test('tracking layers write gevLabelModel and expose only their cached display p
     assert.ok(source.includes('.gevLabelModel ='), `${name} writes the explicit model directly`);
     assert.ok(source.includes('.gevDisplayPosition ='), `${name} exposes a display-position cache`);
   }
-  assert.match(sources['flights.js'], /gevDisplayPosition = parts\.motion\._trackedDisplayCached/);
+  assert.match(sources['flights.js'], /gevDisplayPosition\s*=\s*parts\.motion\._trackedDisplayCached/);
   assert.ok(sources['militaryFlights.js'].includes('gevDisplayPosition = _trackedDisplayCached'));
   assert.ok(sources['satellites.js'].includes('gevDisplayPosition = _trackedDisplayCached'));
   assert.equal(sources['flights.js'].includes('_trackedEntity.label.text'), false);
@@ -265,7 +265,7 @@ test('civilian and military trail heads use the lower-centre model anchor and we
   )));
   for (const [name, source] of files) {
     assert.ok(
-      (/const head = (?:parts\.motion\.)?_trackedTrailCached\(\) \|\| (?:parts\.motion\.)?_trackedDisplayPosition\((?:flightState\.)?_trackedIcao\);/).test(source),
+      (/const\s*head\s*=\s*(?:parts\.motion\.)?_trackedTrailCached\(\s*,?\s*\)\s*\|\|\s*(?:parts\.motion\.)?_trackedDisplayPosition\(\s*(?:flightState\.)?_trackedIcao,?\s*\);/).test(source),
       `${name} trail head uses the dedicated lower-centre model anchor`,
     );
     assert.ok(source.includes('const MODEL_COLOR_BLEND_AMOUNT = 0.94;'),

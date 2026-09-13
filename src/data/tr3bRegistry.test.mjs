@@ -238,13 +238,13 @@ test('both flight layers keep a converted contact 2D and visible (render invaria
     // (2026-08-19), so the suppression moved from a conjunct on
     // `_modelRegimeActive()` to an explicit early return. The invariant is
     // unchanged: a converted contact never reaches the model handoff.
-    assert.match(source, /if \(!(?:flightState\.)?_trackedIcao \|\| (?:flightState\.)?_cockpitContactMode \|\| isTr3b\((?:flightState\.)?_trackedIcao\)\) \{/,
+    assert.match(source, /if\s*\(\s*!(?:flightState\.)?_trackedIcao\s*\|\|\s*(?:flightState\.)?_cockpitContactMode\s*\|\|\s*isTr3b\(\s*(?:flightState\.)?_trackedIcao,?\s*\),?\s*\)\s*\{/,
       `${name}: the standalone tracked model is suppressed for a converted contact`);
 
     // 2. The billboard is never hidden by that suppression — it must keep
     //    satisfying the getNearby/getDetectableObjects visibility guards, so a
     //    converted contact still works in Contacts and Cockpit.
-    assert.match(source, /if \(bb && id !== (?:flightState\.)?_trackedIcao\) bb\.show = true;|if \(modelled && id !== (?:flightState\.)?_trackedIcao\) modelled\.show = true;/,
+    assert.match(source, /if\s*\(\s*bb\s*&&\s*id\s*!==\s*(?:flightState\.)?_trackedIcao,?\s*\)\s*bb\.show\s*=\s*true;|if\s*\(\s*modelled\s*&&\s*id\s*!==\s*(?:flightState\.)?_trackedIcao,?\s*\)\s*modelled\.show\s*=\s*true;/,
       `${name}: converting restores the billboard the model handoff had hidden`);
 
     // 3. Every aircraftIcon() CALL SITE routes through the kind resolver, so no
@@ -254,7 +254,7 @@ test('both flight layers keep a converted contact 2D and visible (render invaria
     const callSites = code.match(/aircraftIcon\(\s*[^;]*?\)/g) || [];
     assert.equal(callSites.length >= 4, true, `${name}: expected the known aircraftIcon call sites`);
     for (const call of callSites) {
-      assert.match(call, /aircraftIcon\(\s*(?:parts\.rendering\.)?_iconKind\(/,
+      assert.match(call, /aircraftIcon\(\s*\s*(?:parts\.rendering\.)?_iconKind\(\s*/,
         `${name}: ${call.replace(/\s+/g, ' ')} must resolve its sprite kind through _iconKind`);
     }
 
@@ -410,7 +410,7 @@ test('a converted contact never consumes a 3D model CAP SLOT', async () => {
     const source = readLayerSource(new URL(`./${name}`, import.meta.url));
     // Anchor on the MODEL-eligibility loop (keepDistSq), not the unrelated
     // ambient-enrichment candidate loop that also builds a `cand`.
-    const loop = /const cand = \[\];\s*\n\s*for \(const \[icao, bb\] of (?:flightState\.)?_billboards\)[\s\S]*?cand\.push\(/.exec(source)?.[0];
+    const loop = /const\s*cand\s*=\s*\[\];\s*\n\s*for\s*\(\s*const\s*\[icao,\s*bb\]\s*of\s*(?:flightState\.)?_billboards,?\s*\)[\s\S]*?cand\.push\(\s*/.exec(source)?.[0];
     assert.ok(loop, `${name}: the model-eligibility candidate loop is present`);
     assert.match(loop, /keepDistSq/, `${name}: matched the model-eligibility loop`);
     assert.match(loop, /if \(isTr3b\(icao\)\) continue;/,
