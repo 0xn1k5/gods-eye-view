@@ -15,7 +15,10 @@ behavior remains unchanged.
 metadata, motion, altitude, model-anchor, proximity and selection calculations.
 It also exports `createMilitaryRegistry`, an explicitly constructed owner for
 known military identities and active-layer transitions. Its optional background
-poll consumes normalized records from the supplied source. Source replacement
+poll consumes the optional `getIdentities` capability, falling back to normalized
+positioned records when a source has no identity-only capability. The adsb.lol
+adapter preserves known identities without requiring positions; those entries
+still cannot enter the renderer. Source replacement
 and disposal abort pending work and clear retained identities; construction
 starts no network request. Both standalone aircraft layers use one registry.
 

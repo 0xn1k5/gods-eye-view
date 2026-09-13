@@ -129,10 +129,17 @@ export function createMilitaryRegistry({ source, now = Date.now } = {}) {
     const signal = AbortSignal.any([owner.signal, AbortSignal.timeout(10000)]);
     _polling = true;
     try {
-      const snapshot = await requestSource.getSnapshot({}, { signal });
+      const ids =
+        typeof requestSource.getIdentities === 'function'
+          ? await requestSource.getIdentities({}, { signal })
+          : (await requestSource.getSnapshot({}, { signal })).records.map(
+              (record) => record.id,
+            );
       signal.throwIfAborted();
       if (lifetime !== owner) return;
-      registerMilitaryIcaos(snapshot.records.map((record) => record.id));
+      if (!Array.isArray(ids))
+        throw new TypeError('Expected aircraft identities');
+      registerMilitaryIcaos(ids);
     } catch {
       // Keep the existing classification through source outages.
     } finally {

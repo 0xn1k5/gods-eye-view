@@ -121,3 +121,21 @@ test('disposing a registry fed directly by its layer also clears classification'
   registry.dispose();
   assert.equal(registry.isMilitaryIcao('abc123'), false);
 });
+
+test('classification prefers an explicit identity capability over positioned observations', async () => {
+  const registry = createMilitaryRegistry({
+    source: {
+      getSnapshot() {
+        assert.fail(
+          'position snapshots must not replace an available identity capability',
+        );
+      },
+      async getIdentities() {
+        return ['abc123'];
+      },
+    },
+  });
+  await registry.refreshMilitaryRegistryIfStale();
+  assert.equal(registry.isMilitaryIcao('abc123'), true);
+  registry.dispose();
+});
