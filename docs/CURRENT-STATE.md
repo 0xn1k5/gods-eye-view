@@ -1,5 +1,25 @@
 # God's Eye View Current State
 
+## Vessel components and sources
+
+`src/data/aisLiveVessels.js` assembles `createVesselLayer` from the
+`./layers/vessels` package entry. The factory owns feed lifecycle, keyed records,
+rendering, selection, trails and cards in separate components. The standalone
+entry supplies its AISStream source, scene services and existing row limits.
+
+Incomplete observations retain missing keyed vessels for at most five minutes
+since their last accepted receipt, within the renderer's row budget (plus the
+existing selected-contact pin). Complete observations keep the existing removal
+policy. Empty or failed observations preserve warm data with the existing feed
+health warning and first-connect grace period. Source timestamps remain source
+timestamps; receipt does not turn an unknown epoch into a fresh update.
+
+A refreshed record keeps its identity while updating its history reference.
+Selection changes, disable and destruction cancel pending trail requests; late
+responses cannot refill a cleared or replacement trail. Heading and course,
+sea-surface placement, click ownership and card selection policy are unchanged.
+
+
 ## Military-flight components and aircraft mechanics
 
 `gods-eye-view/layers/military` exports `createMilitaryFlightLayer`. It uses the

@@ -287,5 +287,20 @@
   "src/layers/aircraft/index.js",
   "src/layers/aircraft/classification.js",
   "src/layers/military/ownership.test.mjs",
-  "src/layers/aircraft/classification.test.mjs"
+  "src/layers/aircraft/classification.test.mjs",
+  "src/data/aisLiveVessels.js",
+  "src/layers/vessels/cards.js",
+  "src/layers/vessels/evidence.js",
+  "src/layers/vessels/index.js",
+  "src/layers/vessels/ingestion.js",
+  "src/layers/vessels/lifecycle.js",
+  "src/layers/vessels/policy.js",
+  "src/layers/vessels/queries.js",
+  "src/layers/vessels/rendering.js",
+  "src/layers/vessels/selection.js",
+  "src/layers/vessels/state.js",
+  "src/layers/vessels/store.js",
+  "src/layers/vessels/testing.js",
+  "src/layers/vessels/tracking.js",
+  "src/layers/vessels/ownership.test.mjs"
 ]
