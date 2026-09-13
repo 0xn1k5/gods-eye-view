@@ -13,6 +13,10 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+- Extract vessel feed, store, rendering, selection, trail and card components with explicit source and scene services.
+- Bound contact retention for incomplete vessel observations, preserve source freshness and refresh history references in place.
+- Cancel pending vessel history during selection and layer teardown.
+
 - Split military flights into instance-owned state, ingestion, motion, rendering, tracking and query components. Share the existing aircraft calculations and give military classification an explicit source and cleanup lifecycle. Preserve known military identities even when the source has no position for them.
 
 - Split civil flights into instance-owned state, ingestion, motion, rendering, tracking and query components. Cancel enrichment on teardown and resolve model assets through the application.

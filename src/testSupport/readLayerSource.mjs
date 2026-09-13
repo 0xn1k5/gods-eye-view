@@ -5,13 +5,13 @@ import { fileURLToPath } from 'node:url';
 /** Read actual component owners for structural regression assertions. */
 export function readLayerSource(file) {
   const path = file instanceof URL ? fileURLToPath(file) : file;
-  if (!['flights.js', 'militaryFlights.js'].includes(basename(path)))
+  if (!['flights.js', 'militaryFlights.js', 'aisLiveVessels.js'].includes(basename(path)))
     return readFileSync(path, 'utf8');
   const directory = join(
     dirname(path),
     basename(path) === 'flights.js'
       ? '../layers/flights'
-      : '../layers/military',
+      : basename(path) === 'militaryFlights.js' ? '../layers/military' : '../layers/vessels',
   );
   return readdirSync(directory)
     .filter((name) => name.endsWith('.js'))
