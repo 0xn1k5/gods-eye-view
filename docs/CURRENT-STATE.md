@@ -1,5 +1,11 @@
 # God's Eye View Current State
 
+Earthquake rendering is exposed through `./layers/earthquakes`. The layer owns
+its entities and request lifecycle; the application supplies the overlay host
+and snapshot source. The standalone adapter keeps the existing USGS daily feed,
+M2.5+ filtering, static discs, magnitude labels and analyst records. Disabling or
+destroying the layer cancels pending work and ignores late results.
+
 ## Vessel components and sources
 
 `src/data/aisLiveVessels.js` assembles `createVesselLayer` from the
