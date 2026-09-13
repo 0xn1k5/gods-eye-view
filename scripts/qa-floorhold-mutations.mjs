@@ -25,7 +25,7 @@ const TESTS = [
   'src/data/renderAltitude.test.mjs',
 ];
 
-const FLIGHTS = 'src/data/flights.js';
+const FLIGHTS = 'src/layers/flights/motion.js';
 const FLOOR = 'src/data/groundFloor.js';
 const ALT = 'src/data/renderAltitude.js';
 
@@ -204,7 +204,7 @@ const MUTATIONS = [
       {
         file: FLIGHTS,
         from: '  if (state.retiredMs == null) {',
-        to: '  _displayFloorState.delete(icao24);\n  if (false) {',
+        to: '  flightState._displayFloorState.delete(icao24);\n  if (false) {',
       },
     ],
   },
@@ -291,12 +291,13 @@ for (const mut of MUTATIONS) {
   for (const e of mut.edits) {
     if (!backups.has(e.file)) backups.set(e.file, read(e.file));
     const cur = read(e.file);
-    if (!cur.includes(e.from)) {
+    const anchor = new RegExp(e.from.trim().split(/\s+/).map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*'));
+    if (!anchor.test(cur)) {
       console.log(`  [STALE] ${mut.defect} — anchor not found in ${e.file}`);
       applied = false;
       break;
     }
-    write(e.file, cur.replace(e.from, e.to));
+    write(e.file, cur.replace(anchor, () => e.to.trim()));
   }
   if (applied) {
     const r = runTests();

@@ -576,5 +576,39 @@
       "src/sources/live/vessels.js"
     ],
     "external": []
+  },
+  "civil-flights": {
+    "exports": ["./layers/flights"],
+    "modules": [
+      "src/data/aircraftClass.js",
+      "src/data/aircraftIcons.js",
+      "src/data/aircraftMeta.js",
+      "src/data/aircraftNearbyPolicy.js",
+      "src/data/cockpitAirLod.js",
+      "src/data/cockpitContactDot.js",
+      "src/data/contactMatch.js",
+      "src/data/iconOrientation.js",
+      "src/data/layerState.js",
+      "src/data/modelVisualAnchor.js",
+      "src/data/motionModel.js",
+      "src/data/renderAltitude.js",
+      "src/data/routePlausible.js",
+      "src/data/trackedModelRegime.js",
+      "src/data/trackingClickGesture.js",
+      "src/layers/flights/controller.js",
+      "src/layers/flights/enrichment.js",
+      "src/layers/flights/evidence.js",
+      "src/layers/flights/index.js",
+      "src/layers/flights/ingestion.js",
+      "src/layers/flights/lifecycle.js",
+      "src/layers/flights/motion.js",
+      "src/layers/flights/policy.js",
+      "src/layers/flights/queries.js",
+      "src/layers/flights/rendering.js",
+      "src/layers/flights/state.js",
+      "src/layers/flights/testing.js",
+      "src/layers/flights/tracking.js"
+    ],
+    "external": ["cesium"]
   }
 }

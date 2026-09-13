@@ -1,3 +1,4 @@
+import { readLayerSource } from '../testSupport/readLayerSource.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -25,7 +26,7 @@ function numericConstant(source, name) {
 }
 
 for (const layer of LAYERS) {
-  const source = readFileSync(layer.path, 'utf8');
+  const source = readLayerSource(layer.path);
 
   test(`${layer.name}: every GLB creation bypasses the tile-contended frame-spread queue`, () => {
     const calls = [...source.matchAll(/Cesium\.Model\.fromGltfAsync\(\{([\s\S]*?)\}\)/g)];
@@ -37,11 +38,11 @@ for (const layer of LAYERS) {
   });
 
   test(`${layer.name}: Cockpit 3D obeys the shared Display toggle`, () => {
-    const regime = /function _modelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    const regime = /function (?:parts\.\w+\.)?_modelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
     assert.ok(regime, '_modelRegimeActive is defined');
-    assert.match(regime, /if \(!_models3dEnabled\) return false;/,
+    assert.match(regime, /if \(!(?:flightState\.)?_models3dEnabled\) return false;/,
       'OFF must keep Cockpit AIR contacts in 2D');
-    assert.doesNotMatch(regime, /!_models3dEnabled\s*&&\s*!_cockpitContactMode/,
+    assert.doesNotMatch(regime, /!(?:flightState\.)?_models3dEnabled\s*&&\s*!(?:flightState\.)?_cockpitContactMode/,
       'Cockpit must not bypass the owner-visible Display toggle');
   });
 
@@ -51,13 +52,13 @@ for (const layer of LAYERS) {
     // owns. The tracked regime is DEFAULT-ON by camera distance (2026-08-19), so
     // it no longer routes through the toggle-gated `_modelRegimeActive` — the
     // suppression is now an explicit early return.
-    const regime = /function _trackedModelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    const regime = /function (?:parts\.\w+\.)?_trackedModelRegimeActive\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
     assert.ok(regime, '_trackedModelRegimeActive is defined');
-    assert.match(regime, /if \(!_trackedIcao \|\| _cockpitContactMode \|\|[\s\S]*?return false;/,
+    assert.match(regime, /if \(!(?:flightState\.)?_trackedIcao \|\| (?:flightState\.)?_cockpitContactMode \|\|[\s\S]*?return false;/,
       '_trackedModelRegimeActive excludes cockpit');
-    const tracked = /function _updateTrackedModel\(\)[\s\S]*?\n  if \(!active\)/.exec(source)?.[0];
+    const tracked = /function (?:parts\.\w+\.)?_updateTrackedModel\(\)[\s\S]*?\n  if \(!active\)/.exec(source)?.[0];
     assert.ok(tracked, '_updateTrackedModel is defined');
-    assert.match(tracked, /_trackedModelRegimeActive\(\)/,
+    assert.match(tracked, /(?:parts\.\w+\.)?_trackedModelRegimeActive\(\)/,
       'the tracked-model driver uses the cockpit-aware predicate');
   });
 
@@ -68,14 +69,14 @@ for (const layer of LAYERS) {
     assert.equal(numericConstant(source, 'MODEL_ALL_KEEP_M'), 450_000);
     assert.equal(numericConstant(source, 'COCKPIT_MODEL_MAX'), 60);
 
-    const add = /function _modelAddDistM\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
-    const keep = /function _modelKeepDistM\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
-    assert.match(add, /_models3dMode === 'all' \? MODEL_ALL_ADD_M : MODEL_PROX_ADD_M/);
-    assert.match(keep, /_models3dMode === 'all' \? MODEL_ALL_KEEP_M : MODEL_PROX_KEEP_M/);
+    const add = /function (?:parts\.\w+\.)?_modelAddDistM\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    const keep = /function (?:parts\.\w+\.)?_modelKeepDistM\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    assert.match(add, /(?:flightState\.)?_models3dMode === 'all' \? MODEL_ALL_ADD_M : MODEL_PROX_ADD_M/);
+    assert.match(keep, /(?:flightState\.)?_models3dMode === 'all' \? MODEL_ALL_KEEP_M : MODEL_PROX_KEEP_M/);
     assert.doesNotMatch(add, /COCKPIT_MODEL_ADD_M/);
     assert.doesNotMatch(keep, /COCKPIT_MODEL_KEEP_M/);
 
-    const cap = /function _modelCap\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
+    const cap = /function (?:parts\.\w+\.)?_modelCap\(\) \{[\s\S]*?\n\}/.exec(source)?.[0];
     assert.match(cap, /Math\.min\(COCKPIT_MODEL_MAX/,
       'Cockpit keeps its 60-model performance ceiling');
   });
@@ -92,15 +93,15 @@ for (const layer of LAYERS) {
       'near contacts and model fallbacks retain the class-derived aircraft silhouette');
     assert.match(source, /bb\.rotation = 0;/,
       'far dots are reset to a rotation-free presentation');
-    assert.match(source, /\(!_cockpitContactMode \|\| isCockpitNear\) && \(doRotations \|\| revealed\)/,
+    assert.match(source, /\(!(?:flightState\.)?_cockpitContactMode \|\| isCockpitNear\) && \(doRotations \|\| revealed\)/,
       'near 2D silhouettes continue to receive projected course');
     assert.match(source, /if \(bb\.show\) bb\.show = false; \/\/ hand off ONLY once the model renders/,
       'the gap-proof billboard-to-model handoff remains intact');
   });
 
   test(`${layer.name}: Cockpit exit clears near state before restoring map presentation`, () => {
-    const setMode = /function _setCockpitContactMode\([\s\S]*?\n\}/.exec(source)?.[0];
-    assert.match(setMode, /else _cockpitNearContacts = new Set\(\);/);
-    assert.match(setMode, /for \(const \[icao24, bb\] of _billboards\) _applyFleetBillboardPresentation\(icao24, bb\);/);
+    const setMode = /function (?:parts\.\w+\.)?_setCockpitContactMode\([\s\S]*?\n\}/.exec(source)?.[0];
+    assert.match(setMode, /else (?:flightState\.)?_cockpitNearContacts = new Set\(\);/);
+    assert.match(setMode, /for \(const \[icao24, bb\] of (?:flightState\.)?_billboards\) (?:parts\.\w+\.)?_applyFleetBillboardPresentation\(icao24, bb\);/);
   });
 }

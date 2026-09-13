@@ -1,3 +1,4 @@
+import { readLayerSource } from '../testSupport/readLayerSource.mjs';
 import { dispatchCockpitModeChanged, enter, exit, _adoptTrackedEntity } from '../ui/cockpitTrackingController.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,8 +16,8 @@ import militaryFlightsLayer, {
 const SUBJECT = 'abc123';
 const NEXT_SUBJECT = 'def456';
 
-const FLIGHTS_SOURCE = readFileSync(new URL('./flights.js', import.meta.url), 'utf8');
-const MILITARY_SOURCE = readFileSync(new URL('./militaryFlights.js', import.meta.url), 'utf8');
+const FLIGHTS_SOURCE = readLayerSource(new URL('./flights.js', import.meta.url));
+const MILITARY_SOURCE = readLayerSource(new URL('./militaryFlights.js', import.meta.url));
 
 const LAYERS = [
   {
@@ -108,7 +109,7 @@ test('Cockpit lifecycle publishes one normalized aircraft identity to both detec
     ['commercial', FLIGHTS_SOURCE],
     ['military', MILITARY_SOURCE],
   ]) {
-    const consumer = /function _applyCockpitState\(detail = \{\}\) \{[\s\S]*?\n\}/
+    const consumer = /function (?:parts\.\w+\.)?_applyCockpitState\(detail = \{\}\) \{[\s\S]*?\n\}/
       .exec(source)?.[0];
     assert.ok(consumer, `${name} Cockpit consumer is defined`);
     assert.match(consumer, /detail\?\.subjectId/);
