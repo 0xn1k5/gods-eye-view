@@ -254,5 +254,21 @@
   "src/sources/live/contract.test.mjs",
   "src/sources/live/index.js",
   "src/sources/live/standalone.js",
-  "src/sources/live/vessels.js"
+  "src/sources/live/vessels.js",
+  "src/data/flights.js",
+  "src/testSupport/readLayerSource.mjs",
+  "src/layers/flights/lifecycle.js",
+  "src/layers/flights/motion.js",
+  "src/layers/flights/controller.js",
+  "src/layers/flights/state.js",
+  "src/layers/flights/policy.js",
+  "src/layers/flights/tracking.js",
+  "src/layers/flights/rendering.js",
+  "src/layers/flights/testing.js",
+  "src/layers/flights/evidence.js",
+  "src/layers/flights/ingestion.js",
+  "src/layers/flights/queries.js",
+  "src/layers/flights/index.js",
+  "src/layers/flights/enrichment.js",
+  "src/layers/flights/ownership.test.mjs"
 ]

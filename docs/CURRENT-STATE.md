@@ -1,5 +1,21 @@
 # God's Eye View Current State
 
+## Civil-flight components
+
+`gods-eye-view/layers/flights` exports `createCivilFlightLayer`. Each instance
+owns its contacts, histories, model collections, scratch objects and lifecycle.
+State, ingestion, enrichment, motion/floor interpolation, rendering, tracking and
+queries live in separate files under `src/layers/flights`. The standalone
+`src/data/flights.js` assembles the existing OpenSky source and scene services.
+
+Applications supply the existing floor/snap, geoid, picking, sprite, camera,
+trail, focus, readout, context, aircraft presentation and render services.
+The factory never constructs a second application registry. Configure a source
+before initialization; replacing it while initialized is rejected. Model loads
+use the supplied asset resolver, including the preload path. Enrichment receives
+an abort signal and cannot update a later lifecycle after destruction. Existing
+camera, terrain floor, trail, selection and measured model-size policies remain.
+
 ## Browser live-source observations
 
 Flights, Military Flights and AIS Vessels obtain snapshots and optional history
