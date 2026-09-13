@@ -1,16 +1,10 @@
 import { VESSEL_LABEL_GRID_PX } from '../../data/vesselLabels.js';
 
-
-
 export const FOCUS_EVIDENCE_DEV = import.meta.env?.DEV === true;
-
-
 
 export const DEFAULT_RENDER_ROWS = 12000;
 
-
 export const DEFAULT_ACTIVE_LABELS = 900;
-
 
 export const REFRESH_MS = 60000;
 
@@ -18,16 +12,13 @@ export const REFRESH_MS = 60000;
 
 export const AIS_FIRST_CONNECT_GRACE_MS = 30000;
 
-
 export const AIS_FIRST_CONNECT_LABEL = 'awaiting first AIS position…';
-
 
 export const VISIBILITY_UPDATE_MS = 800;
 
 /** Focus alpha alone samples faster inside the existing preRender pass. */
 
 export const FOCUS_UPDATE_MS = 80;
-
 
 export const LABEL_GRID_PX = VESSEL_LABEL_GRID_PX;
 
@@ -67,14 +58,11 @@ export const TRAIL_MAX_POINTS = 400;
 
 export const TRAIL_MIN_MOVE_M = 25;
 
-
-
 export const DEFAULT_AIS_RUNTIME = Object.freeze({
   now: () => Date.now(),
   setTimeout: (callback, delayMs) => setTimeout(callback, delayMs),
   clearTimeout: (timer) => clearTimeout(timer),
 });
-
 
 /**
  * Human-readable reasons for a non-'open' AISStream feed status, keyed to the
@@ -92,7 +80,6 @@ export const AIS_STATUS_REASON = {
   idle: 'feed idle',
 };
 
-
 /**
  * Statuses in which fresh data is flowing. 'open' is the pre-watchdog spelling
  * and is still accepted so a cached bundle and a restarted server never
@@ -101,14 +88,18 @@ export const AIS_STATUS_REASON = {
 
 export const AIS_HEALTHY_STATUSES = new Set(['live', 'open']);
 
-
 /**
  * Server statuses meaning "the feed is not delivering right now". These are
  * surfaced even while cached vessels are still drawn: rows retained from
  * before the outage must never make a dead feed read as a healthy one.
  */
 
-export const AIS_DEGRADED_STATUSES = new Set(['stale', 'reconnecting', 'down', 'auth-failed']);
+export const AIS_DEGRADED_STATUSES = new Set([
+  'stale',
+  'reconnecting',
+  'down',
+  'auth-failed',
+]);
 
 /** Missing records in an incomplete observation are retained for at most five minutes. */
 export const PARTIAL_RETENTION_MS = 5 * 60 * 1000;

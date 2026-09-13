@@ -6,32 +6,85 @@ import { createVesselState } from './state.js';
 const noop = () => {};
 function services() {
   return {
-    context: { clearSelectedEntityContextForLayer: noop, registerEntityContext: () => null },
-    trails: { createTrail: () => ({ setPositions: noop, clear: noop, destroy: noop }) },
+    context: {
+      clearSelectedEntityContextForLayer: noop,
+      registerEntityContext: () => null,
+    },
+    trails: {
+      createTrail: () => ({ setPositions: noop, clear: noop, destroy: noop }),
+    },
     labels: {},
     picking: { unregisterPickOwner: noop },
-    overlay: { setOverlayEntries: noop, setOverlaySourceVisible: noop, clearOverlaySource: noop },
-    geoid: {}, sprites: {},
-    focus: { focusNowMs: (now) => now, getFocusTarget: () => null, focusPassIsNeeded: () => false, forgetSpriteFocus: noop },
-    worldFocus: {}, render: { releaseContinuousRender: noop },
+    overlay: {
+      setOverlayEntries: noop,
+      setOverlaySourceVisible: noop,
+      clearOverlaySource: noop,
+    },
+    geoid: {},
+    sprites: {},
+    focus: {
+      focusNowMs: (now) => now,
+      getFocusTarget: () => null,
+      focusPassIsNeeded: () => false,
+      forgetSpriteFocus: noop,
+    },
+    worldFocus: {},
+    render: { releaseContinuousRender: noop },
   };
 }
 function setup(source, options = {}) {
   const layer = createVesselLayer({ source, services: services(), options });
-  layer.testing._setVesselStateForTest({ viewer: {}, billboardCollection: { add: (options) => ({ ...options }), remove: noop } });
+  layer.testing._setVesselStateForTest({
+    viewer: {},
+    billboardCollection: { add: (options) => ({ ...options }), remove: noop },
+  });
   let now = 1000;
-  layer.testing._setAisRuntimeForTest({ now: () => now, setTimeout, clearTimeout });
-  return { layer, advance: (ms) => { now += ms; } };
+  layer.testing._setAisRuntimeForTest({
+    now: () => now,
+    setTimeout,
+    clearTimeout,
+  });
+  return {
+    layer,
+    advance: (ms) => {
+      now += ms;
+    },
+  };
 }
-const observation = (id, reference = id) => ({ id, reference, latitude: 51.93, longitude: 4.05, name: id, observedAtMs: 500, speedMps: 4, headingDeg: 180, courseDeg: 170 });
-const snapshot = (records, extra = {}) => ({ records, source: 'Fixture vessels', complete: true, stale: false, freshness: 'current', observedAtMs: 500, transportStatus: 'live', rawRowCount: records.length, ...extra });
+const observation = (id, reference = id) => ({
+  id,
+  reference,
+  latitude: 51.93,
+  longitude: 4.05,
+  name: id,
+  observedAtMs: 500,
+  speedMps: 4,
+  headingDeg: 180,
+  courseDeg: 170,
+});
+const snapshot = (records, extra = {}) => ({
+  records,
+  source: 'Fixture vessels',
+  complete: true,
+  stale: false,
+  freshness: 'current',
+  observedAtMs: 500,
+  transportStatus: 'live',
+  rawRowCount: records.length,
+  ...extra,
+});
 
 test('vessel construction is inert and each instance owns its records, icon cache and clock', () => {
   let requested = 0;
-  const source = { getSnapshot() { requested++; } };
+  const source = {
+    getSnapshot() {
+      requested++;
+    },
+  };
   const one = createVesselState({ source, services: services() });
   const two = createVesselState({ source, services: services() });
-  for (const key of ['state', 'shipIconCache', '_scratchFocusScreen']) assert.notEqual(one[key], two[key]);
+  for (const key of ['state', 'shipIconCache', '_scratchFocusScreen'])
+    assert.notEqual(one[key], two[key]);
   assert.notEqual(one.state.vesselMap, two.state.vesselMap);
   assert.notEqual(one.state.trailPositions, two.state.trailPositions);
   const { layer } = setup(source);
@@ -50,7 +103,11 @@ test('missing vessel source fails before mutating the viewer', () => {
 
 test('partial observations retain missing contacts only until their receipt deadline', async () => {
   let current = snapshot([observation('111'), observation('222')]);
-  const { layer, advance } = setup({ async getSnapshot() { return current; } });
+  const { layer, advance } = setup({
+    async getSnapshot() {
+      return current;
+    },
+  });
   await layer.update();
   current = snapshot([observation('111')], { complete: false, rawRowCount: 2 });
   await layer.update();
@@ -66,7 +123,11 @@ test('partial observations retain missing contacts only until their receipt dead
 
 test('a complete feed still removes an absent unselected vessel immediately', async () => {
   let current = snapshot([observation('111'), observation('222')]);
-  const { layer } = setup({ async getSnapshot() { return current; } });
+  const { layer } = setup({
+    async getSnapshot() {
+      return current;
+    },
+  });
   await layer.update();
   current = snapshot([observation('111')]);
   await layer.update();
@@ -74,10 +135,22 @@ test('a complete feed still removes an absent unselected vessel immediately', as
 });
 
 test('an incomplete feed bounds its retained union to the configured row budget', async () => {
-  let current = snapshot(Array.from({ length: 500 }, (_, i) => observation(String(i + 1000))));
-  const { layer } = setup({ async getSnapshot() { return current; } }, { maxRows: 500 });
+  let current = snapshot(
+    Array.from({ length: 500 }, (_, i) => observation(String(i + 1000))),
+  );
+  const { layer } = setup(
+    {
+      async getSnapshot() {
+        return current;
+      },
+    },
+    { maxRows: 500 },
+  );
   await layer.update();
-  current = snapshot(Array.from({ length: 500 }, (_, i) => observation(String(i + 2000))), { complete: false });
+  current = snapshot(
+    Array.from({ length: 500 }, (_, i) => observation(String(i + 2000))),
+    { complete: false },
+  );
   await layer.update();
   assert.equal(layer.getStats().count, 500);
   assert.equal(layer.hasContact('1000'), false);
@@ -85,7 +158,14 @@ test('an incomplete feed bounds its retained union to the configured row budget'
 });
 
 test('unknown source time does not become fresh at the time of receipt', async () => {
-  const { layer } = setup({ async getSnapshot() { return snapshot([observation('111')], { observedAtMs: null, freshness: 'unknown' }); } });
+  const { layer } = setup({
+    async getSnapshot() {
+      return snapshot([observation('111')], {
+        observedAtMs: null,
+        freshness: 'unknown',
+      });
+    },
+  });
   await layer.update();
   assert.equal(layer.getStats().lastUpdate, null);
   assert.equal(layer.getStats().stale, true);
@@ -94,13 +174,23 @@ test('unknown source time does not become fresh at the time of receipt', async (
 test('refresh replaces the history reference and clearing selection cancels late history', async (t) => {
   const originalDocument = globalThis.document;
   globalThis.document = { getElementById: () => null };
-  t.after(() => { if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument; });
+  t.after(() => {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  });
   let current = snapshot([observation('111', 'old-reference')]);
   let request;
   let resolveTrack;
   const { layer } = setup({
-    async getSnapshot() { return current; },
-    getTrack(reference, { signal }) { request = { reference, signal }; return new Promise((resolve) => { resolveTrack = resolve; }); },
+    async getSnapshot() {
+      return current;
+    },
+    getTrack(reference, { signal }) {
+      request = { reference, signal };
+      return new Promise((resolve) => {
+        resolveTrack = resolve;
+      });
+    },
   });
   await layer.update();
   current = snapshot([observation('111', 'new-reference')]);
@@ -117,10 +207,20 @@ test('refresh replaces the history reference and clearing selection cancels late
 test('destroy cancels pending observations and ignores their later completion', async (t) => {
   const originalDocument = globalThis.document;
   globalThis.document = { getElementById: () => null };
-  t.after(() => { if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument; });
+  t.after(() => {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  });
   let requestSignal;
   let resolve;
-  const { layer } = setup({ getSnapshot(_query, { signal }) { requestSignal = signal; return new Promise((done) => { resolve = done; }); } });
+  const { layer } = setup({
+    getSnapshot(_query, { signal }) {
+      requestSignal = signal;
+      return new Promise((done) => {
+        resolve = done;
+      });
+    },
+  });
   const pending = layer.update();
   layer.destroy();
   assert.equal(requestSignal.aborted, true);
@@ -130,17 +230,26 @@ test('destroy cancels pending observations and ignores their later completion', 
   assert.equal(layer.hasContact('111'), null);
 });
 
-
 test('partial-feed expiry releases a selected vessel and its pending trail', async (t) => {
   const originalDocument = globalThis.document;
   globalThis.document = { getElementById: () => null };
-  t.after(() => { if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument; });
+  t.after(() => {
+    if (originalDocument === undefined) delete globalThis.document;
+    else globalThis.document = originalDocument;
+  });
   let current = snapshot([observation('111'), observation('222')]);
   let signal;
   let finish;
   const { layer, advance } = setup({
-    async getSnapshot() { return current; },
-    getTrack(_reference, options) { signal = options.signal; return new Promise((resolve) => { finish = resolve; }); },
+    async getSnapshot() {
+      return current;
+    },
+    getTrack(_reference, options) {
+      signal = options.signal;
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    },
   });
   await layer.update();
   layer.selectById('222');
