@@ -1,5 +1,14 @@
 # God's Eye View Current State
 
+The UI facade composes separate owners for navigation authority, share restoration,
+visual settings and panel chrome. Navigation owns request generations and follow
+handoff; restoration owns its coordinator, deferred notices, gestures and timer;
+visual settings own style/detection overrides and sensor cleanup; panel chrome
+owns disclosure, docking and Cockpit panel snapshots. Each takes explicit
+operations and reads instead of the complete shell. Existing controls, share
+formats and one-application-per-page behavior are preserved.
+
+
 Layer lifecycle transactions are owned by `data/lifecycle`, which has no panel,
 render-governor or detection imports. Application composition mounts a separate
 layer presentation owner that reacts to status, accepted visibility/parameter

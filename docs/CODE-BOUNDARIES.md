@@ -461,3 +461,19 @@ render requests and detection invalidation. It owns hidden-panel refresh and
 listener cleanup. Application data assembly constructs both owners explicitly;
 `data/manager` is the compatibility facade for direct callers. The ordinary
 state subscriptions retain their existing event contract.
+
+## UI state owners
+
+- `ui/navigation` owns navigation generations, pending search presentation and
+  tracking handoff. It reads Cockpit admission and uses supplied tracking operations.
+- `ui/share-restoration` owns the initial restore transaction, layer coordinator,
+  status notices and gesture/timer cleanup.
+- `ui/visual-settings` owns style preferences, detection overrides, display inputs
+  and IR cleanup. Its engine services and panel operations are explicit.
+- `ui/panel-chrome` owns disclosure, docking, collapse preferences and temporary
+  Cockpit panel snapshots, composing the existing positioning/layout controllers.
+
+These package groups contain their own dependencies and exclude application
+assembly. `applicationShell` retains composition and compatibility methods;
+those methods delegate to the state owner. Source-based regression checks inspect
+that implementation owner, and browser acceptance exercises the assembled UI.
