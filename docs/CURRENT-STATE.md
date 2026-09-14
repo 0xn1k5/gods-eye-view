@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+The optional **ALPR Cameras** layer shows community-mapped OpenStreetMap locations,
+not camera footage or plate records. City-scale queries use the existing Overpass
+provider, with capped results, retry, cached-data and incomplete-coverage notices.
+Its `./layers/alpr` entry exposes a per-instance layer factory and bounded source
+adapter. The standalone registration supplies selection, picking, terrain and
+render services. Selected cards and Data attribution identify OpenStreetMap.
+Layer state and the existing voice layer tools include `alpr-cameras`.
+
 Data Centers, Dams and Submarine Cables release their built Cesium data sources
 and record references when disabled. Parsed datasets remain cached for the layer
 lifetime, so re-enable rebuilds entities without downloading or parsing again;

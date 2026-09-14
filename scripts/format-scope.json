@@ -455,5 +455,13 @@
   "src/layers/cctv/ground.js",
   "src/layers/cctv/health.js",
   "src/data/cctv.js",
-  "src/layers/cctv/source.test.mjs"
+  "src/layers/cctv/source.test.mjs",
+  "src/data/alprCameras.js",
+  "src/data/alprCameras.test.mjs",
+  "src/layers/alpr/index.js",
+  "src/layers/alpr/model.js",
+  "src/layers/alpr/policy.js",
+  "src/layers/alpr/presentation.js",
+  "src/layers/alpr/source.js",
+  "src/layers/alpr/source.test.mjs"
 ]
