@@ -891,7 +891,15 @@ test('two factories keep their requests, records and destruction independent', a
   const second = createAlprCamerasLayer({
     services,
     source: {
-      fetch: async () => ({ elements: [cameraNode(99)], stale: false }),
+      label: 'Test camera directory',
+      attribution: { name: 'Test directory' },
+      fetch: async () => ({
+        records: [
+          { id: 'directory:99', latitude: 30.2672, longitude: -97.7431 },
+        ],
+        stale: false,
+        saturated: false,
+      }),
     },
   });
   const a = cameraHarness(first),
@@ -901,11 +909,21 @@ test('two factories keep their requests, records and destruction independent', a
     await second.update();
     first.destroy();
     assert.equal(firstSignal.aborted, true);
-    resolveFirst({ elements: [cameraNode(42)], stale: false });
+    resolveFirst({
+      records: [normalizeAlprNode(cameraNode(42))],
+      stale: false,
+      saturated: false,
+    });
     await pending;
     assert.equal(first.getStats().count, 0);
     assert.equal(second.getStats().count, 1);
-    assert.equal(b.source.entities.values[0].id, 'alpr:99');
+    assert.equal(b.source.entities.values[0].id, 'directory:99');
+    assert.equal(second.source, 'Test camera directory');
+    assert.ok(
+      b.source.entities.values[0].gevLabelModel.details.includes(
+        'Source: Test directory',
+      ),
+    );
     assert.equal(a.viewer.camera.moveEnd.numberOfListeners, 0);
     assert.equal(a.viewer.scene.postRender.numberOfListeners, 0);
   } finally {

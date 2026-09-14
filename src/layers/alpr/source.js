@@ -2,8 +2,9 @@ import {
   OVERPASS_URL,
   MAX_VIEWPORT_DEGREES,
   QUERY_SNAP_DEGREES,
+  QUERY_LIMIT,
 } from './policy.js';
-import { buildOverpassQuery } from './model.js';
+import { buildOverpassQuery, normalizeAlprNode } from './model.js';
 /** Construct the bounded OSM request adapter without starting a request. */
 export function createOverpassAlprSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
@@ -33,6 +34,11 @@ export function createOverpassAlprSource({
       signal,
     });
     if (!response.ok) {
+      try {
+        await response.body?.cancel();
+      } catch {
+        /* already closed */
+      }
       const message =
         response.status === 429
           ? 'Overpass rate-limited'
@@ -49,7 +55,28 @@ export function createOverpassAlprSource({
     if (!Array.isArray(payload?.elements) || payload.remark) {
       throw new Error('Overpass returned an incomplete camera response');
     }
-    return { elements: payload.elements, stale };
+    return {
+      records: [
+        ...new Map(
+          payload.elements
+            .slice(0, QUERY_LIMIT)
+            .map(normalizeAlprNode)
+            .filter(Boolean)
+            .map((record) => [record.id, record]),
+        ).values(),
+      ],
+      stale,
+      saturated: payload.elements.length >= QUERY_LIMIT,
+    };
   }
-  return { fetch: fetchAlprNodes };
+  return {
+    fetch: fetchAlprNodes,
+    label: 'OpenStreetMap · community mapped',
+    attribution: {
+      name: 'OpenStreetMap',
+      description: 'OpenStreetMap contributors (ODbL 1.0; community mapped)',
+      text: '© OpenStreetMap',
+      href: 'https://www.openstreetmap.org/copyright',
+    },
+  };
 }

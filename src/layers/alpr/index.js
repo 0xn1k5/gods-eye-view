@@ -12,16 +12,24 @@ import {
   boxContains,
   destinationPointDeg,
   alprRetryDelayMs,
-  isAlprSurveillanceType,
-  normalizeAlprNode,
-  buildOverpassQuery,
+  validateAlprSnapshot,
+  alprCreditMarkup,
 } from './model.js';
 import { createAlprPresentation } from './presentation.js';
 
-/** Own one layer's requests, timers, records, and viewer subscriptions. */
+/**
+ * Own one layer's requests, records, display and viewer subscriptions.
+ * A source fetches a bounded box with an AbortSignal and resolves
+ * { records, stale, saturated }. Records use stable string ids and latitude /
+ * longitude in degrees; optional directionDeg is a compass bearing [0, 360).
+ * Manufacturer, operator and cameraType are optional display fields.
+ * Source label and attribution { name, description, text, href } identify the
+ * actual provider; href must be HTTPS. Provider payload parsing stays in source.
+ */
 export function createAlprCamerasLayer({ source, services } = {}) {
   if (typeof source?.fetch !== 'function')
     throw new TypeError('ALPR requires a camera source');
+  const creditMarkup = alprCreditMarkup(source.attribution);
   const { governorRequestRender } = services.render;
 
   const { registerPickOwner, unregisterPickOwner } = services.picking;
@@ -67,7 +75,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     clearSelection,
     updateSelectedAnchor,
     installInteraction,
-  } = createAlprPresentation({ state, services });
+  } = createAlprPresentation({ state, services, source });
 
   function setAlprStatus(status, error = null) {
     if (state.status === status && state.error === error) return;
@@ -156,24 +164,14 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     setAlprStatus('loading');
     renderRecords();
     try {
-      const { elements, stale } = await source.fetch(
-        queryBox,
-        requestAbort.signal,
-      );
+      const snapshot = await source.fetch(queryBox, requestAbort.signal);
       if (
         requestAbort.signal.aborted ||
         state.abort !== requestAbort ||
         !state.enabled
       )
         return;
-      const records = [
-        ...new Map(
-          elements
-            .map(normalizeAlprNode)
-            .filter(Boolean)
-            .map((record) => [record.id, record]),
-        ).values(),
-      ];
+      const { records, stale, saturated } = validateAlprSnapshot(snapshot);
       state.records = records;
       state.recordById = new Map(records.map((r) => [r.id, r]));
       state.lastUpdate = Date.now();
@@ -181,8 +179,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       // Saturated when the QUERY truncated OR the render cap would hide cameras:
       // either way the view holds more than the screen shows, and the user must
       // be told rather than left with a count that disagrees with the map.
-      state.saturated =
-        elements.length >= QUERY_LIMIT || records.length > MAX_RENDERED;
+      state.saturated = saturated || records.length > MAX_RENDERED;
       state.lastQueryBox = queryBox;
       clearUnavailableRetry();
       // Stale and saturated are independent facts; a cached response that also
@@ -206,7 +203,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       state.stale = Boolean(state.lastUpdate);
       setAlprStatus(
         'unavailable',
-        error?.message || 'Overpass temporarily unavailable',
+        error?.message || 'Camera source temporarily unavailable',
       );
       scheduleUnavailableRetry();
     } finally {
@@ -223,17 +220,16 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     id: LAYER_ID,
     name: 'ALPR Cameras',
     icon: '📷',
-    source: 'OpenStreetMap · community mapped',
+    source: source.label || 'Mapped camera locations',
     updateInterval: 0,
     statsRefreshInterval: 1000,
     init(viewer) {
       if (state.viewer) throw new Error('ALPR layer is already initialized');
       state.viewer = viewer;
       state.dataSource = new Cesium.CustomDataSource('alpr-cameras');
-      state.credit = new Cesium.Credit(
-        '<span class="gev-alpr-credit">ALPR: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></span>',
-        true,
-      );
+      state.credit = creditMarkup
+        ? new Cesium.Credit(creditMarkup, true)
+        : null;
       viewer.dataSources.add(state.dataSource);
       state.moveEndRemove =
         viewer.camera.moveEnd.addEventListener(scheduleLoad);

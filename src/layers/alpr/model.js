@@ -155,3 +155,57 @@ export function buildOverpassQuery(south, west, north, east) {
     `(${south},${west},${north},${east});out body ${QUERY_LIMIT};`
   );
 }
+
+/** Validate a source-independent snapshot before replacing the accepted display. */
+export function validateAlprSnapshot(snapshot) {
+  if (
+    !Array.isArray(snapshot?.records) ||
+    typeof snapshot.stale !== 'boolean' ||
+    typeof snapshot.saturated !== 'boolean'
+  ) {
+    throw new TypeError('Camera source returned an invalid snapshot');
+  }
+  const ids = new Set();
+  for (const record of snapshot.records) {
+    if (
+      !record ||
+      typeof record.id !== 'string' ||
+      !record.id.trim() ||
+      ids.has(record.id) ||
+      !Number.isFinite(record.latitude) ||
+      Math.abs(record.latitude) > 90 ||
+      !Number.isFinite(record.longitude) ||
+      Math.abs(record.longitude) > 180 ||
+      (record.directionDeg != null &&
+        (!Number.isFinite(record.directionDeg) ||
+          record.directionDeg < 0 ||
+          record.directionDeg >= 360))
+    ) {
+      throw new TypeError('Camera source returned an invalid record');
+    }
+    ids.add(record.id);
+  }
+  return snapshot;
+}
+
+/** Build a linked attribution from plain text and an HTTPS URL only. */
+export function alprCreditMarkup(attribution) {
+  if (!attribution?.text || !attribution?.href) return null;
+  const href = new URL(attribution.href);
+  if (href.protocol !== 'https:' || href.username || href.password) {
+    throw new TypeError('Camera attribution requires a public HTTPS link');
+  }
+  const escape = (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (char) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[char],
+    );
+  return `<span class="gev-alpr-credit">ALPR: <a href="${escape(href.href)}" target="_blank" rel="noopener">${escape(attribution.text)}</a></span>`;
+}

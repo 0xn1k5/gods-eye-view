@@ -9,7 +9,7 @@ import {
 } from './policy.js';
 import { boxContains, destinationPointDeg } from './model.js';
 
-export function createAlprPresentation({ state, services }) {
+export function createAlprPresentation({ state, services, source }) {
   const { governorRequestRender } = services.render;
   const {
     clearSelectedEntityContextForLayer,
@@ -130,7 +130,7 @@ export function createAlprPresentation({ state, services }) {
       }
       const entity = state.dataSource.entities.add(entityDef);
       entity.gevTrackedId = record.id;
-      // The raw OSM datum has no elevation; it is not the clamped marker's
+      // The mapped camera datum has no elevation; it is not the clamped marker's
       // visual anchor. Only the selected marker samples the rendered surface,
       // at most once per second, through Cesium's public height APIs.
       entity.gevAlprDisplayPosition = null;
@@ -141,7 +141,7 @@ export function createAlprPresentation({ state, services }) {
           record.manufacturer ? `Manufacturer: ${record.manufacturer}` : null,
           record.operator ? `Operator: ${record.operator}` : null,
           record.cameraType ? `Type: ${record.cameraType}` : null,
-          'Source: OpenStreetMap',
+          `Source: ${source.attribution?.name || source.label || 'Camera source'}`,
         ].filter(Boolean),
         accent: color.toCssColorString(),
       };
@@ -150,7 +150,8 @@ export function createAlprPresentation({ state, services }) {
         layerId: LAYER_ID,
         dataSource: state.dataSource,
         layerName: 'ALPR Cameras',
-        source: 'OpenStreetMap contributors (ODbL 1.0; community mapped)',
+        source:
+          source.attribution?.description || source.label || 'Camera source',
         label: 'ALPR camera',
         latitude: record.latitude,
         longitude: record.longitude,
