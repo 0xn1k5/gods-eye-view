@@ -144,9 +144,14 @@ reconstruction mechanics with injectable acquisition dependencies.
 `gods-eye-view/sources/traffic` exports tile math and budget calculations.
 `gods-eye-view/sources/gbfs` exports host/path acceptance and cache-header rules.
 These entries import no Node middleware, application configuration or rendering.
-Callers retain their request admission and transport policy. FIRMS CSV parsing
-remains an owned dependency of the FIRMS Node provider. The boundary gate
-checks each entry independently.
+Callers retain their request admission and transport policy.
+
+`gods-eye-view/sources/firms-csv` exports the existing CSV parser, header
+recognition, acquisition-time conversion and trailing-day filter independently
+of the Node middleware. It imports no Node, DOM, rendering or network code.
+The Node provider continues using the same implementation; contract fixtures
+cover malformed rows, acquisition times, empty feeds and the inclusive time
+window. The boundary gate checks each entry independently.
 
 Browser terrain sampling, traffic matching/drawing, fire overlays and bike-share
 layer lifecycle remain in their current modules. This extraction changes no

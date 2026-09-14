@@ -91,6 +91,8 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+- Expose existing FIRMS CSV parsing and UTC time-window helpers through a portable package export, with shared contract fixtures.
+
 - Separate map source factories from switching and resource ownership; retain current source IDs, attribution and fallbacks.
 
 - Separate radio directory loading, station selection, globe presentation and playback into composed components with an explicit metadata source.
