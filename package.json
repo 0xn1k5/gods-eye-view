@@ -193,6 +193,7 @@
       "node": "./build/application-html.js"
     },
     "./application/catalog": "./src/app/catalog.js",
-    "./standalone/catalog": "./src/standalone/catalog.js"
+    "./standalone/catalog": "./src/standalone/catalog.js",
+    "./application/layers": "./src/app/constructCatalog.js"
   }
 }

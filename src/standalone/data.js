@@ -1,8 +1,8 @@
 import { createApplicationData } from '../app/data.js';
-import { createStandaloneCatalog } from './catalog.js';
+import { getStandaloneCatalog } from './catalog.js';
 export function createStandaloneData(options) {
   return createApplicationData({
-    catalog: createStandaloneCatalog(),
+    catalog: options?.catalog ?? getStandaloneCatalog(),
     ...options,
   });
 }
