@@ -91,6 +91,8 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+- Let application data and controls receive the same explicit layer catalog; keep standalone defaults and registration-before-restoration ordering.
+
 - Expose existing FIRMS CSV parsing and UTC time-window helpers through a portable package export, with shared contract fixtures.
 
 - Separate map source factories from switching and resource ownership; retain current source IDs, attribution and fallbacks.

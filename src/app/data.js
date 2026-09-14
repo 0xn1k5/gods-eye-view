@@ -1,24 +1,9 @@
 import { DataLayerManager } from '../data/manager.js';
-import flightsLayer from '../data/flights.js';
-import militaryFlightsLayer from '../data/militaryFlights.js';
-import alprCamerasLayer from '../data/alprCameras.js';
-import earthquakesLayer from '../data/earthquakes.js';
-import satellitesLayer from '../data/satellites.js';
-import rocketLaunchesLayer from '../data/rocketLaunches.js';
-import trafficLayer from '../data/traffic.js';
-import cctvLayer from '../data/cctv.js';
-import radioLayer from '../data/radio.js';
-import bikeshareLayer from '../data/bikeshare.js';
-import aisLiveVesselsLayer from '../data/aisLiveVessels.js';
-import militaryInstallationsLayer from '../data/militaryInstallations.js';
-import militaryAwarenessLayer from '../data/militaryAwareness.js';
-import localDataLayers from '../data/localLayers.js';
-import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
-
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer },
   controls: { styleManager },
+  catalog,
   allowQaRegistration,
   onData,
   defer,
@@ -35,26 +20,12 @@ export function createApplicationData({
       );
   });
   onData?.(dataManager);
-  dataManager.register(flightsLayer);
-  dataManager.register(militaryFlightsLayer);
-  dataManager.register(earthquakesLayer);
-  dataManager.register(alprCamerasLayer);
-  dataManager.register(satellitesLayer);
-  dataManager.register(rocketLaunchesLayer);
-  rocketLaunchesLayer.attachDataManager(dataManager);
-  dataManager.register(trafficLayer);
-  dataManager.register(cctvLayer);
-  dataManager.register(radioLayer);
-  dataManager.register(bikeshareLayer);
-  dataManager.register(aisLiveVesselsLayer);
-  dataManager.register(militaryInstallationsLayer);
-  dataManager.register(militaryAwarenessLayer);
-  militaryAwarenessLayer.attachDataManager(dataManager);
-  for (const layer of localDataLayers) {
-    dataManager.register(layer);
-  }
-  // Restoration starts only after the complete production registry is sealed.
-  dataManager.finalizeRegistrations(LAYER_STATE_REGISTRY);
+  if (!catalog?.layers || !catalog?.metadata)
+    throw new TypeError('An application layer catalog is required');
+  for (const layer of catalog.layers) dataManager.register(layer);
+  for (const layer of catalog.layers) layer.attachDataManager?.(dataManager);
+  // Restoration starts only after the caller's complete registry is sealed.
+  dataManager.finalizeRegistrations(catalog.metadata);
   if (allowQaRegistration) {
     window.__gevQaRegisterLayer = (targetManager, layerModule) => {
       if (targetManager !== dataManager)

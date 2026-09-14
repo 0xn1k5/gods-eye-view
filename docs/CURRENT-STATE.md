@@ -1,5 +1,9 @@
 # God's Eye View Current State
 
+Application data setup receives an ordered layer catalog and serialization metadata.
+Controls use the same instances. The standalone composition selects the existing
+default catalog, and restoration starts only after all registrations are sealed.
+
 The `sources/firms-csv` package export exposes existing FIRMS CSV parsing and
 UTC acquisition-window helpers without Node middleware or rendering dependencies.
 The standalone FIRMS provider, source defaults and parsing behavior are unchanged.

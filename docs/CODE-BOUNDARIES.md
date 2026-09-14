@@ -396,3 +396,16 @@ its engines. Its explicit module graph includes the smaller layer/UI groups;
 those independent groups retain their narrower gates. Source adapters and
 request services enter through construction, without replacing global fetch.
 The Node build group also owns the allowlisted static HTML template assembler.
+
+## Application catalog
+
+`gods-eye-view/application/catalog` captures caller-supplied layer instances and
+matching registration metadata. `application/data` registers that catalog, attaches
+coordinators after registration and seals it before controls start restoration.
+`application/controls` binds its layer services from the same catalog. The existing
+control surface and v2 sharing codec retain their established layer IDs; changing
+that schema requires a corresponding codec change.
+
+`standalone/catalog` selects the existing page-scoped default instances and metadata.
+Reusable data setup imports no standalone layer defaults. The current compatibility
+source setters remain available while callers migrate to instance construction.

@@ -1,3 +1,4 @@
+import { createStandaloneCatalog } from './catalog.js';
 import { createStandalonePlaceSearch } from './placeSearch.js';
 import { createApplication } from '../app/application.js';
 import { createStandaloneScene } from './scene.js';
@@ -22,6 +23,7 @@ export function createStandaloneApplication({
   const loadingScreen = document.getElementById('loading-screen');
   const loaderStatus = loadingScreen.querySelector('.loader-status');
   let placeSearch;
+  const catalog = createStandaloneCatalog();
   return createApplication({
     createScene: (context) => {
       placeSearch = createStandalonePlaceSearch({
@@ -37,9 +39,14 @@ export function createStandaloneApplication({
       });
     },
     createControls: (context) =>
-      createStandaloneControls({ ...context, loaderStatus, placeSearch }),
+      createStandaloneControls({
+        ...context,
+        loaderStatus,
+        placeSearch,
+        catalog,
+      }),
     createData: (context) =>
-      createStandaloneData({ ...context, allowQaRegistration }),
+      createStandaloneData({ ...context, allowQaRegistration, catalog }),
     createTools: (context) =>
       createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
   });

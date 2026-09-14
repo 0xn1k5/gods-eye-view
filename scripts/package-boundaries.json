@@ -1043,7 +1043,8 @@
       "./standalone/settings",
       "./voice/actions",
       "./annotations",
-      "./context"
+      "./context",
+      "./standalone/catalog"
     ],
     "modules": [
       "src/annotations/annotationEngine.js",
@@ -1500,7 +1501,9 @@
       "src/voice/realtimeController.js",
       "src/voice/voiceCost.js",
       "src/weatherEffectsMath.js",
-      "src/worldFocus.js"
+      "src/worldFocus.js",
+      "src/app/catalog.js",
+      "src/standalone/catalog.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1510,5 +1513,10 @@
       "pbf",
       "satellite.js"
     ]
+  },
+  "application-catalog": {
+    "exports": ["./application/catalog"],
+    "modules": ["src/app/catalog.js"],
+    "external": []
   }
 }
