@@ -491,3 +491,9 @@ Occlusion points live with rendering state. Eviction still releases tracking
 before deleting records; incomplete snapshots retain recent contacts for the
 existing bounded interval. The renderer retains its existing per-frame scratch
 objects; reconciliation occurs on source refresh, not on each frame.
+
+`layers/military/records` and `layers/military/ingestion` have the same portable
+ownership boundary. Military observations retain their aviation-foot readout,
+source-time fallback and model-owned ground policy. The renderer supplies that
+ownership fact and handles stale-ground lifting, Cesium history and primitives;
+record reconciliation does not import the engine or application.

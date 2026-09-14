@@ -657,7 +657,10 @@
       "src/layers/military/rendering.js",
       "src/layers/military/state.js",
       "src/layers/military/testing.js",
-      "src/layers/military/tracking.js"
+      "src/layers/military/tracking.js",
+      "src/layers/military/records.js",
+      "src/layers/military/recordPolicy.js",
+      "src/layers/military/snapshotRenderer.js"
     ],
     "external": ["cesium"]
   },
@@ -1545,7 +1548,10 @@
       "src/worldFocus.js",
       "src/layers/flights/records.js",
       "src/layers/flights/recordPolicy.js",
-      "src/layers/flights/snapshotRenderer.js"
+      "src/layers/flights/snapshotRenderer.js",
+      "src/layers/military/records.js",
+      "src/layers/military/recordPolicy.js",
+      "src/layers/military/snapshotRenderer.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1872,7 +1878,10 @@
       "src/worldFocus.js",
       "src/layers/flights/records.js",
       "src/layers/flights/recordPolicy.js",
-      "src/layers/flights/snapshotRenderer.js"
+      "src/layers/flights/snapshotRenderer.js",
+      "src/layers/military/records.js",
+      "src/layers/military/recordPolicy.js",
+      "src/layers/military/snapshotRenderer.js"
     ],
     "external": [
       "cesium",
@@ -2003,6 +2012,25 @@
     "modules": [
       "src/layers/flights/ingestion.js",
       "src/layers/flights/recordPolicy.js"
+    ],
+    "external": []
+  },
+  "military-flight-records": {
+    "exports": ["./layers/military/records"],
+    "modules": [
+      "src/layers/military/records.js",
+      "src/layers/military/recordPolicy.js",
+      "src/data/aircraftMeta.js",
+      "src/data/renderAltitude.js",
+      "src/data/aircraftClass.js"
+    ],
+    "external": []
+  },
+  "military-flight-ingestion": {
+    "exports": ["./layers/military/ingestion"],
+    "modules": [
+      "src/layers/military/ingestion.js",
+      "src/layers/military/recordPolicy.js"
     ],
     "external": []
   }

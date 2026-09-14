@@ -202,6 +202,8 @@
     "./ui/visual-settings": "./src/ui/visualSettings.js",
     "./ui/panel-chrome": "./src/ui/panelChrome.js",
     "./layers/flights/records": "./src/layers/flights/records.js",
-    "./layers/flights/ingestion": "./src/layers/flights/ingestion.js"
+    "./layers/flights/ingestion": "./src/layers/flights/ingestion.js",
+    "./layers/military/records": "./src/layers/military/records.js",
+    "./layers/military/ingestion": "./src/layers/military/ingestion.js"
   }
 }

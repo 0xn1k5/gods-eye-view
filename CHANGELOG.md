@@ -1,5 +1,7 @@
 # Changelog
 
+- Separate military-flight records and acquisition from rendering while preserving ground-model ownership, source units and follow behavior.
+
 - Separate civil-flight acquisition and record reconciliation from Cesium resource updates, preserving source timing, ground placement and tracking behavior.
 
 - Separate navigation, share restoration, visual settings and panel state into focused UI owners with explicit dependencies and terminal cleanup.
