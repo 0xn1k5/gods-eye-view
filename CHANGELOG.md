@@ -1,5 +1,7 @@
 # Changelog
 
+- Separate vessel records and feed acquisition from rendering while preserving selection, partial-feed retention, sea-surface placement and request cancellation.
+
 - Separate military-flight records and acquisition from rendering while preserving ground-model ownership, source units and follow behavior.
 
 - Separate civil-flight acquisition and record reconciliation from Cesium resource updates, preserving source timing, ground placement and tracking behavior.

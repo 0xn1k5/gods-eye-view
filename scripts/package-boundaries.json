@@ -700,11 +700,13 @@
       "src/layers/vessels/rendering.js",
       "src/layers/vessels/selection.js",
       "src/layers/vessels/state.js",
-      "src/layers/vessels/store.js",
       "src/layers/vessels/testing.js",
       "src/layers/vessels/tracking.js",
       "src/data/iconOrientation.js",
-      "src/data/vesselLabels.js"
+      "src/data/vesselLabels.js",
+      "src/layers/vessels/records.js",
+      "src/layers/vessels/recordPolicy.js",
+      "src/layers/vessels/snapshotRenderer.js"
     ],
     "external": ["cesium"]
   },
@@ -1410,7 +1412,6 @@
       "src/layers/vessels/rendering.js",
       "src/layers/vessels/selection.js",
       "src/layers/vessels/state.js",
-      "src/layers/vessels/store.js",
       "src/layers/vessels/testing.js",
       "src/layers/vessels/tracking.js",
       "src/loadingFeedback.js",
@@ -1551,7 +1552,10 @@
       "src/layers/flights/snapshotRenderer.js",
       "src/layers/military/records.js",
       "src/layers/military/recordPolicy.js",
-      "src/layers/military/snapshotRenderer.js"
+      "src/layers/military/snapshotRenderer.js",
+      "src/layers/vessels/records.js",
+      "src/layers/vessels/recordPolicy.js",
+      "src/layers/vessels/snapshotRenderer.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1857,7 +1861,6 @@
       "src/layers/vessels/rendering.js",
       "src/layers/vessels/selection.js",
       "src/layers/vessels/state.js",
-      "src/layers/vessels/store.js",
       "src/layers/vessels/testing.js",
       "src/layers/vessels/tracking.js",
       "src/locations.js",
@@ -1881,7 +1884,10 @@
       "src/layers/flights/snapshotRenderer.js",
       "src/layers/military/records.js",
       "src/layers/military/recordPolicy.js",
-      "src/layers/military/snapshotRenderer.js"
+      "src/layers/military/snapshotRenderer.js",
+      "src/layers/vessels/records.js",
+      "src/layers/vessels/recordPolicy.js",
+      "src/layers/vessels/snapshotRenderer.js"
     ],
     "external": [
       "cesium",
@@ -2031,6 +2037,22 @@
     "modules": [
       "src/layers/military/ingestion.js",
       "src/layers/military/recordPolicy.js"
+    ],
+    "external": []
+  },
+  "vessel-records": {
+    "exports": ["./layers/vessels/records"],
+    "modules": [
+      "src/layers/vessels/records.js",
+      "src/layers/vessels/recordPolicy.js"
+    ],
+    "external": []
+  },
+  "vessel-ingestion": {
+    "exports": ["./layers/vessels/ingestion"],
+    "modules": [
+      "src/layers/vessels/ingestion.js",
+      "src/layers/vessels/recordPolicy.js"
     ],
     "external": []
   }

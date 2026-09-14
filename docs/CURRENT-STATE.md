@@ -1,5 +1,10 @@
 # God's Eye View Current State
 
+Vessels separate plain, stable MMSI records and source acquisition from scene
+resources. The renderer owns geometry and billboards; cards, picking and trails
+resolve those resources through it. Partial-feed retention, selected-vessel
+pinning, first-position grace, source time and sea-surface placement are unchanged.
+
 Military flights also separate portable records and source acquisition from
 Cesium snapshot application. The metadata owner retains aviation feet, source
 fix times, sticky fields and partial-feed retention. Rendering retains ground
