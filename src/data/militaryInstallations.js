@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import {
   createInstallationsLayer,
   createInstallationSource,
@@ -8,8 +9,14 @@ import * as ground from './groundFloor.js';
 import * as anchors from './fireAnchors.js';
 import * as picking from './pickRegistry.js';
 
+const sourceSlot = createSourceSlot(
+  createInstallationSource(),
+  ['getMappedSites', 'searchNearby'],
+  'Installation source',
+);
+export const configureInstallationSource = sourceSlot.configure;
 const layer = createInstallationsLayer({
-  source: createInstallationSource(),
+  source: sourceSlot.source,
   services: { render, context, ground, anchors, picking },
 });
 export const approximateSurfaceDistanceM = layer.approximateSurfaceDistanceM;

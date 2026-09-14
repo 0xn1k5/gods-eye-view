@@ -385,3 +385,9 @@ also checks scene ownership after asynchronous work, so late results cannot
 replace a newer selection. Supplied tilesets are caller-owned; factory-created
 tilesets and provider caches are controller-owned. Construct a fresh controller
 for a new viewer or configuration lifetime.
+
+The application-components group assembles the existing page-scoped catalog and
+its engines. Its explicit module graph includes the smaller layer/UI groups;
+those independent groups retain their narrower gates. Source adapters and
+request services enter through construction, without replacing global fetch.
+The Node build group also owns the allowlisted static HTML template assembler.

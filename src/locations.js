@@ -1,3 +1,4 @@
+import { applicationServices } from './services/application.js';
 import * as Cesium from 'cesium';
 import {
   viewportBias,
@@ -1345,15 +1346,8 @@ async function resolveBuildingBounds(lat, lon, query) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 6000);
   try {
-    const response = await fetch('/api/overpass', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(overpassQuery)}`,
-      signal: controller.signal,
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return selectBuildingBounds(data?.elements || [], lat, lon, query);
+    const elements = await applicationServices.boundaries.query(overpassQuery, { signal: controller.signal });
+    return selectBuildingBounds(Array.isArray(elements) ? elements : [], lat, lon, query);
   } catch {
     return null;
   } finally {

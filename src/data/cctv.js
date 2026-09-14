@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import { createCctvSource } from '../layers/cctv/source.js';
 import { createCctvLayer } from '../layers/cctv/index.js';
 import * as sprites from './spriteOrder.js';
@@ -11,8 +12,14 @@ import * as mesh from './meshFloorSampler.js';
 import * as focus from './focusDeemphasis.js';
 import * as render from '../renderGovernor.js';
 
+const sourceSlot = createSourceSlot(
+  createCctvSource(),
+  ['getCatalog', 'getHealth', 'getFrameUrl', 'getMediaUrl'],
+  'Cctv source',
+);
+export const configureCctvSource = sourceSlot.configure;
 const layer = createCctvLayer({
-  source: createCctvSource(),
+  source: sourceSlot.source,
   services: {
     sprites,
     activation,

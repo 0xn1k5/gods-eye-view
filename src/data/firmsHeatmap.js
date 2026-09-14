@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import * as Cesium from 'cesium';
 import {
   createFirmsHeatmapLayer as createLayer,
@@ -20,6 +21,12 @@ const services = {
   overlays,
   focus,
 };
+const sourceSlot = createSourceSlot(
+  createFirmsSource(),
+  ['getSnapshot'],
+  'Fire source',
+);
+export const configureFirmsSource = sourceSlot.configure;
 const helpers = createFirmsHelpers({ services });
 export const mapAnalystRecord = helpers.mapAnalystRecord;
 export const fireCullPosition = helpers.fireCullPosition;
@@ -35,7 +42,7 @@ export function createFirmsHeatmapLayer(options) {
     ...options,
     icon: options.icon ?? '▲',
     source: options.source ?? 'NASA FIRMS',
-    feed: options.feed ?? createFirmsSource(),
+    feed: options.feed ?? sourceSlot.source,
     services,
     overlayHost: options.overlayHost ?? {
       setEntries: overlays.setOverlayEntries,

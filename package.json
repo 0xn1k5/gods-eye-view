@@ -172,6 +172,24 @@
     "./voice/control": "./src/voice/control.js",
     "./voice/realtime-backend": "./src/voice/realtimeBackend.js",
     "./voice/commands": "./src/voice/commands.js",
-    "./voice/cost": "./src/voice/voiceCost.js"
+    "./voice/cost": "./src/voice/voiceCost.js",
+    "./application/scene": "./src/app/scene.js",
+    "./application/controls": "./src/app/controls.js",
+    "./application/data": "./src/app/data.js",
+    "./application/tools": "./src/app/tools.js",
+    "./application/chrome": "./src/app/startupChrome.js",
+    "./application/sources": "./src/app/sources.js",
+    "./application/services": "./src/services/application.js",
+    "./application/requests": "./src/services/requests.js",
+    "./application/errors": "./src/app/errors.js",
+    "./ui/composition": "./src/ui/composition.js",
+    "./ui/hud": "./src/hud.js",
+    "./standalone/settings": "./src/keySetup.js",
+    "./voice/actions": "./src/voice/gevActions.js",
+    "./annotations": "./src/annotations/index.js",
+    "./context": "./src/data/contextStore.js",
+    "./build/html": {
+      "node": "./build/application-html.js"
+    }
   }
 }

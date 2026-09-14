@@ -1859,7 +1859,8 @@ function collectTrackedEntities(dataManager) {
   return tracked;
 }
 
-export async function getBasemapLabelContext(viewer, service = defaultGeospatial) {
+export async function getBasemapLabelContext(viewer, service = defaultGeospatial, { cachedOnly = false } = {}) {
+  const { reverseGeocodeCache, nearbyPlacesCache } = cachesFor(service);
   const samples = sampleViewportCartographics(viewer);
   const cameraHeightM = viewer.camera.positionCartographic.height;
   const target = getViewTargetCartographic(viewer);
@@ -1876,12 +1877,12 @@ export async function getBasemapLabelContext(viewer, service = defaultGeospatial
   const cachedViewportPlaces = viewportPlacesFromCache(samples, cameraHeightM, service);
   const viewportPromise = cachedViewportPlaces
     ? Promise.resolve(cachedViewportPlaces)
-    : reverseGeocodeViewportSamples(samples, cameraHeightM, service);
+    : cachedOnly ? Promise.resolve(null) : reverseGeocodeViewportSamples(samples, cameraHeightM, service);
   const placePromise = shouldReverseGeocode(cameraHeightM)
-    ? reverseGeocode(latitude, longitude, service)
+    ? cachedOnly ? Promise.resolve(reverseGeocodeCache.get(reverseGeocodeKey(latitude, longitude, service)) || null) : reverseGeocode(latitude, longitude, service)
     : Promise.resolve(null);
   const nearbyPromise = shouldFetchNearbyPlaces(cameraHeightM)
-    ? fetchNearbyPlaces(latitude, longitude, cameraHeightM, service)
+    ? cachedOnly ? Promise.resolve(nearbyPlacesCache.get(nearbyPlacesCacheKey(latitude, longitude, cameraHeightM, service)) || []) : fetchNearbyPlaces(latitude, longitude, cameraHeightM, service)
     : Promise.resolve([]);
   const [viewportPlaces, place, nearbyPlaces] = await Promise.all([
     resolveWithin(viewportPromise, BASEMAP_CONTEXT_WAIT_MS, cachedViewportPlaces),
@@ -2625,9 +2626,9 @@ async function getBasemapContext(viewer, viewTarget = null, service = defaultGeo
   const knownLandmarks = nearbyKnownLandmarks(latitude, longitude, cameraHeightM);
   const fallbackPlace = coarseBasemapPlace(viewScale, latitude, longitude, inferredCountry);
   const cachedPlace = shouldReverseGeocode(cameraHeightM)
-    ? reverseGeocodeCache.get(reverseGeocodeKey(latitude, longitude)) || null
+    ? reverseGeocodeCache.get(reverseGeocodeKey(latitude, longitude, service)) || null
     : null;
-  const nearbyCacheKey = nearbyPlacesCacheKey(latitude, longitude, cameraHeightM);
+  const nearbyCacheKey = nearbyPlacesCacheKey(latitude, longitude, cameraHeightM, service);
   const cachedNearbyPlaces = shouldFetchNearbyPlaces(cameraHeightM) && nearbyPlacesCache.has(nearbyCacheKey)
     ? nearbyPlacesCache.get(nearbyCacheKey)
     : null;
@@ -2907,7 +2908,7 @@ function inferCountry(latitude, longitude) {
 async function reverseGeocode(latitude, longitude, service) {
   const { reverseGeocodeCache, reverseGeocodeInFlight } = cachesFor(service);
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  const key = reverseGeocodeKey(latitude, longitude);
+  const key = reverseGeocodeKey(latitude, longitude, service);
   if (reverseGeocodeCache.has(key)) return reverseGeocodeCache.get(key);
   if (reverseGeocodeInFlight.has(key)) return reverseGeocodeInFlight.get(key);
 
@@ -2957,7 +2958,7 @@ function viewportPlacesFromCache(samples, cameraHeightM, service) {
   const { reverseGeocodeCache } = cachesFor(service);
   if (!shouldReverseGeocodeViewport(cameraHeightM) || cameraHeightM <= 10000 || !samples.length) return null;
   const places = [samples[0], samples[1], samples[2]].filter(Boolean).flatMap((sample) => {
-    const place = reverseGeocodeCache.get(reverseGeocodeKey(sample.latitude, sample.longitude));
+    const place = reverseGeocodeCache.get(reverseGeocodeKey(sample.latitude, sample.longitude, service));
     if (!place) return [];
     return [{
       latitude: sample.latitude,
@@ -2989,7 +2990,7 @@ function summarizeViewportPlaces(places) {
 async function fetchNearbyPlaces(latitude, longitude, cameraHeightM, service) {
   const { nearbyPlacesCache, nearbyPlacesInFlight } = cachesFor(service);
   const radiusM = nearbyPlacesRadiusM(cameraHeightM);
-  const cacheKey = nearbyPlacesCacheKey(latitude, longitude, cameraHeightM);
+  const cacheKey = nearbyPlacesCacheKey(latitude, longitude, cameraHeightM, service);
   if (nearbyPlacesCache.has(cacheKey)) return nearbyPlacesCache.get(cacheKey);
   if (nearbyPlacesInFlight.has(cacheKey)) return nearbyPlacesInFlight.get(cacheKey);
 
@@ -3035,13 +3036,17 @@ function sanitizeLabel(value) {
   return out.replace(/\s+/g, ' ').trim().slice(0, 120);
 }
 
-function reverseGeocodeKey(latitude, longitude) {
-  return `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+function cachePrecision(service) {
+  return Number.isInteger(service?.cachePrecision) ? Math.max(3, Math.min(6, service.cachePrecision)) : 4;
 }
 
-function nearbyPlacesCacheKey(latitude, longitude, cameraHeightM) {
+function reverseGeocodeKey(latitude, longitude, service) {
+  return `${latitude.toFixed(cachePrecision(service))},${longitude.toFixed(cachePrecision(service))}`;
+}
+
+function nearbyPlacesCacheKey(latitude, longitude, cameraHeightM, service) {
   const radiusM = nearbyPlacesRadiusM(cameraHeightM);
-  return `${latitude.toFixed(4)},${longitude.toFixed(4)},${radiusM}`;
+  return `${latitude.toFixed(cachePrecision(service))},${longitude.toFixed(cachePrecision(service))},${radiusM}`;
 }
 
 function nearbyPlacesRadiusM(cameraHeightM) {

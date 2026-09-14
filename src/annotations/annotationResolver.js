@@ -1,3 +1,4 @@
+import { applicationServices } from '../services/application.js';
 import { defaultGeospatial } from '../search/defaults.js';
 import * as Cesium from 'cesium';
 import { lookupNeighborhoodRing } from '../data/neighborhoodPolygons.js';
@@ -93,7 +94,7 @@ function linkAbort(controller, externalSignal) {
 export async function resolveAnnotationTarget({
   placeSearch = unavailablePlaceSearch,
   viewer, target, latitude, longitude, footprint = false, intent = 'the_thing',
-  entityKind = null, labelHint = null, deferFootprint = false, screenX, screenY, signal,
+  entityKind = null, labelHint = null, deferFootprint = false, allowDistant = false, screenX, screenY, signal,
 }) {
   let lon = Number(longitude);
   let lat = Number(latitude);
@@ -158,7 +159,7 @@ export async function resolveAnnotationTarget({
         // LOOKING AT. If the geocode missed or landed far from the view centre, try a view-biased
         // Places Text Search; a hit within the trust bound overrides + skips the gate. Local geocodes
         // (neighborhoods, nearby buildings) are NOT far, so they keep the geocode + scope/polygon path.
-        if (center && trace.places === 'skipped' && !bypassNearViewGuards) {
+        if (center && trace.places === 'skipped' && !bypassNearViewGuards && !allowDistant) {
           let geocodeFar = source !== 'geocode';
           if (source === 'geocode' && approximateDistanceM(center.lat, center.lon, lat, lon) / 1000 > MIN_DRIFT_FLOOR_KM) {
             geocodeFar = true;
@@ -243,7 +244,7 @@ export async function resolveAnnotationTarget({
     const limitKm = Math.max(VIEWPORT_DRIFT_FACTOR * vpGate.radiusKm, MIN_DRIFT_FLOOR_KM);
     return driftKm > limitKm ? { driftKm, limitKm } : null;
   };
-  if (fromGeocode && !bypassNearViewGuards) {
+  if (fromGeocode && !bypassNearViewGuards && !allowDistant) {
     const drift = gateDrift(lat, lon);
     if (drift) {
       if (trace.query) {
@@ -739,26 +740,9 @@ export function refineScope(scope, entityKind) {
   return scope;
 }
 
-/** True when an HTTP-200 Overpass body actually signals a runtime FAILURE (server-side
- *  timeout / out-of-memory) via its `remark` — a transient error, not an authoritative
- *  empty result, so callers must not cache it as a definitive not-found. */
-function overpassHasError(data) {
-  const remark = String(data?.remark || '').toLowerCase();
-  return remark.includes('runtime error') || remark.includes('timed out') || remark.includes('out of memory');
-}
-
 /** A distinct Overpass throttle result that must not enter the ordinary transient ladder. */
 export function isRateLimitedOutcome(value) {
   return value?.rateLimited === true;
-}
-
-/** Parse Retry-After seconds or an HTTP date into a non-negative millisecond delay. */
-function parseRetryAfterMs(value) {
-  if (value == null || String(value).trim() === '') return null;
-  const seconds = Number(value);
-  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1000);
-  const at = Date.parse(String(value));
-  return Number.isFinite(at) ? Math.max(0, at - Date.now()) : null;
 }
 
 /** POST an Overpass QL query and return elements, a transient null, or a throttle object. */
@@ -767,20 +751,7 @@ async function overpassJson(query, timeoutMs = 14000, signal) {
   const detach = linkAbort(controller, signal);
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch('/api/overpass', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(query)}`,
-      signal: controller.signal,
-    });
-    const retryAfter = res.headers?.get?.('Retry-After');
-    if (res.status === 429 || (res.status === 503 && retryAfter != null)) {
-      return { rateLimited: true, retryAfterMs: parseRetryAfterMs(retryAfter) };
-    }
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (overpassHasError(data)) return null; // 200 with a body-level timeout/error → transient
-    return Array.isArray(data?.elements) ? data.elements : null;
+    return await applicationServices.boundaries.query(query, { signal: controller.signal });
   } catch {
     return null;
   } finally {

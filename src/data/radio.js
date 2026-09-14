@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import { createRadioSource } from '../layers/radio/source.js';
 import { createRadioLayer } from '../layers/radio/index.js';
 import * as ground from './groundFloor.js';
@@ -6,8 +7,14 @@ import * as overlays from '../overlays/worldOverlay.js';
 import * as globe from '../celestialRing.js';
 import * as render from '../renderGovernor.js';
 
+const sourceSlot = createSourceSlot(
+  createRadioSource(),
+  ['getDirectory', 'recordClick'],
+  'Radio source',
+);
+export const configureRadioSource = sourceSlot.configure;
 const layer = createRadioLayer({
-  source: createRadioSource(),
+  source: sourceSlot.source,
   services: { ground, picking, overlays, globe, render },
 });
 export const radioGlobeLabel = layer.radioGlobeLabel;

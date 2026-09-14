@@ -246,7 +246,7 @@ export function createAnnotationEngine({
     // allSettled gives per-item error isolation (one failed item never aborts the batch); the
     // mutation pass below then runs in ORDER, so de-dup, the synchronous live-cap check, and output
     // order are all preserved exactly as the old serial loop had them.
-    const settled = await Promise.allSettled(list.map((spec) => resolveSpec(spec, controller.signal)));
+    const settled = await Promise.allSettled(list.map((spec) => resolveSpec(spec, controller.signal, opts.flyTo === true)));
 
     try {
       for (let i = 0; i < list.length; i += 1) {
@@ -385,7 +385,7 @@ export function createAnnotationEngine({
     };
   }
 
-  async function resolveSpec(spec, signal) {
+  async function resolveSpec(spec, signal, allowDistant = false) {
     const type = normalizeType(spec?.type);
     if (type === 'route') {
       const points = Array.isArray(spec.points) ? spec.points : [];
@@ -395,13 +395,15 @@ export function createAnnotationEngine({
       for (const pt of points) {
         const name = pt.target ?? pt.name ?? null;
         const r = await resolveTarget({
-          placeSearch,          viewer,
+          placeSearch,
+          viewer,
           target: name,
           latitude: pt.latitude,
           longitude: pt.longitude,
           screenX: pt.screenX,
           screenY: pt.screenY,
           footprint: false,
+          allowDistant,
           signal,
         });
         if (r) resolvedPts.push(r);
@@ -438,23 +440,27 @@ export function createAnnotationEngine({
     }
     if (type === 'arrow') {
       const from = await resolveTarget({
-          placeSearch,        viewer,
+        placeSearch,
+        viewer,
         target: spec.target,
         latitude: spec.latitude,
         longitude: spec.longitude,
         screenX: spec.screenX,
         screenY: spec.screenY,
         footprint: false,
+        allowDistant,
         signal,
       });
       const to = await resolveTarget({
-          placeSearch,        viewer,
+        placeSearch,
+        viewer,
         target: spec.toTarget,
         latitude: spec.toLatitude,
         longitude: spec.toLongitude,
         screenX: spec.toScreenX,
         screenY: spec.toScreenY,
         footprint: false,
+        allowDistant,
         signal,
       });
       if (!from || !to) {
@@ -473,7 +479,8 @@ export function createAnnotationEngine({
     }
     const wantFootprint = type === 'area' ? spec.footprint !== false : Boolean(spec.footprint);
     return resolveTarget({
-          placeSearch,      viewer,
+      placeSearch,
+      viewer,
       target: spec.target,
       latitude: spec.latitude,
       longitude: spec.longitude,
@@ -490,6 +497,7 @@ export function createAnnotationEngine({
       // timeout — field test 7 logs); deferring them lets the mark appear and the tool
       // result return while the outline resolves, then upgrades the mark in place.
       deferFootprint: wantFootprint,
+      allowDistant,
       signal,
     });
   }

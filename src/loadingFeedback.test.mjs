@@ -1,3 +1,4 @@
+import { expandApplicationHtml } from '../build/application-html.js';
 import { readStylesheet } from './testSupport/readStylesheet.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -197,7 +198,7 @@ test('replacement, repetition, and hidden-tab elapsed time use the newest fixed 
 
 test('universal notice lifecycle clears on dispose and uses the one top-center live region', () => {
   const ui = readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8');
-  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const html = expandApplicationHtml(readFileSync(new URL('../index.html', import.meta.url), 'utf8'));
   const disposeStart = ui.indexOf('  async dispose() {');
   const disposeEnd = ui.indexOf('\n  }\n', disposeStart);
   const dispose = ui.slice(disposeStart, disposeEnd);

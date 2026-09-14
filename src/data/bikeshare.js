@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import { createBikeshareSource } from '../layers/bikeshare/source.js';
 import { createBikeshareLayer } from '../layers/bikeshare/index.js';
 import * as render from '../renderGovernor.js';
@@ -5,8 +6,14 @@ import * as sprites from './spriteOrder.js';
 import * as picking from './pickRegistry.js';
 import * as overlays from '../overlays/worldOverlay.js';
 
+const sourceSlot = createSourceSlot(
+  createBikeshareSource(),
+  ['getStations'],
+  'Bikeshare source',
+);
+export const configureBikeshareSource = sourceSlot.configure;
 const layer = createBikeshareLayer({
-  source: createBikeshareSource(),
+  source: sourceSlot.source,
   services: { render, sprites, picking, overlays },
 });
 export const createBikeshareSelectedOverlayEntry =
