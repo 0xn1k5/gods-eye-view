@@ -25,19 +25,23 @@ export function createStandaloneApplication({
   let placeSearch;
   let catalog;
   return createApplication({
-    createScene: (context) => {
-      catalog = createStandaloneCatalog({ signal: context.signal });
+    createScene: async (context) => {
       placeSearch = createStandalonePlaceSearch({
         ...geospatial,
         resolveApiKey: () => googleApiKey,
         signal: context.signal,
       });
-      return createStandaloneScene({
+      const scene = await createStandaloneScene({
         ...context,
         googleApiKey,
         cesiumToken,
         loaderStatus,
       });
+      catalog = createStandaloneCatalog({
+        signal: context.signal,
+        surface: scene.operations.surface,
+      });
+      return scene;
     },
     createControls: (context) =>
       createStandaloneControls({

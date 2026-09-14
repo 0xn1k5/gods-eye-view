@@ -47,6 +47,7 @@ const SOURCE_METHODS = Object.freeze({
  * The manager owns layer destruction, while abort releases classification even if startup fails.
  */
 export function createApplicationCatalog({
+  surface,
   sources,
   signal,
   metadata = LAYER_STATE_REGISTRY,
@@ -56,6 +57,9 @@ export function createApplicationCatalog({
   if (!signal?.addEventListener)
     throw new TypeError('An application lifetime signal is required');
   signal.throwIfAborted();
+  if (!surface?.groundFloor || !surface?.terrain)
+    throw new TypeError('Application surface services are required');
+
   for (const [name, methods] of Object.entries(SOURCE_METHODS)) {
     if (
       methods.some((method) => typeof sources?.[name]?.[method] !== 'function')
@@ -71,11 +75,13 @@ export function createApplicationCatalog({
   try {
     militaryRegistry.configureSource(sources.military, { signal });
     const flights = createApplicationFlights({
+      surface,
       source: sources.flights,
       militaryRegistry,
       resolveAsset,
     });
     const military = createApplicationMilitary({
+      surface,
       source: sources.military,
       militaryRegistry,
       resolveAsset,
@@ -85,6 +91,7 @@ export function createApplicationCatalog({
       options: vesselOptions,
     });
     const installations = createApplicationInstallations({
+      surface,
       source: sources.installations,
     });
     const satellites = createApplicationSatellites({
@@ -95,12 +102,12 @@ export function createApplicationCatalog({
         flights,
         military,
         createApplicationEarthquakes({ source: sources.earthquakes }),
-        createApplicationAlpr({ source: sources.alpr }),
+        createApplicationAlpr({ surface, source: sources.alpr }),
         satellites,
         createApplicationLaunches({ source: sources.launches, satellites }),
         createApplicationTraffic({ source: sources.traffic }),
-        createApplicationCctv({ source: sources.cctv }),
-        createApplicationRadio({ source: sources.radio }),
+        createApplicationCctv({ surface, source: sources.cctv }),
+        createApplicationRadio({ surface, source: sources.radio }),
         createApplicationBikeshare({ source: sources.bikeshare }),
         vessels,
         installations,
@@ -113,6 +120,7 @@ export function createApplicationCatalog({
         ...createInfrastructureLayers(localGeoJsonServices),
         createApplicationCables({ source: sources.cables }),
         createApplicationFirms({
+          surface,
           id: 'local-firms',
           name: 'FIRMS Active Fires',
           icon: '▲',
@@ -122,7 +130,7 @@ export function createApplicationCatalog({
       ],
       metadata,
     );
-    return Object.freeze({ ...catalog, militaryRegistry });
+    return Object.freeze({ ...catalog, militaryRegistry, surface });
   } catch (error) {
     dispose();
     throw error;

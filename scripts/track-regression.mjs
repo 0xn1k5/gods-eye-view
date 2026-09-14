@@ -2986,17 +2986,12 @@ async function main() {
         }
         return window.__dfCountModels(icao);
       };
-      // Vite serves an edited source file as `…/groundFloor.js?t=<hmr stamp>`;
-      // importing the PLAIN path then hands back a second, unrelated module
-      // instance whose cells the app never reads. Offer the URL the app itself
-      // loaded first, then the plain path (clean, never-hot-reloaded server).
-      const seen = performance.getEntriesByType('resource')
-        .map((e) => e.name)
-        .filter((n) => /\/src\/data\/groundFloor\.js(\?|$)/.test(n));
-      window.__dfCandidates = [...new Set([...seen.reverse(), `${window.__gevQaSourceBase || '/src'}/data/groundFloor.js`])];
+      // Read the application's surface owner, then prove it is the one
+      // used by the actual poll/render path with the unchanged floor seed.
+      window.__dfCandidates = window.__godsEyeView.surfaceServices?.groundFloor ? ['application surface'] : [];
       return { candidates: window.__dfCandidates.length };
     });
-    record('display-floor: groundFloor module URL candidates found', dfSetup.candidates > 0,
+    record('display-floor: ground-floor service owner found', dfSetup.candidates > 0,
       JSON.stringify(dfSetup));
 
     // Identity probe. Seed a contact's FIX cell BEFORE its first fix arrives,
@@ -3012,8 +3007,7 @@ async function main() {
       const tried = [];
       for (let i = 0; i < window.__dfCandidates.length; i++) {
         const url = window.__dfCandidates[i];
-        let gf;
-        try { gf = await import(/* @vite-ignore */ url); } catch { tried.push({ url, h: null }); continue; }
+        const gf = window.__godsEyeView.surfaceServices.groundFloor;
         if (typeof gf.reportMeshFloorCell !== 'function') { tried.push({ url, h: null }); continue; }
         gf.setMeshFloorPreferred(true);
         gf._clearMeshFloorCellsForTest();

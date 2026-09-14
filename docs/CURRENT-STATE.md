@@ -1,5 +1,14 @@
 # God's Eye View Current State
 
+Application scene setup owns request services, terrain/floor caches and annotation
+lookup state. Controls, layers and voice share those owners, and cancellation
+clears caches and removes map-stack listeners. Standalone setup supplies the
+existing service clients. HUD summaries, regional brief, cockpit weather, location
+framing and annotation boundaries receive their service instances explicitly.
+Compatibility entrypoints retain defaults for direct callers; normal startup does
+not change global service slots. Analyst follow-up memory belongs to its voice runner.
+
+
 Application startup constructs fresh layer instances from explicit source objects.
 Standalone composition selects the existing providers. Controls, launch orbit
 lookups, Contacts voice answers and ISS pass queries use the registered catalog.
