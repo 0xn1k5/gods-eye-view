@@ -73,6 +73,35 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ### Added
 
+- Add Ontario 511 as a keyless CCTV source pack, including Kitchener-area
+  highway cameras, with server-registered still URLs and attribution.
+- CCTV Mesh adds Finland: Fintraffic road weather cameras, keyless, nationwide, 300 by default. Each camera view of a station is placed separately; ambient stills refresh on the source's 10-minute cadence (the active camera keeps the usual 10-second refresh).
+- Add DriveBC highway cameras for British Columbia to the CCTV layer: the 250
+  nearest Vancouver and Victoria by default, with Open Government Licence –
+  British Columbia attribution. `CCTV_DRIVEBC_MAX_SOURCES` sets the cap and
+  `CCTV_DRIVEBC_ENABLED=0` turns the pack off.
+- Add TxDOT highway cameras for Texas as a keyless CCTV pack: the Austin and
+  San Antonio districts by default (`CCTV_TXDOT_DISTRICTS` selects any of the
+  25), only cameras reporting Device Online, snapshots decoded from TxDOT's
+  JSON-wrapped JPEG for the official origin only.
+- Add Estonia CCTV source packs: Tallinn intersection stills (`ristmikud.tallinn.ee`,
+  curated catalog) and nationwide Transpordiamet / Tarktee road-weather cameras
+  (DATEX2 locations + rotating JPEG URLs), with Tallinn city POIs and attribution.
+- Add a Warendorf (Germany) source pack: the Stadt Warendorf Marktplatz webcam, with a
+  curated pose.
+- Add Live Traffic NSW (Transport for NSW, CC BY 4.0) as a keyless CCTV pack: 217
+  Sydney and regional cameras with compass headings and view descriptions.
+- CCTV monitor planes no longer clip into the terrain. The plane is lifted
+  rigidly by the largest clearance deficit over a 3×3 grid of support points
+  against the ground under each (the ground at the mount where nothing finer is
+  known), and the client honours pack ranges instead of inflating them to 220 m.
+  `src/data/local_data/cctv_ground_heights/` ships Google 3D Tiles ground heights under
+  every camera's mount and plane footprint (3,445 of 3,446 cameras), produced by
+  `scripts/precompute-cctv-heights.mjs`; cameras with shipped heights are placed
+  with zero runtime sampling, and the rest resolve the ground under their plane
+  from the Re:Earth DEM on activation. The footprint lift is capped at 60 m
+  above the mount-based lift so a tower under a far edge cannot launch the plane.
+
 - Press backtick (`) to toggle a rendered-frame-rate readout beneath the logo.
   Typing fields retain the key; monitoring stops when hidden.
 
@@ -128,6 +157,8 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 - Extract shared surface keyboard handling for the welcome launcher and Provider
   Settings, preserving Tab/Escape behavior and releasing the listener on teardown.
+
+### Added
 
 ### Security
 
