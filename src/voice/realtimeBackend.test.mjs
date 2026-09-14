@@ -89,12 +89,13 @@ test('cancellation rejects late token and SDP bodies without promoting a stopped
       release = resolve;
     });
     const backend = createRealtimeBackend({
+      signal: lifetime.signal,
       tokenTransport: async () => ({ ok: true, json: () => pending }),
       connectionTransport: async () => ({ ok: true, text: () => pending }),
     });
     const result =
       phase === 'token'
-        ? backend.requestToken({ signal: lifetime.signal })
+        ? backend.requestToken()
         : backend.negotiate({
             credential: { token: 'test' },
             offerSdp: 'offer',

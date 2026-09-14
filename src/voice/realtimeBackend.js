@@ -7,9 +7,12 @@ export function createRealtimeBackend({
   tokenTransport = (...args) => fetch(...args),
   connectionTransport = (...args) => fetch(...args),
   timeoutMs = 30_000,
+  signal: lifetime,
 } = {}) {
   const scoped = (signal) =>
-    AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)].filter(Boolean));
+    AbortSignal.any(
+      [lifetime, signal, AbortSignal.timeout(timeoutMs)].filter(Boolean),
+    );
   return Object.freeze({
     protocol: 'openai-realtime',
     async requestToken({ tier = DEFAULT_VOICE_TIER, signal } = {}) {

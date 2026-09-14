@@ -2598,4 +2598,3 @@ function resetVoiceVisualizerBars(bars) {
     bar.style.removeProperty('--audio-opacity');
   }
 }
-
