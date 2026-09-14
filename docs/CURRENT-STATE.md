@@ -1,5 +1,10 @@
 # God's Eye View Current State
 
+Military flights also separate portable records and source acquisition from
+Cesium snapshot application. The metadata owner retains aviation feet, source
+fix times, sticky fields and partial-feed retention. Rendering retains ground
+model ownership, motion history, military registration and tracking cleanup.
+
 Civil flights separate source acquisition, portable record reconciliation and
 scene application. The record owner keeps sticky metadata, geoid cache and
 bounded missing-poll state; ingestion owns cancellation, source freshness and
