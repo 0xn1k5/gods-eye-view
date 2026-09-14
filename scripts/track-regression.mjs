@@ -3287,9 +3287,11 @@ async function main() {
         const bbBefore = window.__dfFindBB('aaa097');
         if (!bbBefore) return { error: 'aaa097 billboard missing' };
         const d0 = window.__dfCarto(bbBefore.position);
-        // Plant a floor well ABOVE where it currently renders, across the block
-        // it can move within, so an UNFLOORED tracked entity is unmistakable.
-        const seeded = d0.h + 40;
+        // Plant above both the current billboard and this group's 400 m
+        // identity-probe floor. A poll can refresh the raw render altitude
+        // after d0 was read; a lower seed makes the negative model-ownership
+        // assertion impossible even when the clamp correctly stands aside.
+        const seeded = Math.max(d0.h, 400) + 40;
         for (let dy = -1; dy <= 1; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
             gf.reportMeshFloorCell(cell(d0.lat) + dy * 0.001, cell(d0.lon) + dx * 0.001, seeded);

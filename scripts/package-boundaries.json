@@ -898,6 +898,17 @@
     ],
     "external": ["cesium"]
   },
+  "alpr-cameras": {
+    "exports": ["./layers/alpr"],
+    "modules": [
+      "src/layers/alpr/index.js",
+      "src/layers/alpr/model.js",
+      "src/layers/alpr/policy.js",
+      "src/layers/alpr/presentation.js",
+      "src/layers/alpr/source.js"
+    ],
+    "external": ["cesium"]
+  },
   "radio-layer": {
     "exports": ["./layers/radio"],
     "modules": [

@@ -1,5 +1,27 @@
 # God's Eye View Current State
 
+The optional **ALPR Cameras** layer shows community-mapped OpenStreetMap locations,
+not camera footage or plate records. City-scale queries use the existing Overpass
+provider, with capped results, retry, cached-data and incomplete-coverage notices.
+Its `./layers/alpr` entry exposes a per-instance layer factory and bounded source
+adapter. Sources return normalized records, stale/coverage flags and their own
+attribution; rendering does not parse Overpass payloads. The standalone
+registration supplies selection, picking, terrain and
+render services. Selected cards and Data attribution identify OpenStreetMap.
+Layer state and the existing voice layer tools include `alpr-cameras`.
+The row count explicitly says **nearby**: loaded records can be outside the
+screen. A purple-dot legend identifies the fixed 8-pixel markers (12 pixels when
+selected). **SHOW NEAREST** frames and selects the nearest loaded camera; it is
+disabled with no loaded cameras or while following a tracked entity. This action
+chooses from the current source snapshot and uses rendered surface height from
+3D tiles or globe terrain when available.
+Coverage follows a bounded neighborhood around the screen-center ground point,
+with a radius of twice the camera-to-ground range (at least 1 km), rather than
+extending to the horizon. Sky, dateline-crossing and wider-than-city views do not
+query. Movement within an accepted or pending query reuses it. Markers retain
+their Cesium identity and ground clamping while their geometry is unchanged;
+refreshes preserve selection without replaying a click event.
+
 Data Centers, Dams and Submarine Cables release their built Cesium data sources
 and record references when disabled. Parsed datasets remain cached for the layer
 lifetime, so re-enable rebuilds entities without downloading or parsing again;

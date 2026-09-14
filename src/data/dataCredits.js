@@ -82,6 +82,14 @@ export const DATA_CREDITS = [
       '(ODbL 1.0)',
   },
   {
+    key: 'alpr-osm',
+    html:
+      'ALPR camera locations (automatic license plate readers): ' +
+      '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
+      '(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>); ' +
+      'community mapping includes <a href="https://deflock.org" target="_blank" rel="noopener">DeFlock</a>',
+  },
+  {
     key: 'military-installations-osm',
     html:
       'Mapped installation context: ' +

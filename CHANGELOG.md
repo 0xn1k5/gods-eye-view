@@ -1,5 +1,19 @@
 # Changelog
 
+## ALPR camera locations
+
+- Label the loaded camera count as nearby, show a purple-dot legend, and add
+  SHOW NEAREST to frame and select a loaded camera when none are on screen,
+  using the available 3D-tile or globe terrain height.
+
+- Keep nearby camera markers and selection stable during rotation, use bounded
+  ground-centered coverage instead of the horizon rectangle, and reuse in-flight queries.
+
+- Add optional, source-labeled OpenStreetMap ALPR camera locations, bounded city queries,
+  cached-response and coverage notices, selection cards, share links, and voice toggles.
+- Separate the request adapter, camera model, presentation, and instance lifecycle.
+  Source cancellation also guards late response bodies and rejects invalid query bounds.
+
 ## Release disabled infrastructure rendering
 
 - Remove built Data Center, Dam and Submarine Cable entities when their layers

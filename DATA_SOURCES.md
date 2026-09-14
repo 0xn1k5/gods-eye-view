@@ -15,6 +15,7 @@ How to read this:
 
 | Source                                                                | Used for                                                                                                                            | License / terms                                                                                                                                                                                                                                                                                                                                       | Attribution                                                                                                                                 |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OpenStreetMap ALPR camera locations** (including DeFlock community mapping) | Optional mapped automatic license-plate-reader camera layer | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/); commercial use permitted with applicable attribution and database share-alike obligations | [© OpenStreetMap contributors](https://www.openstreetmap.org/copyright); [DeFlock](https://deflock.org) community mapping |
 | **Google Map Tiles API** (Photorealistic 3D Tiles) + Places/Geocoding | The 3D globe, voice scene context, and on-demand nearby installation search                                                         | Google Maps Platform ToS (proprietary, your own key + billing)                                                                                                                                                                                                                                                                                        | "Google" / "Google Maps" logo — **shown in-app**, required                                                                                  |
 | **OpenSky Network**                                                   | Primary worldwide live-flight snapshot                                                                                              | Non-commercial research/education license                                                                                                                                                                                                                                                                                                             | Schäfer et al., _"Bringing Up OpenSky"_, IPSN 2014 + opensky-network.org                                                                    |
 | **adsb.lol point API**                                                | Bounded live-flight fallback when OpenSky has no usable snapshot                                                                    | ODbL 1.0                                                                                                                                                                                                                                                                                                                                              | adsb.lol contributors; `api.adsb.lol/v2/lat/{lat}/lon/{lon}/dist/{radius}`                                                                  |
@@ -91,6 +92,32 @@ The submarine-cable GeoJSON is **CC BY-NC-SA 3.0** (Attribution-**NonCommercial*
 > If you use God's Eye View commercially, delete `src/data/local_data/telegeography_submarine_cables/` (or obtain a commercial license from TeleGeography). It is one self-contained folder; the rest of the app runs without it.
 
 The richer structured dataset is licensed separately/commercially by TeleGeography.
+
+### ALPR camera mapping
+
+The optional ALPR layer queries OpenStreetMap nodes tagged `man_made=surveillance`
+and `surveillance:type=ALPR` (including case-insensitive semicolon multi-values)
+through the shared Overpass proxy. Source/tag reference:
+[OSM ALPR tagging](https://wiki.openstreetmap.org/wiki/Tag:surveillance:type%3DALPR).
+No DeFlock software, branded assets or separate database is bundled. The layer
+shows contributor-supplied locations and tags, not plate records, camera video,
+current operating status, or exhaustive coverage. All manufacturers share the
+ALPR category and marker color. Manufacturer, operator and camera type are shown
+only when tagged, not inferred or independently verified. Every selected card
+names OpenStreetMap in a smaller, muted source line beneath those details.
+
+Queries are limited to a city-scale viewport (at most 3° per axis), at most
+1,500 returned nodes, with outward-snapped query reuse and explicit stale/limited
+coverage notices. A linked © OpenStreetMap credit appears for five
+seconds when camera locations first display after enabling, then collapses;
+Data attribution retains the full source/license entry, following the
+[OSMF interactive-map guidance](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).
+OSM data remains separately attributed under ODbL; querying
+at runtime does not replace the license obligations. ODbL permits commercial
+use and does not license the application code. If publicly using a derivative
+database, follow its share-alike and access requirements; keep independent
+datasets separate rather than treating the whole collection as MIT data.
+Overpass hosting capacity and usage policies are separate from the data license.
 
 ### ODbL share-alike (datacenters, dams)
 
