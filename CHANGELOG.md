@@ -1,5 +1,12 @@
 # Changelog
 
+## Voice component boundaries
+
+- Separate voice controls, Realtime connection requests and the action runner.
+- Allow compatible endpoints and server-selected models through construction options.
+- Cancel pending token/SDP requests on Stop or teardown and reject expired secrets.
+
+
 ## Configurable geospatial services
 
 - Compose geocoding, place context and routes through independent providers.

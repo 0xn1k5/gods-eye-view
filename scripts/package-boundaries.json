@@ -1003,5 +1003,23 @@
       "src/keySetupCore.mjs"
     ],
     "external": ["cesium"]
+  },
+  "voice-connection": {
+    "exports": [
+      "./voice/controller",
+      "./voice/control",
+      "./voice/realtime-backend",
+      "./voice/commands",
+      "./voice/cost"
+    ],
+    "modules": [
+      "src/voice/realtimeController.js",
+      "src/voice/realtimeBackend.js",
+      "src/voice/control.js",
+      "src/voice/layerSummary.js",
+      "src/voice/voiceCost.js",
+      "src/voice/commands.js"
+    ],
+    "external": []
   }
 }

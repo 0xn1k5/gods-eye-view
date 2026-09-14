@@ -1,3 +1,5 @@
+import { readLayerLifecycleSummary } from './layerSummary.js';
+export { readLayerLifecycleSummary } from './layerSummary.js';
 import { defaultGeospatial } from '../search/defaults.js';
 import * as Cesium from 'cesium';
 import { CITY_POIS, findPoiByName, flyToGlobeView, flyToLandmark, flyToPOI, flyToPresetLocation, GLOBE_VIEW, searchAndFlyTo } from '../locations.js';
@@ -265,46 +267,7 @@ const VISIBLE_ENTITY_SHORTLIST = 64;
 const BASEMAP_CONTEXT_WAIT_MS = 1500;
 const viewTargetCache = new WeakMap();
 
-/**
- * Read one layer's authoritative visibility and lifecycle presentation state.
- * Falls back to stable enabled/disabled state for lightweight adapters that do
- * not expose the manager lifecycle API.
- * @param {object|null} dataManager Layer manager or lightweight adapter.
- * @param {string} layerId Registered layer identifier.
- * @param {object} [options] Fallback options.
- * @param {boolean} [options.fallbackEnabled=false] Observed state when no manager read is available.
- * @returns {{enabled:boolean,lifecycleState:string,lifecycleUncertain:boolean}} Lifecycle summary.
- */
-export function readLayerLifecycleSummary(dataManager, layerId, { fallbackEnabled = false } = {}) {
-  let lifecycle = null;
-  try {
-    lifecycle = dataManager?.getLayerLifecycleState?.(layerId) || null;
-  } catch {
-    lifecycle = null;
-  }
-  if (lifecycle) {
-    const enabled = Boolean(lifecycle.enabled);
-    return {
-      enabled,
-      lifecycleState: lifecycle.lifecycleState || (enabled ? 'enabled' : 'disabled'),
-      lifecycleUncertain: Boolean(lifecycle.uncertain ?? lifecycle.lifecycleUncertain),
-    };
-  }
-
-  let enabled = Boolean(fallbackEnabled);
-  try {
-    const managerEnabled = dataManager?.isEnabled?.(layerId);
-    if (typeof managerEnabled === 'boolean') enabled = managerEnabled;
-  } catch {
-    // Retain the caller's observed fallback when the lightweight adapter fails.
-  }
-  return {
-    enabled,
-    lifecycleState: enabled ? 'enabled' : 'disabled',
-    lifecycleUncertain: false,
-  };
-}
-
+/** Create application actions over the supplied scene and services. */
 export function createGevActionRunner({ viewer, styleManager, dataManager, sceneDirector = null, annotations = null, placeSearch = unavailablePlaceSearch }) {
   installViewTargetPrewarm(viewer);
   initCameraVerbs(viewer, getViewTargetCartesian);
