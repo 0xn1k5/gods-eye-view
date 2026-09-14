@@ -9,6 +9,11 @@ attribution; rendering does not parse Overpass payloads. The standalone
 registration supplies selection, picking, terrain and
 render services. Selected cards and Data attribution identify OpenStreetMap.
 Layer state and the existing voice layer tools include `alpr-cameras`.
+The row count explicitly says **nearby**: loaded records can be outside the
+screen. A purple-dot legend identifies the fixed 8-pixel markers (12 pixels when
+selected). **SHOW NEAREST** frames and selects the nearest loaded camera; it is
+disabled with no loaded cameras or while following a tracked entity. This action
+chooses from the current source snapshot.
 Coverage follows a bounded neighborhood around the screen-center ground point,
 with a radius of twice the camera-to-ground range (at least 1 km), rather than
 extending to the horizon. Sky, dateline-crossing and wider-than-city views do not

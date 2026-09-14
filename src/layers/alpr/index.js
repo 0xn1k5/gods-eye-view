@@ -6,6 +6,7 @@ import {
   MAX_RENDERED,
   QUERY_SNAP_DEGREES,
   QUERY_REUSE_MS,
+  ALPR_COLOR,
 } from './policy.js';
 import {
   snapAlprBox,
@@ -76,6 +77,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     presentOnMapCredit,
     renderRecords,
     selectRecord,
+    focusNearest,
     clearSelection,
     updateSelectedAnchor,
     installInteraction,
@@ -301,9 +303,38 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       state.saturated = false;
       state.viewer = null;
     },
+    getRowControls() {
+      const count = state.dataSource?.entities.values.length || 0;
+      return {
+        chips: [
+          {
+            id: 'find-camera',
+            label: 'SHOW NEAREST',
+            title: state.viewer?.trackedEntity
+              ? 'Stop following the current object before navigating to a camera'
+              : 'Move to the nearest loaded camera and show its details',
+            disabled:
+              !state.enabled || !count || Boolean(state.viewer?.trackedEntity),
+            onClick: focusNearest,
+          },
+        ],
+        legend: [
+          {
+            label: 'Purple dots',
+            color: ALPR_COLOR,
+            count,
+            blurb:
+              'Nearby mapped cameras may be outside the screen. Dots stay 8 pixels wide as you zoom; click one for details.',
+          },
+        ],
+      };
+    },
     getStats() {
       return {
         count: state.dataSource?.entities.values.length || 0,
+        countLabel: state.enabled
+          ? `${state.dataSource?.entities.values.length || 0} nearby`
+          : '',
         lastUpdate: state.lastUpdate,
         stale: state.stale,
         saturated: state.saturated,

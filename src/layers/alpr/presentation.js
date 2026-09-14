@@ -245,6 +245,57 @@ export function createAlprPresentation({ state, services, source }) {
     if (visible.length) presentOnMapCredit();
   }
 
+  function focusNearest() {
+    const camera = state.viewer?.camera;
+    if (!state.enabled || !camera?.positionWC || state.viewer.trackedEntity)
+      return false;
+    let nearest = null,
+      distance = Infinity;
+    for (const entity of state.dataSource.entities.values) {
+      const position = entity.position.getValue(Cesium.JulianDate.now());
+      const candidate = Cesium.Cartesian3.distanceSquared(
+        camera.positionWC,
+        position,
+      );
+      if (candidate < distance) {
+        nearest = entity;
+        distance = candidate;
+      }
+    }
+    if (!nearest) return false;
+    const record = state.recordById.get(nearest.id);
+    const location = Cesium.Cartographic.fromDegrees(
+      record.longitude,
+      record.latitude,
+    );
+    let height;
+    if (state.viewer.scene.sampleHeightSupported) {
+      try {
+        height = state.viewer.scene.sampleHeight(location, [nearest]);
+      } catch {
+        /* tiles may still be streaming */
+      }
+    }
+    if (!Number.isFinite(height) || height < -500 || height > 10000)
+      height = cachedGroundFloor(record.latitude, record.longitude);
+    const center = Cesium.Cartesian3.fromDegrees(
+      record.longitude,
+      record.latitude,
+      Number.isFinite(height) ? height : 0,
+    );
+    if (!selectRecord(nearest.id)) return false;
+    camera.flyToBoundingSphere(new Cesium.BoundingSphere(center, 30), {
+      duration: 1.2,
+      offset: new Cesium.HeadingPitchRange(
+        camera.heading || 0,
+        -Math.PI / 4,
+        800,
+      ),
+    });
+    governorRequestRender('alpr-focus');
+    return true;
+  }
+
   function selectRecord(id) {
     const entity = state.dataSource?.entities.getById(id);
     if (!entity || !state.recordById.has(id)) return false;
@@ -343,6 +394,7 @@ export function createAlprPresentation({ state, services, source }) {
     presentOnMapCredit,
     renderRecords,
     selectRecord,
+    focusNearest,
     clearSelection,
     updateSelectedAnchor,
     installInteraction,

@@ -1082,3 +1082,45 @@ test('ground-centered orbits ignore horizon rectangles while sky, distant and da
     h.restore();
   }
 });
+
+test('nearby count and discovery control frame a real loaded camera without fetching or stealing tracking', async () => {
+  const h = cameraHarness();
+  const flights = [];
+  h.viewer.camera.positionWC = Cesium.Cartesian3.fromDegrees(
+    -97.7431,
+    30.2672,
+    600,
+  );
+  h.viewer.camera.flyToBoundingSphere = (sphere, options) =>
+    flights.push({ sphere, options });
+  try {
+    assert.equal(alprCamerasLayer.getRowControls().chips[0].disabled, true);
+    await alprCamerasLayer.update();
+    assert.equal(alprCamerasLayer.getStats().countLabel, '1 nearby');
+    const controls = alprCamerasLayer.getRowControls();
+    assert.equal(controls.legend[0].label, 'Purple dots');
+    assert.equal(controls.chips[0].onClick(), true);
+    assert.equal(flights.length, 1);
+    assert.equal(getSelectedEntityContext().id, 'alpr:42');
+    const center = Cesium.Cartographic.fromCartesian(flights[0].sphere.center);
+    assert.ok(
+      Math.abs(Cesium.Math.toDegrees(center.latitude) - 30.2672) < 1e-9,
+    );
+    assert.equal(flights[0].options.offset.range, 800);
+    assert.equal(h.requests.length, 1);
+    h.viewer.trackedEntity = {};
+    assert.equal(alprCamerasLayer.getRowControls().chips[0].disabled, true);
+    assert.equal(
+      controls.chips[0].onClick(),
+      false,
+      'a stale button cannot steal the follow camera',
+    );
+    h.viewer.trackedEntity = undefined;
+    alprCamerasLayer.disable();
+    assert.equal(alprCamerasLayer.getStats().countLabel, '');
+    assert.equal(controls.chips[0].onClick(), false);
+    assert.equal(flights.length, 1);
+  } finally {
+    h.restore();
+  }
+});
