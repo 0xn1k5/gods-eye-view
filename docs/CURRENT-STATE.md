@@ -3318,3 +3318,21 @@ Natural Earth regions and neighborhood polygon lookup are package exports.
 Their existing lazy loaders, retry behavior, bundled datasets and attribution
 are unchanged. The cable dataset remains CC BY-NC-SA 3.0 and is not covered by
 the project's MIT license; see `DATA_SOURCES.md`.
+
+## Map source factories and coordination
+
+Map selection is composed from separate imagery, terrain and 3D factories.
+The default registry retains Google 3D, Bing Aerial/Labels, Esri Satellite and
+OSM, including their setup guidance and existing preset/share IDs. Esri still
+falls back to OSM on construction failure or two active tile failures, and
+credits follow the source actually displayed. Terrain remains lazy while the
+photoreal globe is hidden.
+
+Map credentials are passed to each source constructor rather than changing SDK-wide Google or ion defaults.
+
+The controller accepts other source registries without adding provider branches.
+Each instance caches source construction, ignores superseded scene changes and
+releases imagery layers/listeners on replacement. Destroy invalidates pending
+work and releases owned resources, including late factory results. Supplied 3D
+tilesets remain owned by the caller; tilesets created through the controller's
+factory are added to its viewer and removed on destruction.

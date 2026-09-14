@@ -962,5 +962,28 @@
       "src/data/local_data/natural_earth/marine.json"
     ],
     "external": []
+  },
+  "maps": {
+    "exports": [
+      "./maps/controller",
+      "./maps/catalog",
+      "./maps/imagery",
+      "./maps/terrain",
+      "./maps/3d",
+      "./maps/defaults"
+    ],
+    "modules": [
+      "src/maps/availability.js",
+      "src/maps/catalog.js",
+      "src/maps/controller.js",
+      "src/maps/credits.js",
+      "src/maps/defaultSources.js",
+      "src/maps/google3d.js",
+      "src/maps/imagery.js",
+      "src/maps/registry.js",
+      "src/maps/terrain.js",
+      "src/keySetupCore.mjs"
+    ],
+    "external": ["cesium"]
   }
 }
