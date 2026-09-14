@@ -1,5 +1,7 @@
 # Changelog
 
+- Separate navigation, share restoration, visual settings and panel state into focused UI owners with explicit dependencies and terminal cleanup.
+
 - Separate layer lifecycle transactions from panel construction and render/detection reactions; retain existing transition and refresh behavior.
 
 - Let CLI tools, development launchers and the setup doctor use an explicit project directory while retaining their existing default paths.
