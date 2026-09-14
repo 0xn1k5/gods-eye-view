@@ -536,5 +536,10 @@
   "src/search/geospatial.js",
   "src/search/http.js",
   "src/search/defaults.js",
-  "src/search/geospatial.test.mjs"
+  "src/search/geospatial.test.mjs",
+  "src/voice/commands.js",
+  "src/voice/control.js",
+  "src/voice/realtimeBackend.js",
+  "src/voice/realtimeBackend.test.mjs",
+  "src/voice/layerSummary.js"
 ]

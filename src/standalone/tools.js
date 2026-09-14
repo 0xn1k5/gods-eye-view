@@ -18,6 +18,7 @@ export function createStandaloneTools({
   data,
   loadingScreen,
   placeSearch,
+  voice = {},
   signal,
   defer,
 }) {
@@ -100,6 +101,8 @@ export function createStandaloneTools({
     if (window.__godsEyeView === debug) delete window.__godsEyeView;
   });
   const voiceCommands = initGevVoiceCommands({
+    ...voice,
+    signal,
     placeSearch,
     viewer,
     styleManager,

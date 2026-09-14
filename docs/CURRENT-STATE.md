@@ -1,5 +1,12 @@
 # God's Eye View Current State
 
+Voice controls compose a supplied action runner and connection controller.
+Realtime token and SDP requests live in a configurable backend, with independent
+transports and cancellation through response parsing. Stop and application
+teardown abort pending connections; reconnect requests a new client secret.
+Microphone, radio handoff, tool schemas and default model behavior are preserved.
+
+
 Geospatial lookups are composed through `src/search`: forward/reverse geocoding,
 text/nearby search and routing use configurable providers/endpoints. Annotation,
 HUD and voice consumers share the configured service. Existing Google/Photon

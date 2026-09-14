@@ -149,3 +149,26 @@ selects compatible OSRM base URLs while preserving coordinate/span limits.
 `createRegionalPlaceProvider({ endpoint, requestJson })` supplies the existing
 serialized Nominatim implementation. Configuration is per instance, including
 routing and regional caches. Request parameters cannot override these endpoints.
+
+### Voice connections and controls
+
+Voice controls accept an action runner and a controller factory through
+`createVoiceCommands` (`./voice/commands`). The default Realtime controller owns
+microphone tracks, playback, push-to-talk, tool cancellation and radio handoff.
+Its backend supplies `requestToken({ tier, signal })` and
+`negotiate({ offerSdp, credential, signal })`. The Realtime-compatible adapter
+(`./voice/realtime-backend`) accepts separate token and connection transports
+and endpoints. Only the short-lived client secret reaches the SDP endpoint.
+Stopping or ending the application lifetime aborts connection requests and
+rejects delayed responses; a new start requests a fresh secret. Secret expiry
+limits connection creation and does not describe the connected session lifetime.
+
+`createStandaloneApplication({ voice })` passes these construction options to
+the controls. An incompatible protocol needs a separate controller adapter;
+changing an endpoint alone does not translate protocol messages. No alternate
+model is bundled by this extraction. The Node Realtime provider accepts
+`realtime: { endpoint, models: { standard, mini }, resolveApiKey, fetchImpl }`;
+existing environment variables remain the default configuration. Model choices
+come from server configuration. Keep secret keys in the server adapter.
+Tool schemas, model defaults and cost estimates are unchanged. Unknown model
+IDs retain the existing conservative estimate until their rates are registered.

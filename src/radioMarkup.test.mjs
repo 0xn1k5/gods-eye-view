@@ -15,7 +15,7 @@ const radio = ['playback', 'interaction'].map(name =>
   readFileSync(new URL(`./layers/radio/${name}.js`, import.meta.url), 'utf8')
 ).join('\n').replace(/layerState\.|parts\.\w+\./g, '');
 const rocketLaunches = readLayerSource(new URL('./data/rocketLaunches.js', import.meta.url), 'utf8');
-const realtime = readFileSync(new URL('./voice/gevRealtime.js', import.meta.url), 'utf8');
+const realtime = readFileSync(new URL('./voice/realtimeController.js', import.meta.url), 'utf8');
 const voice = ['tools', 'instructions'].map(name => readFileSync(new URL(`../server/providers/openai/${name}.js`, import.meta.url), 'utf8')).join('\n');
 const css = readStylesheet(new URL('../style.css', import.meta.url));
 

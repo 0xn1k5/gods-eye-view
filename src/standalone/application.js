@@ -13,6 +13,7 @@ export function createStandaloneApplication({
   googleApiKey,
   cesiumToken,
   geospatial = {},
+  voice = {},
   allowQaRegistration = false,
 }) {
   if (constructed)
@@ -40,6 +41,6 @@ export function createStandaloneApplication({
     createData: (context) =>
       createStandaloneData({ ...context, allowQaRegistration }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch }),
+      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
   });
 }

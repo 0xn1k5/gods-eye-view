@@ -167,6 +167,11 @@
     "./maps/imagery": "./src/maps/imagery.js",
     "./maps/terrain": "./src/maps/terrain.js",
     "./maps/3d": "./src/maps/google3d.js",
-    "./maps/defaults": "./src/maps/defaultSources.js"
+    "./maps/defaults": "./src/maps/defaultSources.js",
+    "./voice/controller": "./src/voice/realtimeController.js",
+    "./voice/control": "./src/voice/control.js",
+    "./voice/realtime-backend": "./src/voice/realtimeBackend.js",
+    "./voice/commands": "./src/voice/commands.js",
+    "./voice/cost": "./src/voice/voiceCost.js"
   }
 }
