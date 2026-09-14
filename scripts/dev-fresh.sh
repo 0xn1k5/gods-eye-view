@@ -246,8 +246,8 @@ if [[ ! -f "$SOURCE_ROOT/src/data/cctv.js" ]]; then
   exit 1
 fi
 
-if ! grep -q "dataManager.register(cctvLayer)" "$SOURCE_ROOT/src/app/data.js"; then
-  echo "error: CCTV layer not wired in src/app/data.js"
+if ! grep -q "^[[:space:]]*cctvLayer," "$SOURCE_ROOT/src/standalone/catalog.js"; then
+  echo "error: CCTV layer not wired in src/standalone/catalog.js"
   exit 1
 fi
 

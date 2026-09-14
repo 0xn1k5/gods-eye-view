@@ -1,3 +1,4 @@
+import { catalogControlServices } from './catalog.js';
 import { StyleManager } from '../ui/composition.js';
 import { flyToAustin } from '../camera.js';
 import { initCockpitCloudEffects } from '../cockpitCloudEffects.js';
@@ -8,12 +9,13 @@ export function createApplicationControls({
   loaderStatus,
   Controls = StyleManager,
   services,
+  catalog,
   placeSearch,
   defer,
 }) {
   // Initialize the style manager (post-processing, HUD, locations, share links)
   const styleManager = new Controls(viewer, {
-    services,
+    services: { ...services, ...catalogControlServices(catalog) },
     mapStackController,
     placeSearch,
   });
