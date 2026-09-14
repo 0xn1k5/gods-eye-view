@@ -147,25 +147,16 @@ export class MapSourceController {
     if (!tileset) {
       if (!source.createTileset)
         throw new Error(`Missing 3D source: ${source.descriptor.id}`);
-      tileset = await this._cached(
-        this._tilesets,
-        source.descriptor.id,
-        async () => {
-          const value = await source.createTileset({
-            signal: this._abort.signal,
-          });
-          if (this._destroyed) {
-            this._dispose(value);
-            return value;
-          }
-          value.show = false;
-          this.viewer.scene.primitives.add(value);
-          this._ownedTilesets.add(value);
-          return value;
-        },
+      tileset = await this._cached(this._tilesets, source.descriptor.id, () =>
+        source.createTileset({ signal: this._abort.signal }),
       );
     }
     if (gen !== this._switchGen) return;
+    if (!source.tileset && !this._ownedTilesets.has(tileset)) {
+      tileset.show = false;
+      this.viewer.scene.primitives.add(tileset);
+      this._ownedTilesets.add(tileset);
+    }
     this._removeImageryLayer();
     this._credits.show(source.credit || null);
     this._showTileset(tileset);
@@ -325,6 +316,11 @@ export class MapSourceController {
       this.viewer.scene.primitives.remove(tileset);
       this._dispose(tileset);
     }
+    for (const promise of this._tilesets.values())
+      void Promise.resolve(promise).then(
+        (value) => this._dispose(value),
+        () => {},
+      );
     this._imageryProviders.clear();
     this._terrainProviders.clear();
     this._tilesets.clear();

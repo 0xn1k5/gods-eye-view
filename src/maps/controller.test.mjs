@@ -298,3 +298,54 @@ test('invalid source graphs fail before constructing or caching a provider', () 
   assert.throws(() => fixture({ sources: [a, a] }), /unique/);
   assert.throws(() => fixture({ sources: [a] }), /Unknown map fallback/);
 });
+
+for (const reactivate of [false, true]) {
+  test(`a superseded 3D load stays outside the scene and is released (reactivate: ${reactivate})`, async () => {
+    let resolve,
+      destroyed = 0,
+      reads = 0;
+    const tileset = {
+      show: true,
+      isDestroyed: () => destroyed > 0,
+      destroy() {
+        destroyed++;
+      },
+    };
+    const supplied = { show: true };
+    const env = fixture({
+      defaultId: 'slow',
+      sources: [
+        {
+          descriptor: { id: 'slow' },
+          createTileset: () => {
+            reads++;
+            return new Promise((done) => {
+              resolve = done;
+            });
+          },
+        },
+        { descriptor: { id: 'supplied' }, tileset: supplied },
+      ],
+    });
+    const loading = env.controller.setStack('slow');
+    await settle();
+    await env.controller.setStack('supplied');
+    resolve(tileset);
+    await loading;
+    assert.equal(env.primitives.length, 0);
+    assert.equal(supplied.show, true);
+    assert.equal(env.controller.getActiveId(), 'supplied');
+    if (reactivate) {
+      await env.controller.setStack('slow');
+      await env.controller.setStack('slow');
+      assert.deepEqual(env.primitives, [tileset]);
+      assert.equal(reads, 1);
+      assert.equal(tileset.show, true);
+      assert.equal(supplied.show, false);
+    }
+    env.controller.destroy();
+    await settle();
+    assert.equal(env.primitives.length, 0);
+    assert.equal(destroyed, 1);
+  });
+}
