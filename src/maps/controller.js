@@ -124,9 +124,15 @@ export class MapSourceController {
         recovery.id !== stack.id &&
         this.isStackAvailable(recovery.id)
       ) {
-        await this._activate(recovery, gen);
-        if (gen !== this._switchGen) return this.getState();
-        this._activeId = recovery.id;
+        try {
+          const activation = await this._activate(recovery, gen);
+          if (gen !== this._switchGen) return this.getState();
+          this._activeId = activation?.effectiveStackId || recovery.id;
+        } catch (recoveryError) {
+          if (gen !== this._switchGen) return this.getState();
+          this._lastError = recoveryError?.message || String(recoveryError);
+          this._onError?.(this._lastError, recovery);
+        }
       }
       if (!silent) this._emitChange('error');
     } finally {

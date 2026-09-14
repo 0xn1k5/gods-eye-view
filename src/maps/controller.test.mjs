@@ -349,3 +349,35 @@ for (const reactivate of [false, true]) {
     assert.equal(destroyed, 1);
   });
 }
+
+test('a failed recovery reports its error and leaves switching settled', async () => {
+  const errors = [];
+  const env = fixture(
+    {
+      defaultId: 'first',
+      recoveryId: 'recovery',
+      sources: [
+        {
+          descriptor: descriptor('first'),
+          imagery: async () => {
+            throw new Error('first offline');
+          },
+        },
+        {
+          descriptor: descriptor('recovery'),
+          imagery: async () => {
+            throw new Error('recovery offline');
+          },
+        },
+      ],
+    },
+    { onError: (message) => errors.push(message) },
+  );
+  const result = await env.controller.setStack('first');
+  assert.equal(result.status, 'ready');
+  assert.equal(result.lastError, 'recovery offline');
+  assert.deepEqual(errors, ['first offline', 'recovery offline']);
+  assert.equal(env.changes.at(-1).status, 'error');
+  assert.equal(env.imagery.length, 0);
+  env.controller.destroy();
+});
