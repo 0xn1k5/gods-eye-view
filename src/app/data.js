@@ -1,4 +1,5 @@
-import { DataLayerManager } from '../data/manager.js';
+import { LayerLifecycle } from '../data/lifecycle.js';
+import { LayerPresentation } from './layerPresentation.js';
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
   scene: { viewer },
@@ -9,7 +10,7 @@ export function createApplicationData({
   defer,
 }) {
   // Initialize data layer manager
-  const dataManager = new DataLayerManager(viewer, {
+  const dataManager = new LayerLifecycle(viewer, {
     allowQaRegistration,
   });
   defer(async () => {
@@ -19,6 +20,8 @@ export function createApplicationData({
         `Data layers could not be destroyed: ${[...dataManager.layers.keys()].join(', ')}`,
       );
   });
+  const presentation = new LayerPresentation(dataManager);
+  defer(() => presentation.destroy());
   onData?.(dataManager);
   if (!catalog?.layers || !catalog?.metadata)
     throw new TypeError('An application layer catalog is required');
@@ -46,8 +49,8 @@ export function createApplicationData({
         delete window.__gevQaUnregisterLayer;
     });
   }
-  dataManager.buildTogglePanel(document.getElementById('data-toggles'));
+  presentation.mount(document.getElementById('data-toggles'));
   styleManager.attachDataManager(dataManager);
 
-  return { dataManager, catalog };
+  return { dataManager, catalog, presentation };
 }

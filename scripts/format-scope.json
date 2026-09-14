@@ -586,5 +586,8 @@
   "src/services/groundFloor.js",
   "src/services/meshFloorSampler.js",
   "src/services/groundSnap.js",
-  "src/app/operations.test.mjs"
+  "src/app/operations.test.mjs",
+  "src/data/lifecycle.js",
+  "src/data/manager.js",
+  "src/app/layerPresentation.js"
 ]
