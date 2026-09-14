@@ -1,5 +1,7 @@
 # God's Eye View Current State
 
+Application composition now uses shared scene/control/catalog/tool constructors and allowlisted HTML component templates. The standalone entry supplies settings and the default sources. Terrain, boundaries, weather, regional context and summaries use configurable services; renderer/action owners remain page-scoped. Annotation proximity guards remain on by default and allow distant targets only for explicit navigation.
+
 Voice controls compose a supplied action runner and connection controller.
 Realtime token and SDP requests live in a configurable backend, with independent
 transports and cancellation through response parsing. Stop and application

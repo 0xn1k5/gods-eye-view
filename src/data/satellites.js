@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import {
   createSatellitesLayer,
   createSatelliteSource,
@@ -10,8 +11,14 @@ import * as context from './contextStore.js';
 import * as render from '../renderGovernor.js';
 import * as layerState from './layerState.js';
 
+const sourceSlot = createSourceSlot(
+  createSatelliteSource(),
+  ['readGroup'],
+  'Satellite source',
+);
+export const configureSatelliteSource = sourceSlot.configure;
 const layer = createSatellitesLayer({
-  source: createSatelliteSource(),
+  source: sourceSlot.source,
   services: { picking, focus, readout, overlays, context, render, layerState },
 });
 export const satelliteVisualsVisible = layer.satelliteVisualsVisible;

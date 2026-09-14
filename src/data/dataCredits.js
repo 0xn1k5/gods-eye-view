@@ -300,12 +300,12 @@ export function registerDynamicCredit(viewer, credit) {
  * present in the "Data attribution" popover.
  * @param {Cesium.Viewer} viewer — the initialized Cesium viewer
  */
-export function registerDataCredits(viewer) {
+export function registerDataCredits(viewer, credits = DATA_CREDITS) {
   const creditDisplay = viewer?.creditDisplay;
   if (!creditDisplay || typeof creditDisplay.addStaticCredit !== 'function') {
     return;
   }
-  for (const { html } of DATA_CREDITS) {
+  for (const { html } of credits) {
     // showOnScreen=false → lives in the expandable "Data attribution" popover,
     // not the on-globe credit line.
     creditDisplay.addStaticCredit(new Cesium.Credit(html, false));

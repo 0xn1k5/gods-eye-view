@@ -1,5 +1,7 @@
 # Changelog
 
+- Split application scene, controls, catalog, tools and HTML into reusable components; configure application request services and sources without changing global fetch. Preserve standalone markup and voice behavior. Explicit annotation navigation may resolve a distant named target.
+
 ## Voice component boundaries
 
 - Separate voice controls, Realtime connection requests and the action runner.

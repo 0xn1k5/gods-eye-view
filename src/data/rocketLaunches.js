@@ -1,3 +1,4 @@
+import { createSourceSlot } from '../app/sourceSlot.js';
 import {
   createRocketLaunchesLayer,
   createLaunchSource,
@@ -7,8 +8,14 @@ import * as geometry from '../celestialRing.js';
 import * as overlays from '../overlays/worldOverlay.js';
 import * as render from '../renderGovernor.js';
 
+const sourceSlot = createSourceSlot(
+  createLaunchSource(),
+  ['getLaunches', 'getActiveTle'],
+  'Launch source',
+);
+export const configureLaunchSource = sourceSlot.configure;
 const layer = createRocketLaunchesLayer({
-  source: createLaunchSource(),
+  source: sourceSlot.source,
   services: { satellites, geometry, overlays, render },
 });
 export const satelliteParamsForSpaceMissions =

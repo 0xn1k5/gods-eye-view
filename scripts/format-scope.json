@@ -541,5 +541,17 @@
   "src/voice/control.js",
   "src/voice/realtimeBackend.js",
   "src/voice/realtimeBackend.test.mjs",
-  "src/voice/layerSummary.js"
+  "src/voice/layerSummary.js",
+  "build/application-html.js",
+  "src/app/sourceSlot.js",
+  "src/app/sources.js",
+  "src/ui/composition.js",
+  "src/services/application.js",
+  "src/services/requests.js",
+  "src/app/scene.js",
+  "src/app/controls.js",
+  "src/app/data.js",
+  "src/app/tools.js",
+  "src/app/startupChrome.js",
+  "src/app/errors.js"
 ]
