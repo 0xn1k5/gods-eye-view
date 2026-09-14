@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+Geospatial lookups are composed through `src/search`: forward/reverse geocoding,
+text/nearby search and routing use configurable providers/endpoints. Annotation,
+HUD and voice consumers share the configured service. Existing Google/Photon
+selection, route/direct-line honesty and tool schemas are preserved. Node
+Google, OSRM and Nominatim adapters accept trusted construction-time configuration;
+request parameters cannot choose arbitrary upstream URLs. See APPLICATION.md.
+
+
 The optional **ALPR Cameras** layer shows community-mapped OpenStreetMap locations,
 not camera footage or plate records. City-scale queries use the existing Overpass
 provider, with capped results, retry, cached-data and incomplete-coverage notices.

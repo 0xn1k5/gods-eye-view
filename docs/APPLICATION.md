@@ -100,3 +100,52 @@ Later component extractions can replace a constructor's internals without
 changing the startup contract or moving standalone imports into the package.
 Run the unit suite, package boundary gate, build, tracking and first-run browser
 checks when changing this wiring.
+
+## Geospatial services
+
+`src/search` owns forward/reverse geocoding, place search and route provider
+interfaces. `createStandaloneApplication({ geospatial })` accepts `endpoints`
+and `providers`; the defaults preserve Google/Photon search, Google place context
+and the local OSRM route proxy. Location, annotations, HUD labels and voice use
+the composed service. Provider-specific credentials belong in the selected
+transport; server secrets never belong in browser configuration.
+
+For a compatible protocol, configure `geocode`, `photon`, `reverse`, `textSearch`,
+`nearby` or `route` endpoints. These are developer-selected configuration, not
+URLs accepted from page queries or model arguments. A different protocol supplies
+an adapter function instead. The exported `createDefaultPlaceSearch` constructor
+supports the same options for direct composition:
+
+```js
+const services = createDefaultPlaceSearch({
+  resolveApiKey,
+  signal,
+  endpoints: { photon: 'https://search.example/api/', route: '/api/routes' },
+  providers: {
+    route: routeProvider,
+    routeProfiles: ['foot', 'car'],
+  },
+});
+```
+
+Forward `providers.geocode` is the existing ordered geocoder array. Other
+operations are independent functions: `reverseGeocode(latitude, longitude,
+{ signal })`, `textSearch(query, point, { signal })`, `nearby(point, { signal })`
+and `route(coordinates, profile, { signal })`. Points use `latitude`, `longitude`
+and `radiusM`; route coordinates use `[longitude, latitude]` in WGS84. Routes
+return `{ geometry, distanceM, durationS }` with metres and seconds. Unavailable
+routes return null, retaining the explicitly labelled direct-line fallback.
+Place search returns normalized place arrays; reverse lookup returns address,
+locality, region, country and label fields used by scene context. Unsupported
+operations are reported in `capabilities`; adapters can provide attribution and
+supported route profiles. A provider's lifetime and caller cancellation both
+invalidate late response bodies.
+
+Node middleware is configured separately. `googlePlacesContextProxy` accepts
+`endpoints: { nearby, textSearch }`, `resolveApiKey` and `fetchImpl`.
+`overpassProxy({ routing: { endpoints: { foot, car, bike }, fetchImpl } })`
+selects compatible OSRM base URLs while preserving coordinate/span limits.
+`regionalBriefProxy({ placeProvider })` accepts the regional lookup function;
+`createRegionalPlaceProvider({ endpoint, requestJson })` supplies the existing
+serialized Nominatim implementation. Configuration is per instance, including
+routing and regional caches. Request parameters cannot override these endpoints.

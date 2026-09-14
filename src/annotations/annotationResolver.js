@@ -1,3 +1,4 @@
+import { defaultGeospatial } from '../search/defaults.js';
 import * as Cesium from 'cesium';
 import { lookupNeighborhoodRing } from '../data/neighborhoodPolygons.js';
 import { lookupNaturalRegionOutline, findNaturalRegion } from '../data/naturalEarthRegions.js';
@@ -124,7 +125,7 @@ export async function resolveAnnotationTarget({
       // miss we fall through to geocode + fetchLocalMonument below. The model's entityKind counts too:
       // a point_feature by fact ("Heroes of the Alamo" — no monument word) deserves the same path.
       if (center && (isMonumentLikeQuery(query) || isGroundsLikeQuery(query) || entityKind === 'point_feature')) {
-        const placeHit = await placesTextSearch(query, center.lat, center.lon, 6000, signal);
+        const placeHit = await placesTextSearch(query, center.lat, center.lon, 6000, signal, placeSearch);
         if (placeHit) {
           trace.places = `${placeHit.lat.toFixed(5)},${placeHit.lon.toFixed(5)}`;
           if (placeHit.distanceM <= PLACES_MAX_DISTANCE_M) {
@@ -163,7 +164,7 @@ export async function resolveAnnotationTarget({
             geocodeFar = true;
           }
           if (geocodeFar) {
-            const placeHit = await placesTextSearch(query, center.lat, center.lon, 6000, signal);
+            const placeHit = await placesTextSearch(query, center.lat, center.lon, 6000, signal, placeSearch);
             if (placeHit && placeHit.distanceM <= PLACES_MAX_DISTANCE_M) {
               lat = placeHit.lat;
               lon = placeHit.lon;
@@ -627,7 +628,7 @@ function normalizeGeocodeViewport(vp) {
   };
 }
 
-const placesCache = new Map(); // Text Search hits, keyed by query + rounded view centre
+const placesCaches = new WeakMap(); // Cache isolated by provider configuration
 
 /**
  * View-biased Google Places TEXT SEARCH for a named landmark/POI. Geocoding
@@ -640,7 +641,9 @@ const placesCache = new Map(); // Text Search hits, keyed by query + rounded vie
  * @returns {Promise<null | { lat:number, lon:number, label:string|null, distanceM:number,
  *   viewport:{low:{latitude:number,longitude:number},high:{latitude:number,longitude:number}}|null }>}
  */
-async function placesTextSearch(query, centerLat, centerLon, radiusM, signal) {
+async function placesTextSearch(query, centerLat, centerLon, radiusM, signal, service = defaultGeospatial) {
+  const placesCache = placesCaches.get(service) || new Map();
+  placesCaches.set(service, placesCache);
   const q = String(query || '').trim();
   if (!q || !Number.isFinite(centerLat) || !Number.isFinite(centerLon)) return null;
 
@@ -648,16 +651,10 @@ async function placesTextSearch(query, centerLat, centerLon, radiusM, signal) {
   const cached = cacheRead(placesCache, cacheKey);
   if (cached !== undefined) return cached;
 
-  const params = new URLSearchParams({
-    q,
-    lat: String(centerLat),
-    lon: String(centerLon),
-    radiusM: String(radiusM),
-  });
   try {
-    const response = await fetch(`/api/google/text-search?${params}`, { signal });
-    if (!response.ok) { negCache(placesCache, cacheKey, signal, false); return null; } // transient
-    const data = await response.json();
+    const data = { places: await service.textSearch?.(q, {
+      latitude: centerLat, longitude: centerLon, radiusM,
+    }, { signal }) };
     const hit = Array.isArray(data?.places)
       ? data.places.find((p) => Number.isFinite(p?.latitude) && Number.isFinite(p?.longitude))
       : null;
@@ -1788,13 +1785,13 @@ export function viewportBias(viewer) {
  * plain geocode path. Returns the Places hit
  * ({ lat, lon, label, types, viewport, distanceM, … }) or null.
  */
-export async function placesNearViewRecovery(viewer, query, geocoded = null, signal = undefined) {
+export async function placesNearViewRecovery(viewer, query, geocoded = null, signal = undefined, placeSearch = defaultGeospatial) {
   const center = pickWorldFromScreen(viewer, 0.5, 0.5) || viewportProximity(viewer);
   if (!center) return null;
   const geocodeFar = !geocoded
     || approximateDistanceM(center.lat, center.lon, geocoded.lat, geocoded.lon) / 1000 > MIN_DRIFT_FLOOR_KM;
   if (!geocodeFar) return null;
-  const hit = await placesTextSearch(query, center.lat, center.lon, 6000, signal);
+  const hit = await placesTextSearch(query, center.lat, center.lon, 6000, signal, placeSearch);
   return (hit && hit.distanceM <= PLACES_MAX_DISTANCE_M) ? hit : null;
 }
 

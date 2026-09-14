@@ -263,7 +263,10 @@
       "src/search/index.js",
       "src/search/placeSearch.js",
       "src/search/google.js",
-      "src/keylessGeocoder.js"
+      "src/keylessGeocoder.js",
+      "src/search/geospatial.js",
+      "src/search/http.js",
+      "src/search/defaults.js"
     ],
     "external": []
   },

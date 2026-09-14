@@ -1,5 +1,12 @@
 # Changelog
 
+## Configurable geospatial services
+
+- Compose geocoding, place context and routes through independent providers.
+- Allow compatible endpoint configuration without changing voice tools or annotation behavior.
+- Isolate configured source caches and reject results after cancellation.
+
+
 ## ALPR camera locations
 
 - Label the loaded camera count as nearby, show a purple-dot legend, and add

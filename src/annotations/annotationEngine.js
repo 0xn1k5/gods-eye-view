@@ -1,3 +1,4 @@
+import { defaultGeospatial } from '../search/defaults.js';
 import * as Cesium from 'cesium';
 import { holdContinuousRender, releaseContinuousRender } from '../renderGovernor.js';
 import { isRateLimitedOutcome, resolveAnnotationTarget } from './annotationResolver.js';
@@ -94,7 +95,7 @@ export function normalizeTargetKey(target) {
 }
 
 export function createAnnotationEngine({
-  placeSearch,
+  placeSearch = defaultGeospatial,
   viewer,
   renderer,
   outlineRetryDelaysMs = OUTLINE_RETRY_DELAYS_MS,
@@ -418,7 +419,7 @@ export function createAnnotationEngine({
       }
       // Real street-following route (OSM/OSRM), mode-aware.
       const mode = normalizeMode(spec.mode);
-      const routed = await fetchRoute(resolvedPts.map((p) => [p.lon, p.lat]), mode, signal);
+      const routed = await fetchRoute(resolvedPts.map((p) => [p.lon, p.lat]), mode, signal, placeSearch);
       if (routed) {
         return {
           path: routed.geometry.map(([lon, lat]) => ({ lon, lat, height: 0 })),
@@ -1101,25 +1102,10 @@ function normalizeMode(m) {
   return 'foot';
 }
 
-/** Fetch a real street-following route from the /api/route proxy (OSM/OSRM). */
-async function fetchRoute(coordPairs, mode, externalSignal) {
-  const controller = new AbortController();
-  const onAbort = () => controller.abort();
-  if (externalSignal) {
-    if (externalSignal.aborted) controller.abort();
-    else externalSignal.addEventListener('abort', onAbort, { once: true });
-  }
-  const timer = setTimeout(() => controller.abort(), 13000);
-  try {
-    const coords = coordPairs.map(([lon, lat]) => `${lon.toFixed(6)},${lat.toFixed(6)}`).join(';');
-    const res = await fetch(`/api/route?profile=${mode}&coords=${encodeURIComponent(coords)}`, { signal: controller.signal });
-    const data = await res.json();
-    if (data?.ok && Array.isArray(data.geometry) && data.geometry.length >= 2) return data;
-  } catch { /* routing unavailable / aborted → caller falls back to straight segments */ } finally {
-    clearTimeout(timer);
-    if (externalSignal) externalSignal.removeEventListener('abort', onAbort);
-  }
-  return null;
+/** Route failure remains an explicitly labelled direct line in the caller. */
+async function fetchRoute(coordPairs, mode, signal, service) {
+  try { return await service.route?.(coordPairs, mode, { signal }) || null; }
+  catch { return null; }
 }
 
 function greatCircleM(a, b) {

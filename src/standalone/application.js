@@ -12,6 +12,7 @@ let constructed = false;
 export function createStandaloneApplication({
   googleApiKey,
   cesiumToken,
+  geospatial = {},
   allowQaRegistration = false,
 }) {
   if (constructed)
@@ -23,6 +24,7 @@ export function createStandaloneApplication({
   return createApplication({
     createScene: (context) => {
       placeSearch = createStandalonePlaceSearch({
+        ...geospatial,
         resolveApiKey: () => googleApiKey,
         signal: context.signal,
       });
