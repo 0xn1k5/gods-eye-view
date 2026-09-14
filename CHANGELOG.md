@@ -3,7 +3,8 @@
 ## ALPR camera locations
 
 - Label the loaded camera count as nearby, show a purple-dot legend, and add
-  SHOW NEAREST to frame and select a loaded camera when none are on screen.
+  SHOW NEAREST to frame and select a loaded camera when none are on screen,
+  using the available 3D-tile or globe terrain height.
 
 - Keep nearby camera markers and selection stable during rotation, use bounded
   ground-centered coverage instead of the horizon rectangle, and reuse in-flight queries.

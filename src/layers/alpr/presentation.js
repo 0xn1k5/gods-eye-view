@@ -276,6 +276,8 @@ export function createAlprPresentation({ state, services, source }) {
         /* tiles may still be streaming */
       }
     }
+    if (!Number.isFinite(height) && state.viewer.scene.globe.show)
+      height = state.viewer.scene.globe.getHeight?.(location);
     if (!Number.isFinite(height) || height < -500 || height > 10000)
       height = cachedGroundFloor(record.latitude, record.longitude);
     const center = Cesium.Cartesian3.fromDegrees(

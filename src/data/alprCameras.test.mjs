@@ -1093,6 +1093,8 @@ test('nearby count and discovery control frame a real loaded camera without fetc
   );
   h.viewer.camera.flyToBoundingSphere = (sphere, options) =>
     flights.push({ sphere, options });
+  h.viewer.scene.globe.show = true;
+  h.viewer.scene.globe.getHeight = () => 312;
   try {
     assert.equal(alprCamerasLayer.getRowControls().chips[0].disabled, true);
     await alprCamerasLayer.update();
@@ -1105,6 +1107,10 @@ test('nearby count and discovery control frame a real loaded camera without fetc
     const center = Cesium.Cartographic.fromCartesian(flights[0].sphere.center);
     assert.ok(
       Math.abs(Cesium.Math.toDegrees(center.latitude) - 30.2672) < 1e-9,
+    );
+    assert.ok(
+      Math.abs(center.height - 312) < 1e-6,
+      'use the rendered globe floor on keyless basemaps',
     );
     assert.equal(flights[0].options.offset.range, 800);
     assert.equal(h.requests.length, 1);
