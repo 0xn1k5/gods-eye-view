@@ -91,6 +91,8 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ## [Unreleased]
 
+- Construct application layers from explicit sources, with standalone provider selection and catalog-owned aircraft classification; controls and voice queries use those instances.
+
 - Let application data and controls receive the same explicit layer catalog; keep standalone defaults and registration-before-restoration ordering.
 
 - Expose existing FIRMS CSV parsing and UTC time-window helpers through a portable package export, with shared contract fixtures.

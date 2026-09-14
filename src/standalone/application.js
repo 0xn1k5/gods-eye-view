@@ -23,9 +23,10 @@ export function createStandaloneApplication({
   const loadingScreen = document.getElementById('loading-screen');
   const loaderStatus = loadingScreen.querySelector('.loader-status');
   let placeSearch;
-  const catalog = createStandaloneCatalog();
+  let catalog;
   return createApplication({
     createScene: (context) => {
+      catalog = createStandaloneCatalog({ signal: context.signal });
       placeSearch = createStandalonePlaceSearch({
         ...geospatial,
         resolveApiKey: () => googleApiKey,

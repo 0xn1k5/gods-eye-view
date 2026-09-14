@@ -49,5 +49,5 @@ export function createApplicationData({
   dataManager.buildTogglePanel(document.getElementById('data-toggles'));
   styleManager.attachDataManager(dataManager);
 
-  return { dataManager };
+  return { dataManager, catalog };
 }

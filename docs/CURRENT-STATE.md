@@ -1,5 +1,13 @@
 # God's Eye View Current State
 
+Application startup constructs fresh layer instances from explicit source objects.
+Standalone composition selects the existing providers. Controls, launch orbit
+lookups, Contacts voice answers and ISS pass queries use the registered catalog.
+Aircraft classification is catalog-owned and cancelled with application teardown;
+scene engines still support one application per page. Compatibility data entrypoints
+remain for direct callers, but normal startup does not configure global sources.
+
+
 Application data setup receives an ordered layer catalog and serialization metadata.
 Controls use the same instances. The standalone composition selects the existing
 default catalog, and restoration starts only after all registrations are sealed.

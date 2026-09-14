@@ -3813,27 +3813,11 @@ async function main() {
         const Cesium = await import('/node_modules/cesium/Build/Cesium/index.js');
         const v = window.__godsEyeView.viewer;
         const fl = window.__godsEyeView.dataManager.layers.get('flights').module;
-        // `.module` is the layer OBJECT (the default export), not the module
-        // namespace, so the handoff seam is not on it. Reach the namespace the
-        // same way this group reaches groundFloor's: offer the URL the app
-        // itself loaded (Vite serves an edited file as `…?t=<hmr stamp>`, and
-        // the plain path would hand back a second, unrelated instance whose
-        // module state the app never touches), then prove identity by requiring
-        // its default export to BE the live layer object.
-        let ns = null;
-        const urls = [...new Set([
-          ...performance.getEntriesByType('resource').map((e) => e.name)
-            .filter((n) => /\/src\/data\/flights\.js(\?|$)/.test(n)).reverse(),
-          `${window.__gevQaSourceBase || '/src'}/data/flights.js`,
-        ])];
-        for (const url of urls) {
-          let mod; try { mod = await import(/* @vite-ignore */ url); } catch { continue; }
-          if (mod?.default === fl && typeof mod._driveFleetModelHandoffForTest === 'function') {
-            ns = mod;
-            break;
-          }
-        }
-        if (!ns) return { skipped: `the app's own flights module was not reachable (tried ${urls.length})` };
+        // Test the registered instance directly, including catalogs constructed
+        // with their own sources. Never import a second compatibility instance.
+        const ns = fl.testing;
+        if (typeof ns?._driveFleetModelHandoffForTest !== 'function')
+          return { error: "the registered flights instance has no handoff test seam" };
         // Use a scenario-owned contact so its groundSnap entry is provably cold;
         // earlier display-floor cases intentionally exercise aaa097's cache.
         const holdIcao = 'aaa098';

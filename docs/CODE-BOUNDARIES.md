@@ -409,3 +409,24 @@ that schema requires a corresponding codec change.
 `standalone/catalog` selects the existing page-scoped default instances and metadata.
 Reusable data setup imports no standalone layer defaults. The current compatibility
 source setters remain available while callers migrate to instance construction.
+
+### Layer construction
+
+`application/layers` constructs the current catalog from explicit source objects
+and an application AbortSignal. Small `src/app/layers` modules wire existing scene
+services into each family factory. Standalone provider selection lives in
+`src/standalone/layerSources.js`. The construction export has its own checked
+dependency graph, excluding standalone setup and compatibility layer instances.
+
+Both aircraft layers share the catalog's classification registry; launches use
+its satellites and Contacts uses its aircraft, vessels and installations. Data
+registration, controls and voice actions read those same instances. Destruction
+remains the manager's responsibility; classification also observes application
+abort when startup has not reached registration. Scene engines remain page-owned,
+so this change does not introduce multiple simultaneous viewers.
+
+Direct `src/data` compatibility entries retain their old defaults and testing
+exports. Browser regression probes use the registered instance's testing surface
+to avoid accidentally inspecting an unused compatibility instance. Existing source
+setters apply only to compatibility instances; the normal application supplies
+its sources at construction.
