@@ -25,7 +25,43 @@ export function createAlprPresentation({ state, services, source }) {
     return Cesium.Color.fromCssColorString(ALPR_COLOR);
   }
 
+  // The horizon rectangle is unstable during low-angle orbits and can exclude
+  // the ground point in the center of the screen. Bound nearby coverage around
+  // that point instead; the camera-to-ground range keeps zoom-out queries capped.
   function viewportBox(viewer) {
+    const camera = viewer?.camera;
+    const canvas = viewer?.scene.canvas;
+    if (typeof camera?.pickEllipsoid === 'function' && canvas) {
+      const width = canvas.clientWidth || canvas.width;
+      const height = canvas.clientHeight || canvas.height;
+      if (!width || !height) return null;
+      const focus = camera.pickEllipsoid(
+        new Cesium.Cartesian2(width / 2, height / 2),
+        viewer.scene.globe.ellipsoid,
+      );
+      if (!focus) return null;
+      const location = Cesium.Cartographic.fromCartesian(focus);
+      const range = Cesium.Cartesian3.distance(camera.positionWC, focus);
+      const radius = Math.max(1000, 2 * range);
+      const latitude = Cesium.Math.toDegrees(location.latitude);
+      const longitude = Cesium.Math.toDegrees(location.longitude);
+      const latSpan = radius / 111000;
+      const lonSpan = latSpan / Math.cos(location.latitude);
+      if (
+        !Number.isFinite(latSpan + lonSpan) ||
+        2 * Math.max(latSpan, lonSpan) > MAX_VIEWPORT_DEGREES ||
+        Math.abs(latitude) + latSpan > 90 ||
+        Math.abs(longitude) + lonSpan > 180
+      )
+        return null;
+      return {
+        south: latitude - latSpan,
+        west: longitude - lonSpan,
+        north: latitude + latSpan,
+        east: longitude + lonSpan,
+      };
+    }
+    // Rectangle-only viewers retain the same bounded-area contract.
     const rectangle = viewer?.camera?.computeViewRectangle(
       viewer.scene.globe.ellipsoid,
     );
@@ -91,8 +127,19 @@ export function createAlprPresentation({ state, services, source }) {
       clearSelectedEntityContextForLayer(LAYER_ID);
     }
     governorRequestRender('alpr-render');
-    clearRendered();
+    const visibleIds = new Set(visible.map((record) => record.id));
+    for (const entity of [...state.dataSource.entities.values]) {
+      if (!visibleIds.has(entity.id)) state.dataSource.entities.remove(entity);
+    }
+    removeEntityContextsForLayer(LAYER_ID, { retainIds: visibleIds });
     for (const record of visible) {
+      const existing = state.dataSource.entities.getById(record.id);
+      if (existing?.gevAlprRecord === record) {
+        existing.point.pixelSize = record.id === state.selectedId ? 12 : 8;
+        existing.point.color =
+          record.id === state.selectedId ? Cesium.Color.WHITE : markerColor();
+        continue;
+      }
       const color = markerColor();
       const selected = record.id === state.selectedId;
       const position = Cesium.Cartesian3.fromDegrees(
@@ -128,12 +175,32 @@ export function createAlprPresentation({ state, services, source }) {
           clampToGround: true,
         };
       }
-      const entity = state.dataSource.entities.add(entityDef);
+      let entity = existing;
+      // Keep the Cesium entity and its ground-clamping subscription while its
+      // geometry is unchanged. Updating metadata must not rebuild the marker.
+      const previous = entity?.gevAlprRecord;
+      if (!entity) entity = state.dataSource.entities.add(entityDef);
+      else {
+        if (
+          previous.latitude !== record.latitude ||
+          previous.longitude !== record.longitude
+        )
+          entity.position = position;
+        if (
+          previous.latitude !== record.latitude ||
+          previous.longitude !== record.longitude ||
+          previous.directionDeg !== record.directionDeg
+        )
+          entity.polyline = entityDef.polyline;
+        entity.point.pixelSize = selected ? 12 : 8;
+        entity.point.color = selected ? Cesium.Color.WHITE : color;
+      }
+      entity.gevAlprRecord = record;
       entity.gevTrackedId = record.id;
       // The mapped camera datum has no elevation; it is not the clamped marker's
       // visual anchor. Only the selected marker samples the rendered surface,
       // at most once per second, through Cesium's public height APIs.
-      entity.gevAlprDisplayPosition = null;
+      entity.gevAlprDisplayPosition ??= null;
       entity.gevDisplayPosition = () => entity.gevAlprDisplayPosition;
       entity.gevLabelModel = {
         title: 'ALPR CAMERA',
@@ -171,9 +238,7 @@ export function createAlprPresentation({ state, services, source }) {
     const selectedEntity = state.selectedId
       ? state.dataSource.entities.getById(state.selectedId)
       : null;
-    if (selectedEntity) selectEntityContext(selectedEntity);
-    else state.selectedId = null;
-    state.lastAnchorSampleAt = 0;
+    if (!selectedEntity) state.selectedId = null;
     updateSelectedAnchor();
     // Start only when mapped data is actually displayed, not while an upstream
     // request or a zoom-in prompt could consume the five-second introduction.

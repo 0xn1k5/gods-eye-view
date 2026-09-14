@@ -2,6 +2,9 @@
 
 ## ALPR camera locations
 
+- Keep nearby camera markers and selection stable during rotation, use bounded
+  ground-centered coverage instead of the horizon rectangle, and reuse in-flight queries.
+
 - Add optional, source-labeled OpenStreetMap ALPR camera locations, bounded city queries,
   cached-response and coverage notices, selection cards, share links, and voice toggles.
 - Separate the request adapter, camera model, presentation, and instance lifecycle.

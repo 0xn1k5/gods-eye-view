@@ -25,6 +25,9 @@ import { createAlprPresentation } from './presentation.js';
  * Manufacturer, operator and cameraType are optional display fields.
  * Source label and attribution { name, description, text, href } identify the
  * actual provider; href must be HTTPS. Provider payload parsing stays in source.
+ * Context services remove obsolete records with
+ * removeEntityContextsForLayer(layerId, { retainIds: Set<string> }), preserving
+ * retained selection without dispatching a new selection event.
  */
 export function createAlprCamerasLayer({ source, services } = {}) {
   if (typeof source?.fetch !== 'function')
@@ -52,6 +55,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     saturated: false,
     loading: false,
     abort: null,
+    pendingQueryBox: null,
     retryTimer: null,
     retryDelayMs: 0,
     retryAt: 0,
@@ -122,6 +126,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     if (!box) {
       state.abort?.abort();
       state.abort = null;
+      state.pendingQueryBox = null;
       state.loading = false;
       state.retrying = false;
       clearUnavailableRetry();
@@ -146,6 +151,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       if (state.abort) {
         state.abort.abort();
         state.abort = null;
+        state.pendingQueryBox = null;
         state.loading = false;
       }
       renderRecords();
@@ -155,10 +161,16 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       );
       return;
     }
+    // A move inside an in-flight query must not abort and restart that query.
+    if (state.abort && boxContains(state.pendingQueryBox, box)) {
+      renderRecords();
+      return;
+    }
     const queryBox = snapAlprBox(box);
     state.abort?.abort();
     const requestAbort = new AbortController();
     state.abort = requestAbort;
+    state.pendingQueryBox = queryBox;
     state.loading = true;
     state.retrying = state.status === 'unavailable' || state.retryDelayMs > 0;
     setAlprStatus('loading');
@@ -209,6 +221,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     } finally {
       if (state.abort === requestAbort) {
         state.abort = null;
+        state.pendingQueryBox = null;
         state.loading = false;
         state.retrying = false;
         governorRequestRender('alpr-status');
@@ -253,6 +266,7 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       clearTimeout(state.debounceTimer);
       state.abort?.abort();
       state.abort = null;
+      state.pendingQueryBox = null;
       state.loading = false;
       state.retrying = false;
       if (state.dataSource) state.dataSource.show = false;

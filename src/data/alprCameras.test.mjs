@@ -931,3 +931,154 @@ test('two factories keep their requests, records and destruction independent', a
     a.restore();
   }
 });
+
+test('orbit cache hits and metadata refreshes preserve marker geometry and selection events', async () => {
+  const h = cameraHarness();
+  try {
+    h.setFetch(async () =>
+      cameraResponse([
+        cameraNode(42, {
+          tags: { 'surveillance:type': 'ALPR', 'camera:direction': '90' },
+        }),
+      ]),
+    );
+    await alprCamerasLayer.update();
+    h.click('alpr:42');
+    const entity = h.source.entities.getById('alpr:42');
+    const position = entity.position,
+      line = entity.polyline;
+    let selections = 0,
+      clears = 0,
+      collectionChanges = 0;
+    window.addEventListener('gev:entity-selected', () => selections++);
+    window.addEventListener('gev:entity-selection-cleared', () => clears++);
+    h.source.entities.collectionChanged.addEventListener(
+      (_collection, added, removed) => {
+        collectionChanges += added.length + removed.length;
+      },
+    );
+    h.setBox({ south: 30.261, west: -97.749, north: 30.279, east: -97.731 });
+    await alprCamerasLayer.update();
+    h.expire();
+    h.setFetch(async () =>
+      cameraResponse([
+        cameraNode(42, {
+          tags: {
+            'surveillance:type': 'ALPR',
+            'camera:direction': '90',
+            operator: 'Updated directory',
+          },
+        }),
+      ]),
+    );
+    await alprCamerasLayer.update();
+    assert.equal(h.source.entities.getById('alpr:42'), entity);
+    assert.equal(entity.position, position);
+    assert.equal(entity.polyline, line);
+    assert.equal(
+      getSelectedEntityContext().properties.operator,
+      'Updated directory',
+    );
+    assert.equal(selections, 0);
+    assert.equal(clears, 0);
+    assert.equal(collectionChanges, 0);
+    assert.equal(h.requests.length, 2, 'only expiry needs another request');
+    h.expire();
+    h.setFetch(async () => cameraResponse([cameraNode(42, { lon: -97.742 })]));
+    await alprCamerasLayer.update();
+    assert.equal(h.source.entities.getById('alpr:42'), entity);
+    assert.equal(
+      entity.polyline,
+      undefined,
+      'removed direction must not persist',
+    );
+    assert.ok(
+      Cesium.Cartesian3.equals(
+        entity.position.getValue(),
+        Cesium.Cartesian3.fromDegrees(-97.742, 30.2672),
+      ),
+    );
+  } finally {
+    h.restore();
+  }
+});
+
+test('moves inside a pending query do not restart it; moving to another city cancels it', async () => {
+  const h = cameraHarness();
+  try {
+    let resolve;
+    h.setFetch(
+      () =>
+        new Promise((r) => {
+          resolve = r;
+        }),
+    );
+    const first = alprCamerasLayer.update();
+    const signal = h.requests[0][1].signal;
+    h.setBox({ south: 30.261, west: -97.749, north: 30.279, east: -97.731 });
+    await alprCamerasLayer.update();
+    assert.equal(h.requests.length, 1);
+    assert.equal(signal.aborted, false);
+    assert.equal(alprCamerasLayer.getStats().loading, true);
+    const finishFirst = resolve;
+    h.setBox({ south: 51.49, west: -0.14, north: 51.5, east: -0.12 });
+    const second = alprCamerasLayer.update();
+    assert.equal(signal.aborted, true);
+    assert.equal(h.requests.length, 2);
+    finishFirst(cameraResponse());
+    await first;
+    assert.equal(
+      alprCamerasLayer.getStats().loading,
+      true,
+      'late old response cannot finish current request',
+    );
+    resolve(cameraResponse([cameraNode(43, { lat: 51.495, lon: -0.13 })]));
+    await second;
+    assert.deepEqual(
+      h.source.entities.values.map((e) => e.id),
+      ['alpr:43'],
+    );
+  } finally {
+    h.restore();
+  }
+});
+
+test('ground-centered orbits ignore horizon rectangles while sky, distant and dateline views stay bounded', async () => {
+  const h = cameraHarness();
+  const camera = h.viewer.camera;
+  const focus = Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672);
+  h.viewer.scene.canvas.clientWidth = 1440;
+  h.viewer.scene.canvas.clientHeight = 900;
+  camera.pickEllipsoid = () => focus;
+  camera.positionWC = Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672, 1200);
+  try {
+    await alprCamerasLayer.update();
+    const entity = h.source.entities.getById('alpr:42');
+    h.click('alpr:42');
+    for (const box of [null, { south: 31, west: -99, north: 36, east: -95 }]) {
+      h.setBox(box);
+      await alprCamerasLayer.update();
+      assert.equal(h.source.entities.getById('alpr:42'), entity);
+      assert.equal(getSelectedEntityContext().id, 'alpr:42');
+      assert.equal(h.requests.length, 1);
+    }
+    camera.positionWC = Cesium.Cartesian3.fromDegrees(
+      -97.7431,
+      30.2672,
+      800000,
+    );
+    await alprCamerasLayer.update();
+    assert.equal(alprCamerasLayer.getStats().status, 'zoom-in');
+    assert.equal(h.source.entities.values.length, 0);
+    camera.pickEllipsoid = () => undefined;
+    await alprCamerasLayer.update();
+    assert.equal(alprCamerasLayer.getStats().status, 'zoom-in');
+    camera.pickEllipsoid = () => Cesium.Cartesian3.fromDegrees(179.999, 0);
+    camera.positionWC = Cesium.Cartesian3.fromDegrees(179.999, 0, 1200);
+    await alprCamerasLayer.update();
+    assert.equal(alprCamerasLayer.getStats().status, 'zoom-in');
+    assert.equal(h.requests.length, 1);
+  } finally {
+    h.restore();
+  }
+});

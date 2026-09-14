@@ -9,6 +9,12 @@ attribution; rendering does not parse Overpass payloads. The standalone
 registration supplies selection, picking, terrain and
 render services. Selected cards and Data attribution identify OpenStreetMap.
 Layer state and the existing voice layer tools include `alpr-cameras`.
+Coverage follows a bounded neighborhood around the screen-center ground point,
+with a radius of twice the camera-to-ground range (at least 1 km), rather than
+extending to the horizon. Sky, dateline-crossing and wider-than-city views do not
+query. Movement within an accepted or pending query reuses it. Markers retain
+their Cesium identity and ground clamping while their geometry is unchanged;
+refreshes preserve selection without replaying a click event.
 
 Data Centers, Dams and Submarine Cables release their built Cesium data sources
 and record references when disabled. Parsed datasets remain cached for the layer
