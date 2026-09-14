@@ -1,5 +1,7 @@
 # Changelog
 
+- Separate civil-flight acquisition and record reconciliation from Cesium resource updates, preserving source timing, ground placement and tracking behavior.
+
 - Separate navigation, share restoration, visual settings and panel state into focused UI owners with explicit dependencies and terminal cleanup.
 
 - Separate layer lifecycle transactions from panel construction and render/detection reactions; retain existing transition and refresh behavior.

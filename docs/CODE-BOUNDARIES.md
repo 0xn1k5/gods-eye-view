@@ -477,3 +477,17 @@ These package groups contain their own dependencies and exclude application
 assembly. `applicationShell` retains composition and compatibility methods;
 those methods delegate to the state owner. Source-based regression checks inspect
 that implementation owner, and browser acceptance exercises the assembled UI.
+
+## Civil-flight records and acquisition
+
+`layers/flights/records` owns metadata, sticky observations, geoid values and
+missing-poll admission. `layers/flights/ingestion` owns the source and request
+lifetime, backoff and freshness state. Both are portable package groups with no
+Cesium, viewer, billboard, model or application imports.
+
+The layer composes these with `snapshotRenderer`, which applies record changes
+to Cesium history and primitives and coordinates existing follow operations.
+Occlusion points live with rendering state. Eviction still releases tracking
+before deleting records; incomplete snapshots retain recent contacts for the
+existing bounded interval. The renderer retains its existing per-frame scratch
+objects; reconciliation occurs on source refresh, not on each frame.
