@@ -448,3 +448,16 @@ location framing use the supplied operations. Voice shares the same boundary and
 floor services, with analyst memory scoped to the runner. Direct compatibility
 entrypoints retain default services; normal assembly does not configure their
 source slots.
+
+## Layer lifecycle and presentation
+
+`data/lifecycle` owns registrations, visibility intent, refresh transactions,
+parameters and teardown. Its package group contains one module and no external
+imports. Adding a panel, renderer or application dependency fails the boundary
+build, including unused imports.
+
+`app/layerPresentation` mounts the toggle panel and turns lifecycle activity into
+render requests and detection invalidation. It owns hidden-panel refresh and
+listener cleanup. Application data assembly constructs both owners explicitly;
+`data/manager` is the compatibility facade for direct callers. The ordinary
+state subscriptions retain their existing event contract.

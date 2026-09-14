@@ -1,5 +1,14 @@
 # God's Eye View Current State
 
+Layer lifecycle transactions are owned by `data/lifecycle`, which has no panel,
+render-governor or detection imports. Application composition mounts a separate
+layer presentation owner that reacts to status, accepted visibility/parameter
+changes and non-throwing updates. Rejected partial updates still invalidate the
+rendered detection set. The legacy manager retains panel helper compatibility;
+registration sealing, restoration order and failed-transition rollback remain
+unchanged.
+
+
 Application scene setup owns request services, terrain/floor caches and annotation
 lookup state. Controls, layers and voice share those owners, and cancellation
 clears caches and removes map-stack listeners. Standalone setup supplies the

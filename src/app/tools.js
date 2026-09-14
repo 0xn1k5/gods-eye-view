@@ -69,10 +69,7 @@ export function createApplicationTools({
     viewer.useDefaultRenderLoop = !hidden;
     cockpitCloudEffects?.setSuspended?.(hidden);
     if (!hidden) {
-      if (dataManager._panelRefreshPendingOnVisible) {
-        dataManager._panelRefreshPendingOnVisible = false;
-        dataManager._refreshTogglePanel();
-      }
+      data.presentation.flushVisible();
       governorRequestRender('visibility-restore');
     }
   };

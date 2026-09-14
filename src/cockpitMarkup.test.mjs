@@ -31,7 +31,7 @@ const html = expandApplicationHtml(fs.readFileSync(path.join(ROOT, 'index.html')
 const ui = fs.readFileSync(path.join(ROOT, 'src', 'ui', 'applicationShell.js'), 'utf8');
 const css = readStylesheet(path.join(ROOT, 'style.css'));
 const sceneDirector = fs.readFileSync(path.join(ROOT, 'src', 'scenes', 'director.js'), 'utf8');
-const manager = fs.readFileSync(path.join(ROOT, 'src', 'data', 'manager.js'), 'utf8');
+const manager = fs.readFileSync(path.join(ROOT, 'src', 'data', 'lifecycle.js'), 'utf8');
 const contextLayer = readLayerSource(path.join(ROOT, 'src', 'data', 'militaryAwareness.js'), 'utf8');
 const voiceActions = fs.readFileSync(path.join(ROOT, 'src', 'voice', 'gevActions.js'), 'utf8');
 
@@ -764,7 +764,7 @@ test('Global Context uses its dedicated right rail without a duplicate Data Laye
   assert.match(contextLayer, /id:\s*'military-awareness'[\s\S]*?showInTogglePanel:\s*false/);
   const panel = fs.readFileSync(path.join(ROOT, 'src', 'ui', 'layerPanel.js'), 'utf8');
   assert.match(panel, /if \(!layer\.showInTogglePanel\) continue;/);
-  assert.match(manager, /getLayers: \(\) => this\.getAll\(\)/);
+  assert.match(fs.readFileSync(path.join(ROOT, 'src', 'app', 'layerPresentation.js'), 'utf8'), /getLayers: \(\) => this\.manager\.getAll\(\)/);
   assert.match(html, /id="global-context-panel"/);
   assert.match(html, /id="global-context-flights-btn"/);
   assert.match(html, /id="global-context-missions-btn"/);
