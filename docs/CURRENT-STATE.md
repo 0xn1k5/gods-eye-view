@@ -3303,3 +3303,18 @@ explicitly. Each constructed layer owns its catalog, audio and lifecycle state.
 Existing catalog validation, category filters, tuning and voice playback behavior
 remain unchanged. Audio connects directly to the broadcaster after an explicit
 play action; the source does not relay or record streams.
+
+## Bundled geography and submarine cable components
+
+Submarine cables use separate source, geometry, rendering, interaction and
+lifecycle modules. The layer factory accepts cable and landing-point GeoJSON
+collections from a source with `fetch(signal)` and a display label. The default
+source loads the same bundled TeleGeography files. Disabling still removes all
+three Cesium data sources; enabling rebuilds from the accepted parsed cache,
+and destroying clears it. Load ownership prevents cancelled work from adding
+entities after teardown.
+
+Natural Earth regions and neighborhood polygon lookup are package exports.
+Their existing lazy loaders, retry behavior, bundled datasets and attribution
+are unchanged. The cable dataset remains CC BY-NC-SA 3.0 and is not covered by
+the project's MIT license; see `DATA_SOURCES.md`.

@@ -479,5 +479,21 @@
   "src/layers/radio/tuningNoise.js",
   "src/layers/radio/volume.js",
   "src/data/radio.js",
-  "src/layers/radio/source.test.mjs"
+  "src/layers/radio/source.test.mjs",
+  "src/layers/submarineCables/bundledSource.js",
+  "src/layers/submarineCables/geometry.js",
+  "src/layers/submarineCables/index.js",
+  "src/layers/submarineCables/ingestion.js",
+  "src/layers/submarineCables/interaction.js",
+  "src/layers/submarineCables/lifecycle.js",
+  "src/layers/submarineCables/overlay.js",
+  "src/layers/submarineCables/policy.js",
+  "src/layers/submarineCables/rendering.js",
+  "src/layers/submarineCables/state.js",
+  "src/layers/submarineCables/surface.js",
+  "src/data/telegeographySubmarineCables.js",
+  "src/data/telegeographySubmarineCables.test.mjs",
+  "src/data/naturalEarthRegions.js",
+  "src/data/neighborhoodPolygons.js",
+  "src/layers/submarineCables/bundledSource.test.mjs"
 ]

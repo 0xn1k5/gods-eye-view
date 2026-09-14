@@ -156,6 +156,10 @@
     "./layers/traffic": "./src/layers/traffic/index.js",
     "./layers/bikeshare": "./src/layers/bikeshare/index.js",
     "./layers/cctv": "./src/layers/cctv/index.js",
-    "./layers/radio": "./src/layers/radio/index.js"
+    "./layers/radio": "./src/layers/radio/index.js",
+    "./layers/submarine-cables": "./src/layers/submarineCables/index.js",
+    "./sources/bundled-cables": "./src/layers/submarineCables/bundledSource.js",
+    "./geography/natural-earth": "./src/data/naturalEarthRegions.js",
+    "./geography/neighborhoods": "./src/data/neighborhoodPolygons.js"
   }
 }
