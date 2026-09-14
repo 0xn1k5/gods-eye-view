@@ -8,6 +8,7 @@ export class StyleManager extends ApplicationControls {
       ...options,
       services: {
         ...catalogControlServices(getStandaloneCatalog()),
+        ...getStandaloneCatalog().surface.controlServices,
         ...options.services,
       },
     });

@@ -241,7 +241,7 @@ test('validated voice camera destinations share the UI navigation authority faca
   // The corridor warm is injected the same way the floor READ is — the dolly
   // never reaches into the data layer itself, and the voice dispatch is the one
   // place that binds both.
-  assert.match(voice, /\(lat, lon\) => cachedGroundFloor\(lat, lon\),[\s\S]{0,200}?\(cells\) => warmGroundFloor\(cells\),/);
+  assert.match(voice, /\(lat, lon\) => floorServices\.cachedGroundFloor\(lat, lon\),[\s\S]{0,200}?\(cells\) => floorServices\.warmGroundFloor\(cells\),/);
 });
 
 test('deferred search releases only after its final authority check', () => {

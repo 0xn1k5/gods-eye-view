@@ -42,14 +42,6 @@ import {
 } from '../data/detection.js';
 import { isTr3b, toggleTr3b } from '../data/tr3bRegistry.js';
 import {
-  cachedGroundFloor,
-  cachedMeshFloor,
-  GROUND_FLOOR_LIFT_M,
-  meshFloorPreferred,
-  warmGroundFloor,
-} from '../data/groundFloor.js';
-import { sampleMeshFloorCells } from '../data/meshFloorSampler.js';
-import {
   holdContinuousRender,
   releaseContinuousRender,
   governorRequestRender,
@@ -105,12 +97,6 @@ export class StyleManager extends ApplicationShell {
         setDetectionTuning,
         isTr3b,
         toggleTr3b,
-        cachedGroundFloor,
-        cachedMeshFloor,
-        GROUND_FLOOR_LIFT_M,
-        meshFloorPreferred,
-        warmGroundFloor,
-        sampleMeshFloorCells,
         holdContinuousRender,
         releaseContinuousRender,
         governorRequestRender,

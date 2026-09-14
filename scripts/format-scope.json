@@ -577,5 +577,14 @@
   "src/app/layers/aisLiveVessels.js",
   "src/app/constructCatalog.js",
   "src/standalone/layerSources.js",
-  "src/app/constructCatalog.test.mjs"
+  "src/app/constructCatalog.test.mjs",
+  "src/app/surfaceServices.js",
+  "src/app/operations.js",
+  "src/data/surfaceServices.js",
+  "src/annotations/resolver.js",
+  "src/services/terrainHeights.js",
+  "src/services/groundFloor.js",
+  "src/services/meshFloorSampler.js",
+  "src/services/groundSnap.js",
+  "src/app/operations.test.mjs"
 ]

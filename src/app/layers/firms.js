@@ -4,7 +4,6 @@ import * as render from '../../renderGovernor.js';
 import * as sprites from '../../data/spriteOrder.js';
 import * as context from '../../data/contextStore.js';
 import * as picking from '../../data/pickRegistry.js';
-import * as anchors from '../../data/fireAnchors.js';
 import * as overlays from '../../overlays/worldOverlay.js';
 import * as focus from '../../worldFocus.js';
 export const firmsServices = {
@@ -12,19 +11,18 @@ export const firmsServices = {
   sprites,
   context,
   picking,
-  anchors,
   overlays,
   focus,
 };
 
 /** Bind a supplied fire feed to the application scene service owners. */
-export function createApplicationFirms(options) {
+export function createApplicationFirms({ surface, ...options }) {
   return createLayer({
     ...options,
     icon: options.icon ?? '▲',
     source: options.source ?? 'NASA FIRMS',
     feed: options.feed,
-    services: firmsServices,
+    services: { ...firmsServices, anchors: surface.anchors },
     overlayHost: options.overlayHost ?? {
       setEntries: overlays.setOverlayEntries,
       setVisible: overlays.setOverlaySourceVisible,

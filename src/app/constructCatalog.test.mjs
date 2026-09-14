@@ -1,3 +1,4 @@
+import { createSurfaceServices } from './surfaceServices.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApplicationCatalog } from './constructCatalog.js';
@@ -30,10 +31,12 @@ test('catalogs construct distinct layers and classification from their supplied 
   const first = createApplicationCatalog({
     sources: fixtureSources(['abc123'], callsA),
     signal: a.signal,
+    surface: fixtureSurface(a.signal),
   });
   const second = createApplicationCatalog({
     sources: fixtureSources(['def456'], callsB),
     signal: b.signal,
+    surface: fixtureSurface(b.signal),
   });
   assert.equal(first.layers.length, 17);
   assert.deepEqual(
@@ -62,7 +65,12 @@ test('catalogs construct distinct layers and classification from their supplied 
 test('invalid or already cancelled construction fails before classification can acquire', () => {
   const lifetime = new AbortController();
   assert.throws(
-    () => createApplicationCatalog({ sources: {}, signal: lifetime.signal }),
+    () =>
+      createApplicationCatalog({
+        sources: {},
+        signal: lifetime.signal,
+        surface: fixtureSurface(lifetime.signal),
+      }),
     /catalog source/,
   );
   lifetime.abort();
@@ -75,3 +83,11 @@ test('invalid or already cancelled construction fails before classification can 
     { name: 'AbortError' },
   );
 });
+
+function fixtureSurface(signal) {
+  return createSurfaceServices({
+    terrainSource: { getHeights: async () => [] },
+    signal,
+    eventTarget: null,
+  });
+}

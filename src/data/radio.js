@@ -1,3 +1,4 @@
+import { defaultSurface } from './surfaceServices.js';
 import { createApplicationRadio } from '../app/layers/radio.js';
 import { createSourceSlot } from '../app/sourceSlot.js';
 import { createRadioSource } from '../layers/radio/source.js';
@@ -9,6 +10,7 @@ const sourceSlot = createSourceSlot(
 );
 export const configureRadioSource = sourceSlot.configure;
 const layer = createApplicationRadio({
+  surface: defaultSurface,
   source: sourceSlot.source,
 });
 export const radioGlobeLabel = layer.radioGlobeLabel;

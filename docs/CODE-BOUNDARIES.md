@@ -430,3 +430,21 @@ exports. Browser regression probes use the registered instance's testing surface
 to avoid accidentally inspecting an unused compatibility instance. Existing source
 setters apply only to compatibility instances; the normal application supplies
 its sources at construction.
+
+### Application operations
+
+`application/operations` accepts request-service instances and an application
+lifetime. It constructs terrain resolution, coarse floor/mesh caches and an
+annotation resolver without selecting upstream providers. Its checked graph is
+separate from standalone setup. Scene construction returns these operations; the
+catalog and controls use the same surface owner. Layers still own their individual
+ground-snap caches and model resources.
+
+Terrain cancellation rejects late replies before caching, clears floor queues and
+removes the map-stack listener. Annotation lookup caches are instance-owned and
+cleared on cancellation. Geometry selection and floor policies are unchanged.
+HUD and weather controllers accept their respective service; regional lookup and
+location framing use the supplied operations. Voice shares the same boundary and
+floor services, with analyst memory scoped to the runner. Direct compatibility
+entrypoints retain default services; normal assembly does not configure their
+source slots.

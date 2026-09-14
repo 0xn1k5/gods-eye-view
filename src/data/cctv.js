@@ -1,3 +1,4 @@
+import { defaultSurface } from './surfaceServices.js';
 import { createApplicationCctv } from '../app/layers/cctv.js';
 import { createSourceSlot } from '../app/sourceSlot.js';
 import { createCctvSource } from '../layers/cctv/source.js';
@@ -9,6 +10,7 @@ const sourceSlot = createSourceSlot(
 );
 export const configureCctvSource = sourceSlot.configure;
 const layer = createApplicationCctv({
+  surface: defaultSurface,
   source: sourceSlot.source,
 });
 export const calibrationPatchMovesAnchor = layer.calibrationPatchMovesAnchor;

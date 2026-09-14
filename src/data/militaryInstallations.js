@@ -1,3 +1,4 @@
+import { defaultSurface } from './surfaceServices.js';
 import { createApplicationInstallations } from '../app/layers/militaryInstallations.js';
 import { createSourceSlot } from '../app/sourceSlot.js';
 import { createInstallationSource } from '../layers/installations/index.js';
@@ -9,6 +10,7 @@ const sourceSlot = createSourceSlot(
 );
 export const configureInstallationSource = sourceSlot.configure;
 const layer = createApplicationInstallations({
+  surface: defaultSurface,
   source: sourceSlot.source,
 });
 export const approximateSurfaceDistanceM = layer.approximateSurfaceDistanceM;

@@ -148,7 +148,7 @@ export class StyleManager {
    */
   constructor(
     viewer,
-    { mapStackController = null, placeSearch, services } = {},
+    { mapStackController = null, placeSearch, services, requestServices } = {},
   ) {
     const {
       IntelHUD,
@@ -293,7 +293,10 @@ export class StyleManager {
     this._orbitIndicator = null;
 
     // Intel HUD
-    this.hud = new IntelHUD(viewer, { placeSearch });
+    this.hud = new IntelHUD(viewer, {
+      placeSearch,
+      summaryService: requestServices?.summary,
+    });
     this._recording.hud = this.hud;
     this._cockpitVisionMode = 'optical';
     this._cockpitVisionRestore = null;

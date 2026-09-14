@@ -194,6 +194,7 @@
     },
     "./application/catalog": "./src/app/catalog.js",
     "./standalone/catalog": "./src/standalone/catalog.js",
-    "./application/layers": "./src/app/constructCatalog.js"
+    "./application/layers": "./src/app/constructCatalog.js",
+    "./application/operations": "./src/app/operations.js"
   }
 }
