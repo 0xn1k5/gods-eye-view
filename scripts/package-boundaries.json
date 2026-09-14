@@ -623,7 +623,10 @@
       "src/layers/flights/rendering.js",
       "src/layers/flights/state.js",
       "src/layers/flights/testing.js",
-      "src/layers/flights/tracking.js"
+      "src/layers/flights/tracking.js",
+      "src/layers/flights/records.js",
+      "src/layers/flights/recordPolicy.js",
+      "src/layers/flights/snapshotRenderer.js"
     ],
     "external": ["cesium"]
   },
@@ -1539,7 +1542,10 @@
       "src/voice/realtimeController.js",
       "src/voice/voiceCost.js",
       "src/weatherEffectsMath.js",
-      "src/worldFocus.js"
+      "src/worldFocus.js",
+      "src/layers/flights/records.js",
+      "src/layers/flights/recordPolicy.js",
+      "src/layers/flights/snapshotRenderer.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1863,7 +1869,10 @@
       "src/services/requests.js",
       "src/ui/panelRailGeometry.js",
       "src/ui/radioTunerModel.js",
-      "src/worldFocus.js"
+      "src/worldFocus.js",
+      "src/layers/flights/records.js",
+      "src/layers/flights/recordPolicy.js",
+      "src/layers/flights/snapshotRenderer.js"
     ],
     "external": [
       "cesium",
@@ -1975,6 +1984,25 @@
       "src/ui/panelRails.js",
       "src/ui/rightPanelRail.js",
       "src/ui/uiLifetime.js"
+    ],
+    "external": []
+  },
+  "civil-flight-records": {
+    "exports": ["./layers/flights/records"],
+    "modules": [
+      "src/layers/flights/records.js",
+      "src/layers/flights/recordPolicy.js",
+      "src/data/aircraftMeta.js",
+      "src/data/renderAltitude.js",
+      "src/data/aircraftClass.js"
+    ],
+    "external": []
+  },
+  "civil-flight-ingestion": {
+    "exports": ["./layers/flights/ingestion"],
+    "modules": [
+      "src/layers/flights/ingestion.js",
+      "src/layers/flights/recordPolicy.js"
     ],
     "external": []
   }

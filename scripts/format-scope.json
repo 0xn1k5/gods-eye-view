@@ -595,5 +595,10 @@
   "src/ui/visualSettings.js",
   "src/ui/panelChrome.js",
   "src/testSupport/readShellSource.mjs",
-  "src/ui/stateOwners.test.mjs"
+  "src/ui/stateOwners.test.mjs",
+  "src/layers/flights/records.js",
+  "src/layers/flights/recordPolicy.js",
+  "src/layers/flights/snapshotRenderer.js",
+  "src/layers/flights/records.test.mjs",
+  "src/layers/flights/ingestion.test.mjs"
 ]

@@ -1,5 +1,12 @@
 # God's Eye View Current State
 
+Civil flights separate source acquisition, portable record reconciliation and
+scene application. The record owner keeps sticky metadata, geoid cache and
+bounded missing-poll state; ingestion owns cancellation, source freshness and
+backoff. The snapshot renderer owns Cartesian history, billboard/model changes
+and follow transitions. Aviation altitude remains separate from render height;
+partial retention, military suppression and ground-sampling policies are unchanged.
+
 The UI facade composes separate owners for navigation authority, share restoration,
 visual settings and panel chrome. Navigation owns request generations and follow
 handoff; restoration owns its coordinator, deferred notices, gestures and timer;
