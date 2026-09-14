@@ -115,6 +115,11 @@
     "modules": ["src/data/tomtomTiles.js"],
     "external": []
   },
+  "firms-csv": {
+    "exports": ["./sources/firms-csv"],
+    "modules": ["src/data/firmsCsv.js"],
+    "external": []
+  },
   "firms-provider": {
     "runtime": "node",
     "exports": ["./server/providers/firms"],

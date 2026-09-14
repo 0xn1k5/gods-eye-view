@@ -1,5 +1,9 @@
 # God's Eye View Current State
 
+The `sources/firms-csv` package export exposes existing FIRMS CSV parsing and
+UTC acquisition-window helpers without Node middleware or rendering dependencies.
+The standalone FIRMS provider, source defaults and parsing behavior are unchanged.
+
 CLI tools and development launchers accept `GEV_PROJECT_ROOT` to select the project environment, dependencies and output directory. Their default remains this checkout; bundled tool resources and source checks stay relative to the script installation. The setup doctor also accepts an explicit `rootDir`.
 
 Application composition now uses shared scene/control/catalog/tool constructors and allowlisted HTML component templates. The standalone entry supplies settings and the default sources. Terrain, boundaries, weather, regional context and summaries use configurable services; renderer/action owners remain page-scoped. Annotation proximity guards remain on by default and allow distant targets only for explicit navigation.
