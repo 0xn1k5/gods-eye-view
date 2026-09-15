@@ -268,7 +268,7 @@
       "server/providers/common/source-root.js",
       "server/standalone/key-setup.js",
       "src/keySetupCore.mjs",
-      "src/keySetupHardening.mjs"
+      "server/standalone/key-setup-hardening.mjs"
     ],
     "external": []
   },
@@ -358,7 +358,8 @@
       "src/ui/clearLayersControl.js",
       "src/loadingFeedback.js",
       "src/data/installationFeedback.js",
-      "src/keySetupCore.mjs"
+      "src/keySetupCore.mjs",
+      "src/data/feedState.js"
     ],
     "external": []
   },
@@ -552,7 +553,8 @@
       "src/ui/visualInput.js",
       "src/ui/visualPresets.js",
       "src/ui/visualSettings.js",
-      "src/worldFocus.js"
+      "src/worldFocus.js",
+      "src/data/feedState.js"
     ],
     "external": ["cesium"]
   },
@@ -735,7 +737,8 @@
     "modules": [
       "src/layers/earthquakes/index.js",
       "src/layers/earthquakes/model.js",
-      "src/layers/earthquakes/source.js"
+      "src/layers/earthquakes/source.js",
+      "src/layers/earthquakes/records.js"
     ],
     "external": ["cesium"]
   },
@@ -940,7 +943,8 @@
       "src/layers/cctv/testing.js",
       "src/overlays/worldOverlayTokens.js",
       "src/data/cctvFootprint.js",
-      "src/data/inputOwnership.js"
+      "src/data/inputOwnership.js",
+      "src/layers/cctv/sourcePolicy.js"
     ],
     "external": ["cesium"]
   },
@@ -954,7 +958,8 @@
       "src/layers/alpr/visuals.js",
       "src/layers/alpr/overlay.js",
       "src/layers/alpr/source.js",
-      "src/data/inputOwnership.js"
+      "src/data/inputOwnership.js",
+      "src/layers/alpr/records.js"
     ],
     "external": ["cesium"]
   },
@@ -1126,7 +1131,7 @@
       "src/app/layers/traffic.js",
       "src/app/operations.js",
       "src/app/scene.js",
-      "src/app/sourceSlot.js",
+      "src/sources/sourceSlot.js",
       "src/app/sources.js",
       "src/app/startupChrome.js",
       "src/app/stateChannel.js",
@@ -1608,7 +1613,12 @@
       "src/voice/session.js",
       "src/voice/sessionCommands.js",
       "src/voice/realtimeSession.js",
-      "src/voice/realtimeEvents.js"
+      "src/voice/realtimeEvents.js",
+      "src/app/localGeojsonServices.js",
+      "src/data/feedState.js",
+      "src/layers/alpr/records.js",
+      "src/layers/earthquakes/records.js",
+      "src/layers/cctv/sourcePolicy.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1647,7 +1657,7 @@
       "src/app/layers/satellites.js",
       "src/app/layers/submarineCables.js",
       "src/app/layers/traffic.js",
-      "src/app/sourceSlot.js",
+      "src/sources/sourceSlot.js",
       "src/cctvFocusRequest.js",
       "src/celestialRing.js",
       "src/cockpitMath.js",
@@ -1956,7 +1966,11 @@
       "src/app/layers/directions.js",
       "src/search/coordinateGeocoder.js",
       "src/search/coordinateParser.js",
-      "src/search/presetGeocoder.js"
+      "src/search/presetGeocoder.js",
+      "src/app/localGeojsonServices.js",
+      "src/layers/alpr/records.js",
+      "src/layers/earthquakes/records.js",
+      "src/layers/cctv/sourcePolicy.js"
     ],
     "external": [
       "cesium",
@@ -1973,7 +1987,7 @@
       "src/annotations/annotationResolver.js",
       "src/annotations/resolver.js",
       "src/app/operations.js",
-      "src/app/sourceSlot.js",
+      "src/sources/sourceSlot.js",
       "src/app/surfaceServices.js",
       "src/data/dataCredits.js",
       "src/data/geoid.js",
@@ -2166,5 +2180,67 @@
       "src/voice/control.js"
     ],
     "external": []
+  },
+  "alpr-source": {
+    "exports": ["./layers/alpr/source"],
+    "modules": [
+      "src/layers/alpr/policy.js",
+      "src/layers/alpr/records.js",
+      "src/layers/alpr/source.js"
+    ],
+    "external": []
+  },
+  "bikeshare-source": {
+    "exports": ["./layers/bikeshare/source"],
+    "modules": ["src/layers/bikeshare/source.js"],
+    "external": []
+  },
+  "cctv-source": {
+    "exports": ["./layers/cctv/source"],
+    "modules": ["src/layers/cctv/source.js", "src/layers/cctv/sourcePolicy.js"],
+    "external": []
+  },
+  "earthquakes-source": {
+    "exports": ["./layers/earthquakes/source"],
+    "modules": [
+      "src/layers/earthquakes/records.js",
+      "src/layers/earthquakes/source.js"
+    ],
+    "external": []
+  },
+  "firms-source": {
+    "exports": ["./layers/firms/source"],
+    "modules": ["src/layers/firms/source.js"],
+    "external": []
+  },
+  "installations-source": {
+    "exports": ["./layers/installations/source"],
+    "modules": ["src/layers/installations/source.js"],
+    "external": []
+  },
+  "launches-source": {
+    "exports": ["./layers/launches/source"],
+    "modules": ["src/layers/launches/source.js"],
+    "external": []
+  },
+  "radio-source": {
+    "exports": ["./layers/radio/source"],
+    "modules": ["src/layers/radio/policy.js", "src/layers/radio/source.js"],
+    "external": []
+  },
+  "satellites-source": {
+    "exports": ["./layers/satellites/source"],
+    "modules": ["src/layers/satellites/source.js"],
+    "external": []
+  },
+  "traffic-source-factory": {
+    "exports": ["./layers/traffic/source"],
+    "modules": [
+      "src/data/tomtomTiles.js",
+      "src/layers/traffic/flowDecode.js",
+      "src/layers/traffic/flowSource.js",
+      "src/layers/traffic/source.js"
+    ],
+    "external": ["@mapbox/vector-tile", "pbf"]
   }
 }
