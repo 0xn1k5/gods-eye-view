@@ -668,5 +668,7 @@
   "src/layers/cctv/sourcePolicy.js",
   "scripts/module-analysis.mjs",
   "scripts/check-import-directions.mjs",
-  "src/tooling/importDirections.test.mjs"
+  "src/tooling/importDirections.test.mjs",
+  "src/sources/reference.js",
+  "src/sources/reference.test.mjs"
 ]

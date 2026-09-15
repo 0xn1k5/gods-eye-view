@@ -540,3 +540,8 @@ retention. `layers/vessels/ingestion` owns source requests and feed state throug
 explicit operations. Both exports exclude Cesium, DOM and application assembly.
 The snapshot renderer applies record changes; rendering owns a weak map of
 geometry and billboard resources used by cards, picking and trails.
+
+`gods-eye-view/sources/reference` constructs fresh earthquake and bundled cable
+source instances independently of standalone setup. Individual sources remain
+available through `layers/earthquakes/source` and `layers/submarine-cables/source`.
+The latter retains the bundled dataset’s attribution and licensing requirements.

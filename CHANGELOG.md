@@ -1,5 +1,7 @@
 # Changelog
 
+- Expose reference feed factories independently of standalone catalog construction; preserve source choices and asset attribution.
+
 - Add source-only layer exports and enforce source, browser, standalone and voice import directions. Move plain record/feed helpers and settings filesystem hardening to their owners while preserving compatibility and behavior.
 
 - Separate voice session lifetime and common controls from the default Realtime protocol adapter.
