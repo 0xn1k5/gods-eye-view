@@ -263,6 +263,16 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
   reported as such instead of as "already up to date", and if the revision to
   apply cannot be resolved at all the update stops without installing anything
   and exits unsuccessfully. Contributed by Lob26 (#356).
+- On Windows, the credential-file hardening step verifies the file's permissions
+  through the system PowerShell. A side-by-side PowerShell 7 install prepends its
+  own module directories, which the 5.1 verifier cannot load, so the check failed
+  and the credential was refused. The verify script now sets its module path from
+  the running interpreter's own home, and the environment it is launched with
+  carries that one value and no differently cased alias of it. The tests that
+  cover it drive a stubbed process launcher, so what they check is the command
+  and environment the code builds; the Windows onboarding CI job now also runs
+  this file, where its one Windows-only case exercises the real hardener against
+  real native tools. Contributed by michaelhan1208 (#161).
 
 - Extract panel disclosure and hover/focus controls into a reusable module;
   cancel their listeners and pending work during replacement and teardown.
