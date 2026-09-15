@@ -1,16 +1,19 @@
 # Formatting and component boundaries
 
-Run `npm run format` to format the files in `scripts/format-scope.json` and
+Run `npm run format` to format the files in `scripts/format-scope.json` plus
+automatically discovered runtime JavaScript in `scripts/format-runtime.json`, and
 `npm run format:check` to check that same list without writing. CI checks the
-entire adopted list on Linux and Windows. Prettier is pinned in the development
+combined scope on Linux and Windows. Prettier is pinned in the development
 dependencies; use the installed version so local and CI output agree. The shared
 configuration specifies two spaces, single quotes, semicolons and LF endings.
 
-Add new reusable modules and their tests to the list as they are extracted.
+Owned runtime modules are discovered automatically; add their tests and other
+non-runtime files to the explicit list as they are adopted.
 Keep mechanical formatting in its own commit after behavior is stable. Existing
 source-text regression assertions still apply; investigate failures and preserve
 their behavioral coverage when a move or line wrap changes a tested shape.
-Files outside the list retain their surrounding style until deliberately adopted.
+Files outside the runtime roots and explicit list retain their surrounding style
+until deliberately adopted.
 Generated output, local configuration, browser evidence and bundled datasets are
 excluded. The formatter validates every entry before writing any file.
 
@@ -598,3 +601,8 @@ server adapters without importing search composition.
 `./sources/overpass` exports the quoted-string/comment lexer. The lexer alone is
 not a query validator: spatial bounds, timeouts and other policy remain in the
 server sanitizer. Existing server imports keep their compatibility exports.
+
+Runtime formatting discovers tracked and new non-ignored `.js`, `.mjs` and `.cjs`
+files under the configured owned roots. Tests retain explicit adoption. Git and
+Prettier exclusions keep local/generated data out; resolved paths are validated
+before any writes. New runtime modules do not need another scope-list entry.

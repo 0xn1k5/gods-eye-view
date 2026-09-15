@@ -185,8 +185,7 @@ export const DATA_CREDITS = [
   },
   {
     key: 'gtfs-rt',
-    html:
-      'Transit vehicles: operator GTFS-Realtime feeds (each operator is credited below when its vehicles are shown)',
+    html: 'Transit vehicles: operator GTFS-Realtime feeds (each operator is credited below when its vehicles are shown)',
   },
   {
     key: 'radio-browser',
@@ -299,11 +298,12 @@ export const NATURAL_EARTH_CREDIT = {
  * @returns {{ key: string, html: string }}
  */
 export function transitFeedCredit(feed) {
-  const escape = (text) => String(text)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+  const escape = (text) =>
+    String(text)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
   return {
     key: `transit-${feed.id}`,
     html:
