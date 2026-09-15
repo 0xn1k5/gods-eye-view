@@ -355,6 +355,34 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
   routes, local setup, fallback behavior and rendering.
 
 
+### Added
+
+- **Directions layer** — keyless A→B directions without a geocoder or a
+  microphone (thanks @spcpza). The row's chips arm a globe click for A and B
+  (DRIVE / WALK / BIKE, SWAP, FLY, CLEAR); the route comes from the existing
+  `/api/route` proxy (OSRM on the FOSSGIS servers), is draped on terrain and
+  3D tiles with the same flowing dashes as voice routes, and drops one dot per
+  maneuver. Below the chips is a compact keyboard-reachable ordered list of the
+  turns — distance and instruction per step; click one to open that maneuver's
+  card. FLY rides the shared route-flight cinematic through the same camera
+  authority voice destinations use, highlights the step it is on as it goes,
+  and lands when the route under it is replaced or cleared. A route that cannot
+  be found says so, and one longer than the 200-maneuver cap says it is cut
+  off; no straight line is ever drawn as a route. Share links carry the layer
+  as token `n`.
+- `/api/route` now returns turn-by-turn steps when asked (`steps=1`), phrased
+  in plain English from OSRM's maneuver data (`src/data/routeSteps.js`). Steps
+  are opt-in per request, so callers that do not read them (voice route
+  annotations, `fly_route`) get exactly the response they got before; identical
+  requests in flight at the same time share one upstream call; outbound calls
+  are spaced to the one-per-second rate the routing service's usage policy
+  states, with a bounded queue behind that gate and an honest 429 past it; the
+  upstream host is pinned against redirects, and a rate limit from the routing
+  service is reported as one rather than as a missing route.
+- The Data attribution popover now credits OSRM / FOSSGIS routing (used by
+  voice routes since launch, previously uncredited), with the OpenStreetMap
+  credit and the "fix the map" link the service's usage policy asks for.
+
 ### Changed
 
 - The interface asks Google Fonts for only the icon glyphs it draws, instead of

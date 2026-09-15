@@ -172,6 +172,7 @@
   "src/ui/layerPanel.js",
   "src/ui/clearLayersControl.js",
   "scripts/qa-layer-panel.mjs",
+  "scripts/qa-directions.mjs",
   "src/loadingFeedback.js",
   "src/data/installationFeedback.js",
   "src/ui/location.js",
@@ -626,5 +627,11 @@
   "src/data/cctvMediaRange.test.mjs",
   "src/materialSymbolsSubset.test.mjs",
   "scripts/pinokio-update.mjs",
-  "src/pinokioUpdatePreview.test.mjs"
+  "src/pinokioUpdatePreview.test.mjs",
+  "src/data/routeSteps.js",
+  "src/data/routeSteps.test.mjs",
+  "src/data/directions.js",
+  "src/data/directions.test.mjs",
+  "src/app/layers/directions.js",
+  "src/layers/directions/index.js"
 ]
