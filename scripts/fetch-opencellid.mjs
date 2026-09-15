@@ -8,10 +8,12 @@
  *   2. Run:   OPENCELLID_TOKEN=pk.xxxx node scripts/fetch-opencellid.mjs
  *
  * Saves the WORLD dump to .gev-cache/opencellid/cell_towers.csv.gz (the path
- * the dev-server proxy reads on first /api/towers request). India is not
- * published as a per-country slice (only some MCCs are), so the world file —
- * filtered to Indian MCCs via OPENCELLID_MCC_FILTER when you want only India —
- * is the way to get Indian towers.
+ * the dev-server proxy reads on first /api/towers request). India (MCC 404,
+ * 405) is NOT in any current export — per-country or world — pending clarity
+ * on India's geospatial policy (OpenCelliD staff, 2024), so the world file is
+ * NOT a way to get Indian towers. For India use scripts/harvest-opencellid-api.mjs
+ * (API harvest into 404.csv.gz/405.csv.gz) optionally over a 2017 archive.org
+ * baseline (CC-BY-SA) filtered to MCC 404/405.
  *
  * Each token allows 2 downloads per file per day; the world dump is large
  * (streams over some minutes). Use --mcc=404 to grab a single published MCC

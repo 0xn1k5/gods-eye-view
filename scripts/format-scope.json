@@ -5,6 +5,7 @@
   "scripts/package-boundaries.json",
   "scripts/format.mjs",
   "scripts/check-package-boundaries.mjs",
+  "scripts/harvest-opencellid-api.mjs",
   "scripts/precompute-cctv-heights.mjs",
   "src/tooling/precomputeCctvHeights.test.mjs",
   "src/tooling/fixtureRoot.mjs",
