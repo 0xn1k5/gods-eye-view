@@ -39,8 +39,9 @@ test('catalogs construct distinct layers and classification from their supplied 
     signal: b.signal,
     surface: fixtureSurface(b.signal),
   });
-  assert.equal(first.layers.length, 21);
+  assert.equal(first.layers.length, 22);
   assert.ok(first.get('transit'));
+  assert.ok(first.get('railways'));
   assert.ok(first.get('bhote-koshi-2026'));
   assert.ok(first.get('bhote-koshi-locator'));
   const lifecycle = new LayerLifecycle({});

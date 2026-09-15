@@ -1,0 +1,39 @@
+/**
+ * Train silhouette as SVG data URI for Cesium billboards.
+ *
+ * GLYPH SOURCE: this string mirrors src/data/train-icon.svg (the editable
+ * source of truth) — redrawn from that file; rerunning the icon pipeline
+ * should regenerate this block.  White fill + dark hairline stroke, the same
+ * tint-safe contract as aircraftIcons.js (billboard.color = white × class hue).
+ */
+
+const SVG_SRC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="\${w}" height="\${w}">
+  <g fill="white" stroke="rgba(0,0,0,0.32)" stroke-width="1.4" stroke-linejoin="round" fill-rule="evenodd">
+    <!-- Train Body and Cutouts (Windows, Sign, Headlights) -->
+    <path d=" M 32 20 L 64 20 C 67.31 20 70 22.69 70 26 L 70 58 C 70 61.31 67.31 64 64 64 L 32 64 C 28.69 64 26 61.31 26 58 L 26 26 C 26 22.69 28.69 20 32 20 Z M 42 23 L 54 23 C 54.55 23 55 23.45 55 24 L 55 26 C 55 26.55 54.55 27 54 27 L 42 27 C 41.45 27 41 26.55 41 26 L 41 24 C 41 23.45 41.45 23 42 23 Z M 31 30 L 43 30 C 44.1 30 45 30.9 45 32 L 45 44 C 45 45.1 44.1 46 43 46 L 31 46 C 29.9 46 29 45.1 29 44 L 29 32 C 29 30.9 29.9 30 31 30 Z M 53 30 L 65 30 C 66.1 30 67 30.9 67 32 L 67 44 C 67 45.1 66.1 46 65 46 L 53 46 C 51.9 46 51 45.1 51 44 L 51 32 C 51 30.9 51.9 30 53 30 Z M 35 51 A 4 4 0 1 1 35 59 A 4 4 0 1 1 35 51 Z M 61 51 A 4 4 0 1 1 61 59 A 4 4 0 1 1 61 51 Z " />
+    <!-- Railway Tracks -->
+    <path d="M 35 68 L 41 68 L 38.6 72 L 57.4 72 L 55 68 L 61 68 L 67 78 L 61 78 L 59.2 75 L 36.8 75 L 35 78 L 29 78 Z" />
+  </g>
+</svg>`;
+
+const _iconCache = new Map();
+
+const _b64 = (s) =>
+  typeof btoa === 'function'
+    ? btoa(s)
+    : Buffer.from(s, 'utf8').toString('base64');
+
+/**
+ * Data URI for the monochrome train silhouette. Tinted at billboard time
+ * via `billboard.color` (white × train-class hue).
+ */
+export function trainIcon(px = 64) {
+  const key = String(px);
+  let uri = _iconCache.get(key);
+  if (!uri) {
+    const svg = SVG_SRC.replace(/\$\{w\}/g, String(px));
+    uri = 'data:image/svg+xml;base64,' + _b64(svg);
+    _iconCache.set(key, uri);
+  }
+  return uri;
+}

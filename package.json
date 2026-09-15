@@ -116,6 +116,9 @@
     "./server/providers/openai": {
       "node": "./server/providers/openai.js"
     },
+    "./server/providers/railways": {
+      "node": "./server/providers/railways.js"
+    },
     "./server/standalone/key-setup": {
       "node": "./server/standalone/key-setup.js"
     },
@@ -151,6 +154,7 @@
     "./layers/earthquakes": "./src/layers/earthquakes/index.js",
     "./sources/firms-csv": "./src/data/firmsCsv.js",
     "./layers/firms": "./src/layers/firms/index.js",
+    "./layers/railways": "./src/layers/railways/index.js",
     "./layers/satellites": "./src/layers/satellites/index.js",
     "./layers/launches": "./src/layers/launches/index.js",
     "./layers/installations": "./src/layers/installations/index.js",

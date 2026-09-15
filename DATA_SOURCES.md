@@ -151,6 +151,24 @@ transaction quota. Requires a free `FIRMS_MAP_KEY`
 (https://firms.modaps.eosdis.nasa.gov/api/map_key/); the layer is empty without it.
 The former bundled 2026-05-25 snapshot was removed 2026-07-16.
 
+### Indian Railways live trains
+
+Indian Railways positions are **fetched live at runtime**: the `/api/railways`
+server-side proxy calls **RailRadar** (`api.railradar.in/v1/legacy/trains/live-map` —
+the live-map covers every train currently running anywhere in India, with the moving
+train's live lat/lon, train number/name/type, the station it is in (or just left) and the
+next station). Requires a `RAILRADAR_API_KEY`
+(https://api.railradar.in/: the free **sandbox** tier is 1,000 API requests/month — enough
+for an on-demand layer like this one); without it, the layer renders "KEY REQUIRED —
+railradar key missing". The server proxy holds a 10-minute single-flight TTL cache plus a
+disk cache (`.gev-cache/railways.json`) so dev-server restarts do not burn the monthly
+budget, and the layer's `updateInterval` (default 10 min) is the client-side poll cadence.
+RailRadar gives a simple live feed of where trains are ("live-map"), with the station a
+train is in / just left and the next station. The service credit — "Indian Railways
+positions: RailRadar api.railradar.in" — appears in the Data attribution popover, and the
+live source is never stored or re-published. RailRadar is community-provided and the data
+is used under its terms; it attributes live train-run data to Indian Railways.
+
 ### Natural Earth physical regions (`natural_earth/`)
 
 Curated from the **Natural Earth 10m physical vectors** (https://www.naturalearthdata.com/ —

@@ -225,6 +225,13 @@ export const DATA_CREDITS = [
       'part of NASA’s Earth Observing System Data and Information System (EOSDIS)',
   },
   {
+    key: 'railways',
+    html:
+      'Live Indian Railways train positions: ' +
+      '<a href="https://api.railradar.in" target="_blank" rel="noopener">RailRadar</a> ' +
+      '(api.railradar.in) — train service data via the public RailRadar API',
+  },
+  {
     key: 'drivebc-cctv',
     html:
       'CCTV cameras &amp; frames (British Columbia): ' +

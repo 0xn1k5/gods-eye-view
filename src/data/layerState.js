@@ -367,6 +367,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'radio',
   }),
   Object.freeze({
+    id: 'railways',
+    token: 'y',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'rocket-launches',
     token: 'x',
     disposition: 'enabled-only',
