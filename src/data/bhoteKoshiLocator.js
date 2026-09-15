@@ -12,14 +12,18 @@ import { BHOTE_KOSHI_FLOOD_PATH } from './bhoteKoshiFloodPath.js';
 import { INCIDENT_OVERVIEW_PLACES } from './bhoteKoshiIncidentPlaces.js';
 
 export const BHOTE_KOSHI_LOCATOR_LAYER_ID = 'bhote-koshi-locator';
-export const BHOTE_KOSHI_LOCATOR_OVERLAY_SOURCE_ID = 'bhote-koshi-locator-callout';
+export const BHOTE_KOSHI_LOCATOR_OVERLAY_SOURCE_ID =
+  'bhote-koshi-locator-callout';
 export const NEPAL_CONTEXT_PRESENTATION = 'nepal-context';
 export const BHOTE_KOSHI_REGIONAL_PRESENTATION = 'bhote-koshi-regional';
 export const BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION = 'bhote-koshi-city-context';
-export const BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION = 'bhote-koshi-incident-places';
+export const BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION =
+  'bhote-koshi-incident-places';
 export const BHOTE_KOSHI_FLOOD_PATH_PRESENTATION = 'bhote-koshi-flood-path';
-export const BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION = 'bhote-koshi-path-overview';
-export const BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION = 'bhote-koshi-trigger-record';
+export const BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION =
+  'bhote-koshi-path-overview';
+export const BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION =
+  'bhote-koshi-trigger-record';
 
 const LEGACY_PATH_BORDER_PRESENTATION = 'bhote-koshi-path-border';
 
@@ -42,7 +46,8 @@ const FLOOD_PATH_DRAW_DURATION_MS = 4000;
 const TRIGGER_APPROACH_ARM_MS = 500;
 const TRIGGER_APPROACH_DURATION_SEC = 4.6;
 const TRIGGER_ORBIT_DURATION_SEC = 2.8;
-const TRIGGER_SOURCE_URL = 'https://earthquake.usgs.gov/earthquakes/eventpage/us7000tbwb/executive';
+const TRIGGER_SOURCE_URL =
+  'https://earthquake.usgs.gov/earthquakes/eventpage/us7000tbwb/executive';
 
 const INCIDENT = Object.freeze({
   lat: 28.3632333,
@@ -86,9 +91,30 @@ const NEPAL = Object.freeze({
   title: 'NEPAL',
 });
 const NEARBY_CITIES = Object.freeze([
-  Object.freeze({ id: 'kathmandu', title: 'KATHMANDU', lat: 27.7017, lon: 85.3206, heightM: 3600, placement: 'left' }),
-  Object.freeze({ id: 'bhaktapur', title: 'BHAKTAPUR', lat: 27.673, lon: 85.43, heightM: 3400, placement: 'right' }),
-  Object.freeze({ id: 'dhulikhel', title: 'DHULIKHEL', lat: 27.6221, lon: 85.5428, heightM: 3600, placement: 'right-lower' }),
+  Object.freeze({
+    id: 'kathmandu',
+    title: 'KATHMANDU',
+    lat: 27.7017,
+    lon: 85.3206,
+    heightM: 3600,
+    placement: 'left',
+  }),
+  Object.freeze({
+    id: 'bhaktapur',
+    title: 'BHAKTAPUR',
+    lat: 27.673,
+    lon: 85.43,
+    heightM: 3400,
+    placement: 'right',
+  }),
+  Object.freeze({
+    id: 'dhulikhel',
+    title: 'DHULIKHEL',
+    lat: 27.6221,
+    lon: 85.5428,
+    heightM: 3600,
+    placement: 'right-lower',
+  }),
 ]);
 const BORDER_COLOR = Cesium.Color.fromCssColorString('#20e7f2');
 const BORDER_ACCENT = '#20e7f2';
@@ -104,7 +130,10 @@ const DEFAULT_OVERLAY_HOST = Object.freeze({
 const DEFAULT_BOUNDARY_RESOLVER = async () => null;
 
 function abortError() {
-  return new DOMException('Bhote Koshi locator activation cancelled', 'AbortError');
+  return new DOMException(
+    'Bhote Koshi locator activation cancelled',
+    'AbortError',
+  );
 }
 
 function normalizePresentation(value) {
@@ -118,8 +147,10 @@ function normalizePresentation(value) {
   if (value === BHOTE_KOSHI_FLOOD_PATH_PRESENTATION) {
     return BHOTE_KOSHI_FLOOD_PATH_PRESENTATION;
   }
-  if (value === BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION
-      || value === LEGACY_PATH_BORDER_PRESENTATION) {
+  if (
+    value === BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION ||
+    value === LEGACY_PATH_BORDER_PRESENTATION
+  ) {
     return BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION;
   }
   if (value === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION) {
@@ -129,8 +160,10 @@ function normalizePresentation(value) {
 }
 
 function presentationUsesBoundary(value) {
-  return value === BHOTE_KOSHI_REGIONAL_PRESENTATION
-    || value === BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION;
+  return (
+    value === BHOTE_KOSHI_REGIONAL_PRESENTATION ||
+    value === BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION
+  );
 }
 
 function presentationAnimatesBoundary(value) {
@@ -145,7 +178,10 @@ function smoothstep(from, to, value) {
 
 /** Resolve the persistent text callout's dot, leader, and card entrance. */
 export function anchoredCalloutPresentation(elapsedMs) {
-  const progress = Math.max(0, Math.min(1, Number(elapsedMs) / CALLOUT_REVEAL_DURATION_MS || 0));
+  const progress = Math.max(
+    0,
+    Math.min(1, Number(elapsedMs) / CALLOUT_REVEAL_DURATION_MS || 0),
+  );
   const contentAlpha = smoothstep(0.34, 1, progress);
   return {
     alpha: smoothstep(0, 0.18, progress),
@@ -165,12 +201,14 @@ export function revealPolylinePositions(positions, progress) {
   const revealed = positions.slice(0, completed + 1);
   const next = Math.min(completed + 1, positions.length - 1);
   if (next > completed) {
-    revealed.push(Cesium.Cartesian3.lerp(
-      positions[completed],
-      positions[next],
-      scaled - completed,
-      new Cesium.Cartesian3(),
-    ));
+    revealed.push(
+      Cesium.Cartesian3.lerp(
+        positions[completed],
+        positions[next],
+        scaled - completed,
+        new Cesium.Cartesian3(),
+      ),
+    );
   }
   return revealed.length >= 2 ? revealed : [positions[0], positions[0]];
 }
@@ -184,17 +222,19 @@ export function closeRegionRing(ring) {
   if (normalized.length < 3) return [];
   const [firstLon, firstLat] = normalized[0];
   const [lastLon, lastLat] = normalized[normalized.length - 1];
-  if (firstLon !== lastLon || firstLat !== lastLat) normalized.push([firstLon, firstLat]);
+  if (firstLon !== lastLon || firstLat !== lastLat)
+    normalized.push([firstLon, firstLat]);
   return normalized;
 }
 
 /** Return the largest exterior ring from a Polygon or MultiPolygon GeoJSON. */
 export function largestGeoJsonRing(geojson) {
-  const polygons = geojson?.type === 'Polygon'
-    ? [geojson.coordinates]
-    : geojson?.type === 'MultiPolygon'
-      ? geojson.coordinates
-      : [];
+  const polygons =
+    geojson?.type === 'Polygon'
+      ? [geojson.coordinates]
+      : geojson?.type === 'MultiPolygon'
+        ? geojson.coordinates
+        : [];
   const rings = polygons
     .map((polygon) => polygon?.[0])
     .filter((ring) => Array.isArray(ring) && ring.length >= 3);
@@ -242,11 +282,15 @@ export function createBhoteKoshiLocatorLayer({
   }
 
   function publishOverlayEntries({ moving = false } = {}) {
-    overlayHost.setEntries(BHOTE_KOSHI_LOCATOR_OVERLAY_SOURCE_ID, _overlayEntries, {
-      cohortLimit: Math.max(1, _overlayEntries.length),
-      collisionCapacity: Math.max(1, _overlayEntries.length),
-      moving,
-    });
+    overlayHost.setEntries(
+      BHOTE_KOSHI_LOCATOR_OVERLAY_SOURCE_ID,
+      _overlayEntries,
+      {
+        cohortLimit: Math.max(1, _overlayEntries.length),
+        collisionCapacity: Math.max(1, _overlayEntries.length),
+        moving,
+      },
+    );
   }
 
   function clearTriggerApproach({ preserveCallout = false } = {}) {
@@ -277,17 +321,27 @@ export function createBhoteKoshiLocatorLayer({
   function removeDataSource() {
     stopAnimations();
     overlayHost.clearSource(BHOTE_KOSHI_LOCATOR_OVERLAY_SOURCE_ID);
-    if (_dataSource && _viewer?.dataSources) _viewer.dataSources.remove(_dataSource, true);
+    if (_dataSource && _viewer?.dataSources)
+      _viewer.dataSources.remove(_dataSource, true);
     _dataSource = null;
   }
 
-  function addCallout(dataSource, subject, color, {
-    labelPlacement = 'right',
-    sequenceStartedAt = now(),
-    visibleAfterMs = 0,
-    showAnchor = true,
-  } = {}) {
-    const position = Cesium.Cartesian3.fromDegrees(subject.lon, subject.lat, subject.heightM);
+  function addCallout(
+    dataSource,
+    subject,
+    color,
+    {
+      labelPlacement = 'right',
+      sequenceStartedAt = now(),
+      visibleAfterMs = 0,
+      showAnchor = true,
+    } = {},
+  ) {
+    const position = Cesium.Cartesian3.fromDegrees(
+      subject.lon,
+      subject.lat,
+      subject.heightM,
+    );
     const visibleAt = sequenceStartedAt + visibleAfterMs;
     const isVisible = () => now() >= visibleAt;
     const pulseProgress = () => {
@@ -295,7 +349,9 @@ export function createBhoteKoshiLocatorLayer({
       return (elapsed % CALLOUT_PULSE_DURATION_MS) / CALLOUT_PULSE_DURATION_MS;
     };
     const ringSize = new Cesium.CallbackProperty(() => {
-      return CALLOUT_RING_MIN_SIZE_PX + CALLOUT_RING_SIZE_RANGE_PX * pulseProgress();
+      return (
+        CALLOUT_RING_MIN_SIZE_PX + CALLOUT_RING_SIZE_RANGE_PX * pulseProgress()
+      );
     }, false);
     const ringColor = new Cesium.CallbackProperty((_time, result) => {
       const dynamicColor = Cesium.Color.clone(color, result);
@@ -304,7 +360,9 @@ export function createBhoteKoshiLocatorLayer({
     }, false);
     const ringOutlineColor = new Cesium.CallbackProperty((_time, result) => {
       const dynamicColor = Cesium.Color.clone(color, result);
-      dynamicColor.alpha = isVisible() ? 0.08 + 0.72 * (1 - pulseProgress()) : 0;
+      dynamicColor.alpha = isVisible()
+        ? 0.08 + 0.72 * (1 - pulseProgress())
+        : 0;
       return dynamicColor;
     }, false);
     if (showAnchor) {
@@ -318,7 +376,12 @@ export function createBhoteKoshiLocatorLayer({
           outlineColor: ringOutlineColor,
           outlineWidth: 2,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          scaleByDistance: new Cesium.NearFarScalar(250000, 0.8, 25000000, 1.35),
+          scaleByDistance: new Cesium.NearFarScalar(
+            250000,
+            0.8,
+            25000000,
+            1.35,
+          ),
         },
       });
     }
@@ -346,7 +409,12 @@ export function createBhoteKoshiLocatorLayer({
         minDistance: 0,
         maxDistance: 5_000_000,
         distanceFadeStartRatio: 0.9,
-        distanceScale: { near: 1200, nearValue: 1, far: 4_000_000, farValue: 0.78 },
+        distanceScale: {
+          near: 1200,
+          nearValue: 1,
+          far: 4_000_000,
+          farValue: 0.78,
+        },
         edgeFade: 'none',
         horizonCull: true,
         terrainOcclusion: false,
@@ -378,7 +446,12 @@ export function createBhoteKoshiLocatorLayer({
         minDistance: 0,
         maxDistance: 25_000_000,
         distanceFadeStartRatio: 0.9,
-        distanceScale: { near: 250000, nearValue: 1.05, far: 25000000, farValue: 0.72 },
+        distanceScale: {
+          near: 250000,
+          nearValue: 1.05,
+          far: 25000000,
+          farValue: 0.72,
+        },
         edgeFade: 'none',
         horizonCull: true,
         terrainOcclusion: false,
@@ -403,8 +476,15 @@ export function createBhoteKoshiLocatorLayer({
     _calloutPulseFrame = scheduleFrame(pulseFrame);
   }
 
-  function addIncidentCallout(dataSource, sequenceStartedAt, visibleAfterMs = 0) {
-    addCallout(dataSource, INCIDENT, INCIDENT_COLOR, { sequenceStartedAt, visibleAfterMs });
+  function addIncidentCallout(
+    dataSource,
+    sequenceStartedAt,
+    visibleAfterMs = 0,
+  ) {
+    addCallout(dataSource, INCIDENT, INCIDENT_COLOR, {
+      sequenceStartedAt,
+      visibleAfterMs,
+    });
   }
 
   function addTriggerRecordCallout(dataSource) {
@@ -414,22 +494,26 @@ export function createBhoteKoshiLocatorLayer({
       TRIGGER_RECORD.heightM,
     );
     const isVisible = () => now() >= _triggerCalloutStartedAt;
-    const presentation = () => anchoredCalloutPresentation(
-      now() - _triggerCalloutStartedAt,
-    );
+    const presentation = () =>
+      anchoredCalloutPresentation(now() - _triggerCalloutStartedAt);
     const pulseProgress = () => {
       if (!isVisible()) return 0;
-      return ((now() - _triggerCalloutStartedAt) % CALLOUT_PULSE_DURATION_MS)
-        / CALLOUT_PULSE_DURATION_MS;
+      return (
+        ((now() - _triggerCalloutStartedAt) % CALLOUT_PULSE_DURATION_MS) /
+        CALLOUT_PULSE_DURATION_MS
+      );
     };
     dataSource.entities.add({
       id: 'bhote-koshi-trigger-record-halo',
       position,
       show: new Cesium.CallbackProperty(isVisible, false),
       point: {
-        pixelSize: new Cesium.CallbackProperty(() => (
-          CALLOUT_RING_MIN_SIZE_PX + CALLOUT_RING_SIZE_RANGE_PX * pulseProgress()
-        ), false),
+        pixelSize: new Cesium.CallbackProperty(
+          () =>
+            CALLOUT_RING_MIN_SIZE_PX +
+            CALLOUT_RING_SIZE_RANGE_PX * pulseProgress(),
+          false,
+        ),
         color: new Cesium.CallbackProperty((_time, result) => {
           const color = Cesium.Color.clone(INCIDENT_COLOR, result);
           color.alpha = 0.16 * (1 - pulseProgress());
@@ -463,9 +547,14 @@ export function createBhoteKoshiLocatorLayer({
       protected: true,
       active: true,
       interactive: true,
-      accessibilityLabel: 'Open the USGS initial report for the 26 August 2026 Nepal landslide',
+      accessibilityLabel:
+        'Open the USGS initial report for the 26 August 2026 Nepal landslide',
       activate: () => {
-        const opened = window.open(TRIGGER_SOURCE_URL, '_blank', 'noopener,noreferrer');
+        const opened = window.open(
+          TRIGGER_SOURCE_URL,
+          '_blank',
+          'noopener,noreferrer',
+        );
         if (opened) opened.opener = null;
       },
       collisionGroup: 'ambient-card',
@@ -484,8 +573,13 @@ export function createBhoteKoshiLocatorLayer({
   }
 
   function startTriggerApproach(attempt) {
-    if (!_enabled || _presentation !== BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION
-        || _triggerApproachAttempt !== attempt || attempt.phase !== 'armed') return;
+    if (
+      !_enabled ||
+      _presentation !== BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION ||
+      _triggerApproachAttempt !== attempt ||
+      attempt.phase !== 'armed'
+    )
+      return;
     attempt.phase = 'flying';
     if (_triggerApproachTimer !== null) cancelDelay(_triggerApproachTimer);
     _triggerApproachTimer = null;
@@ -518,9 +612,13 @@ export function createBhoteKoshiLocatorLayer({
       duration: TRIGGER_APPROACH_DURATION_SEC,
       easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
       complete: () => {
-        if (_triggerApproachAttempt !== attempt || attempt.phase !== 'flying') return;
-        if (!_enabled || generation !== _generation
-            || _presentation !== BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION) {
+        if (_triggerApproachAttempt !== attempt || attempt.phase !== 'flying')
+          return;
+        if (
+          !_enabled ||
+          generation !== _generation ||
+          _presentation !== BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION
+        ) {
           finish();
           return;
         }
@@ -555,12 +653,16 @@ export function createBhoteKoshiLocatorLayer({
     _triggerApproachAttempt = attempt;
     const start = () => startTriggerApproach(attempt);
     const camera = _viewer?.camera;
-    if (!camera?.moveStart?.addEventListener || !camera?.moveEnd?.addEventListener) {
+    if (
+      !camera?.moveStart?.addEventListener ||
+      !camera?.moveEnd?.addEventListener
+    ) {
       start();
       return;
     }
     _removeTriggerMoveStart = camera.moveStart.addEventListener(() => {
-      if (_triggerApproachAttempt !== attempt || attempt.phase !== 'armed') return;
+      if (_triggerApproachAttempt !== attempt || attempt.phase !== 'armed')
+        return;
       if (_triggerApproachTimer !== null) cancelDelay(_triggerApproachTimer);
       _triggerApproachTimer = null;
       _removeTriggerMoveStart?.();
@@ -585,13 +687,19 @@ export function createBhoteKoshiLocatorLayer({
 
   function addNearbyCityCallouts(dataSource, sequenceStartedAt) {
     NEARBY_CITIES.forEach((city, index) => {
-      const visibleAt = sequenceStartedAt
-        + CITY_CALLOUT_START_DELAY_MS
-        + index * CITY_CALLOUT_STAGGER_MS;
-      const progress = () => smoothstep(0, 1, (now() - visibleAt) / CITY_CALLOUT_REVEAL_MS);
+      const visibleAt =
+        sequenceStartedAt +
+        CITY_CALLOUT_START_DELAY_MS +
+        index * CITY_CALLOUT_STAGGER_MS;
+      const progress = () =>
+        smoothstep(0, 1, (now() - visibleAt) / CITY_CALLOUT_REVEAL_MS);
       const labelOnLeft = city.placement === 'left';
       const labelLower = city.placement === 'right-lower';
-      const position = Cesium.Cartesian3.fromDegrees(city.lon, city.lat, city.heightM);
+      const position = Cesium.Cartesian3.fromDegrees(
+        city.lon,
+        city.lat,
+        city.heightM,
+      );
       queueOverlayEntry({
         id: `bhote-koshi-city-${city.id}`,
         position,
@@ -612,7 +720,12 @@ export function createBhoteKoshiLocatorLayer({
         minDistance: 0,
         maxDistance: 3_000_000,
         distanceFadeStartRatio: 0.82,
-        distanceScale: { near: 100000, nearValue: 1.08, far: 3000000, farValue: 0.78 },
+        distanceScale: {
+          near: 100000,
+          nearValue: 1.08,
+          far: 3000000,
+          farValue: 0.78,
+        },
         edgeFade: 'keyhole',
         horizonCull: true,
         terrainOcclusion: false,
@@ -622,32 +735,45 @@ export function createBhoteKoshiLocatorLayer({
     });
   }
 
-  function addIncidentPlaceCallouts(dataSource, sequenceStartedAt, {
-    pulseHalos = false, places = INCIDENT_OVERVIEW_PLACES,
-  } = {}) {
+  function addIncidentPlaceCallouts(
+    dataSource,
+    sequenceStartedAt,
+    { pulseHalos = false, places = INCIDENT_OVERVIEW_PLACES } = {},
+  ) {
     places.forEach((place, index) => {
-      const visibleAt = sequenceStartedAt
-        + PLACE_CALLOUT_START_DELAY_MS
-        + index * PLACE_CALLOUT_STAGGER_MS;
-      const progress = () => smoothstep(0, 1, (now() - visibleAt) / PLACE_CALLOUT_REVEAL_MS);
+      const visibleAt =
+        sequenceStartedAt +
+        PLACE_CALLOUT_START_DELAY_MS +
+        index * PLACE_CALLOUT_STAGGER_MS;
+      const progress = () =>
+        smoothstep(0, 1, (now() - visibleAt) / PLACE_CALLOUT_REVEAL_MS);
       const labelOnLeft = place.placement === 'left';
       const labelLower = place.placement === 'right-lower';
-      const position = Cesium.Cartesian3.fromDegrees(place.lon, place.lat, place.heightM);
+      const position = Cesium.Cartesian3.fromDegrees(
+        place.lon,
+        place.lat,
+        place.heightM,
+      );
       if (pulseHalos) {
-        const pulseSequenceDurationMs = PLACE_CALLOUT_STAGGER_MS * places.length;
+        const pulseSequenceDurationMs =
+          PLACE_CALLOUT_STAGGER_MS * places.length;
         const pulseWindowElapsed = () => {
           const sequenceElapsed = Math.max(
             0,
             now() - sequenceStartedAt - PLACE_CALLOUT_START_DELAY_MS,
           );
-          return (sequenceElapsed % pulseSequenceDurationMs)
-            - index * PLACE_CALLOUT_STAGGER_MS;
+          return (
+            (sequenceElapsed % pulseSequenceDurationMs) -
+            index * PLACE_CALLOUT_STAGGER_MS
+          );
         };
         const pulseIsActive = () => {
           const elapsed = pulseWindowElapsed();
-          return now() >= visibleAt
-            && elapsed >= 0
-            && elapsed < PLACE_CALLOUT_STAGGER_MS;
+          return (
+            now() >= visibleAt &&
+            elapsed >= 0 &&
+            elapsed < PLACE_CALLOUT_STAGGER_MS
+          );
         };
         const pulseProgress = () => {
           return Math.max(
@@ -660,9 +786,12 @@ export function createBhoteKoshiLocatorLayer({
           position,
           show: new Cesium.CallbackProperty(pulseIsActive, false),
           point: {
-            pixelSize: new Cesium.CallbackProperty(() => (
-              CALLOUT_RING_MIN_SIZE_PX + CALLOUT_RING_SIZE_RANGE_PX * pulseProgress()
-            ), false),
+            pixelSize: new Cesium.CallbackProperty(
+              () =>
+                CALLOUT_RING_MIN_SIZE_PX +
+                CALLOUT_RING_SIZE_RANGE_PX * pulseProgress(),
+              false,
+            ),
             color: new Cesium.CallbackProperty((_time, result) => {
               const color = Cesium.Color.clone(INCIDENT_COLOR, result);
               color.alpha = 0.16 * (1 - pulseProgress());
@@ -699,7 +828,12 @@ export function createBhoteKoshiLocatorLayer({
         minDistance: 0,
         maxDistance: 500_000,
         distanceFadeStartRatio: 0.82,
-        distanceScale: { near: 5000, nearValue: 1.08, far: 500000, farValue: 0.82 },
+        distanceScale: {
+          near: 5000,
+          nearValue: 1.08,
+          far: 500000,
+          farValue: 0.82,
+        },
         edgeFade: 'keyhole',
         horizonCull: true,
         terrainOcclusion: false,
@@ -710,16 +844,18 @@ export function createBhoteKoshiLocatorLayer({
   }
 
   function addIncidentFloodPath(dataSource, sequenceStartedAt) {
-    const positions = BHOTE_KOSHI_FLOOD_PATH.map(([lon, lat]) => (
-      Cesium.Cartesian3.fromDegrees(lon, lat)
-    ));
+    const positions = BHOTE_KOSHI_FLOOD_PATH.map(([lon, lat]) =>
+      Cesium.Cartesian3.fromDegrees(lon, lat),
+    );
     const drawStartedAt = sequenceStartedAt + FLOOD_PATH_START_DELAY_MS;
-    const animatedPositions = new Cesium.CallbackProperty(() => (
-      revealPolylinePositions(
-        positions,
-        (now() - drawStartedAt) / FLOOD_PATH_DRAW_DURATION_MS,
-      )
-    ), false);
+    const animatedPositions = new Cesium.CallbackProperty(
+      () =>
+        revealPolylinePositions(
+          positions,
+          (now() - drawStartedAt) / FLOOD_PATH_DRAW_DURATION_MS,
+        ),
+      false,
+    );
     dataSource.entities.add({
       id: 'bhote-koshi-flood-path',
       show: new Cesium.CallbackProperty(() => now() >= drawStartedAt, false),
@@ -739,9 +875,14 @@ export function createBhoteKoshiLocatorLayer({
     const positions = Cesium.Cartesian3.fromDegreesArray(closed.flat());
     const hierarchy = new Cesium.PolygonHierarchy(positions.slice(0, -1));
     const drawStartedAt = sequenceStartedAt + BORDER_START_DELAY_MS;
-    const animatedPositions = new Cesium.CallbackProperty(() => (
-      revealPolylinePositions(positions, (now() - drawStartedAt) / BORDER_DRAW_DURATION_MS)
-    ), false);
+    const animatedPositions = new Cesium.CallbackProperty(
+      () =>
+        revealPolylinePositions(
+          positions,
+          (now() - drawStartedAt) / BORDER_DRAW_DURATION_MS,
+        ),
+      false,
+    );
     dataSource.entities.add({
       id: 'nepal-border-fill',
       show: new Cesium.CallbackProperty(() => now() >= drawStartedAt, false),
@@ -773,8 +914,12 @@ export function createBhoteKoshiLocatorLayer({
     });
     const generation = _generation;
     const drawFrame = () => {
-      if (!_enabled || generation !== _generation
-          || !presentationAnimatesBoundary(_presentation)) return;
+      if (
+        !_enabled ||
+        generation !== _generation ||
+        !presentationAnimatesBoundary(_presentation)
+      )
+        return;
       requestRender('bhote-koshi-locator-border-draw');
       if (now() - drawStartedAt < BORDER_DRAW_DURATION_MS) {
         _borderAnimationFrame = scheduleFrame(drawFrame);
@@ -797,37 +942,43 @@ export function createBhoteKoshiLocatorLayer({
     } else if (_presentation === BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION) {
       const sequenceStartedAt = now();
       addIncidentPlaceCallouts(_dataSource, sequenceStartedAt, {
-        pulseHalos: true, places: INCIDENT_OVERVIEW_PLACES,
+        pulseHalos: true,
+        places: INCIDENT_OVERVIEW_PLACES,
       });
       _placeRevealMoving = true;
-      _placeRevealSettledAt = sequenceStartedAt
-        + PLACE_CALLOUT_START_DELAY_MS
-        + (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS
-        + PLACE_CALLOUT_REVEAL_MS;
+      _placeRevealSettledAt =
+        sequenceStartedAt +
+        PLACE_CALLOUT_START_DELAY_MS +
+        (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS +
+        PLACE_CALLOUT_REVEAL_MS;
     } else if (_presentation === BHOTE_KOSHI_FLOOD_PATH_PRESENTATION) {
       const sequenceStartedAt = now();
-      const settledPlacesAt = sequenceStartedAt
-        - PLACE_CALLOUT_START_DELAY_MS
-        - (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS
-        - PLACE_CALLOUT_REVEAL_MS;
+      const settledPlacesAt =
+        sequenceStartedAt -
+        PLACE_CALLOUT_START_DELAY_MS -
+        (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS -
+        PLACE_CALLOUT_REVEAL_MS;
       addIncidentFloodPath(_dataSource, sequenceStartedAt);
       addIncidentPlaceCallouts(_dataSource, settledPlacesAt);
     } else if (_presentation === BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION) {
       const sequenceStartedAt = now();
-      const settledPathAt = sequenceStartedAt
-        - FLOOD_PATH_START_DELAY_MS
-        - FLOOD_PATH_DRAW_DURATION_MS;
-      const settledPlacesAt = sequenceStartedAt
-        - PLACE_CALLOUT_START_DELAY_MS
-        - (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS
-        - PLACE_CALLOUT_REVEAL_MS;
+      const settledPathAt =
+        sequenceStartedAt -
+        FLOOD_PATH_START_DELAY_MS -
+        FLOOD_PATH_DRAW_DURATION_MS;
+      const settledPlacesAt =
+        sequenceStartedAt -
+        PLACE_CALLOUT_START_DELAY_MS -
+        (INCIDENT_OVERVIEW_PLACES.length - 1) * PLACE_CALLOUT_STAGGER_MS -
+        PLACE_CALLOUT_REVEAL_MS;
       addIncidentFloodPath(_dataSource, settledPathAt);
       addIncidentPlaceCallouts(_dataSource, settledPlacesAt);
     } else if (_presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION) {
       const sequenceStartedAt = now();
-      const settledPathAt = sequenceStartedAt
-        - FLOOD_PATH_START_DELAY_MS
-        - FLOOD_PATH_DRAW_DURATION_MS;
+      const settledPathAt =
+        sequenceStartedAt -
+        FLOOD_PATH_START_DELAY_MS -
+        FLOOD_PATH_DRAW_DURATION_MS;
       addIncidentFloodPath(_dataSource, settledPathAt);
       addTriggerRecordCallout(_dataSource);
       armTriggerApproach();
@@ -841,14 +992,22 @@ export function createBhoteKoshiLocatorLayer({
         return;
       }
       if (_presentation === BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION) {
-        const settledAt = sequenceStartedAt - BORDER_START_DELAY_MS - BORDER_DRAW_DURATION_MS;
-        if (_boundaryRing) addNepalBoundary(_dataSource, _boundaryRing, settledAt);
-        addIncidentCallout(_dataSource, sequenceStartedAt - CALLOUT_REVEAL_DURATION_MS);
+        const settledAt =
+          sequenceStartedAt - BORDER_START_DELAY_MS - BORDER_DRAW_DURATION_MS;
+        if (_boundaryRing)
+          addNepalBoundary(_dataSource, _boundaryRing, settledAt);
+        addIncidentCallout(
+          _dataSource,
+          sequenceStartedAt - CALLOUT_REVEAL_DURATION_MS,
+        );
         addNearbyCityCallouts(_dataSource, sequenceStartedAt);
       } else {
-        if (_boundaryRing) addNepalBoundary(_dataSource, _boundaryRing, sequenceStartedAt);
+        if (_boundaryRing)
+          addNepalBoundary(_dataSource, _boundaryRing, sequenceStartedAt);
         const incidentDelayMs = _boundaryRing
-          ? BORDER_START_DELAY_MS + BORDER_DRAW_DURATION_MS + INCIDENT_CALLOUT_GAP_MS
+          ? BORDER_START_DELAY_MS +
+            BORDER_DRAW_DURATION_MS +
+            INCIDENT_CALLOUT_GAP_MS
           : BORDER_START_DELAY_MS;
         addIncidentCallout(_dataSource, sequenceStartedAt, incidentDelayMs);
       }
@@ -880,7 +1039,8 @@ export function createBhoteKoshiLocatorLayer({
 
     try {
       const boundary = await boundaryResolver(signal);
-      if (signal?.aborted || !_enabled || generation !== _generation) throw abortError();
+      if (signal?.aborted || !_enabled || generation !== _generation)
+        throw abortError();
       _boundaryRing = closeRegionRing(boundary?.ring);
       _boundaryReady = _boundaryRing.length >= 4;
       _boundaryResolved = true;
@@ -897,7 +1057,10 @@ export function createBhoteKoshiLocatorLayer({
         if (generation === _generation) removeDataSource();
         throw error;
       }
-      console.warn('[Data:BhoteKoshiLocator] Nepal boundary lookup failed:', error);
+      console.warn(
+        '[Data:BhoteKoshiLocator] Nepal boundary lookup failed:',
+        error,
+      );
       _boundaryResolved = true;
       _boundaryRing = null;
       if (presentationUsesBoundary(_presentation)) renderPresentation();
@@ -940,8 +1103,9 @@ export function createBhoteKoshiLocatorLayer({
     },
     setParams(params = {}) {
       _presentation = normalizePresentation(params.presentation);
-      _approachEnabled = _presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION
-        && params.preview !== true;
+      _approachEnabled =
+        _presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION &&
+        params.preview !== true;
       if (_enabled) renderPresentation();
       return true;
     },
@@ -955,35 +1119,40 @@ export function createBhoteKoshiLocatorLayer({
             id: 'nepal-context',
             label: 'NEPAL',
             active: _presentation === NEPAL_CONTEXT_PRESENTATION,
-            title: 'Show the Nepal context callout without a border or country fill',
+            title:
+              'Show the Nepal context callout without a border or country fill',
             params: { presentation: NEPAL_CONTEXT_PRESENTATION },
           },
           {
             id: 'bhote-koshi-regional',
             label: 'BHOTE',
             active: _presentation === BHOTE_KOSHI_REGIONAL_PRESENTATION,
-            title: 'Introduce Nepal, draw its border, then reveal the Bhote Koshi incident',
+            title:
+              'Introduce Nepal, draw its border, then reveal the Bhote Koshi incident',
             params: { presentation: BHOTE_KOSHI_REGIONAL_PRESENTATION },
           },
           {
             id: 'bhote-koshi-city-context',
             label: 'CITIES',
             active: _presentation === BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION,
-            title: 'Keep the regional incident context and introduce nearby city labels',
+            title:
+              'Keep the regional incident context and introduce nearby city labels',
             params: { presentation: BHOTE_KOSHI_CITY_CONTEXT_PRESENTATION },
           },
           {
             id: 'bhote-koshi-incident-places',
             label: 'PLACES',
             active: _presentation === BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION,
-            title: 'Introduce the reconstruction scene key places from trigger to downstream',
+            title:
+              'Introduce the reconstruction scene key places from trigger to downstream',
             params: { presentation: BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION },
           },
           {
             id: 'bhote-koshi-flood-path',
             label: 'PATH',
             active: _presentation === BHOTE_KOSHI_FLOOD_PATH_PRESENTATION,
-            title: 'Animate the sourced cyan river-centerline route to Trishuli Bazaar',
+            title:
+              'Animate the sourced cyan river-centerline route to Trishuli Bazaar',
             params: { presentation: BHOTE_KOSHI_FLOOD_PATH_PRESENTATION },
           },
           {
@@ -997,7 +1166,8 @@ export function createBhoteKoshiLocatorLayer({
             id: 'bhote-koshi-trigger-record',
             label: 'RECORD',
             active: _presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION,
-            title: 'Reveal the trigger record while making a slow camera approach',
+            title:
+              'Reveal the trigger record while making a slow camera approach',
             params: {
               presentation: BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION,
               preview: true,
@@ -1012,11 +1182,11 @@ export function createBhoteKoshiLocatorLayer({
         count: _enabled ? 1 : 0,
         status: !_enabled
           ? 'idle'
-          : (_presentation === BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION
-            || _presentation === BHOTE_KOSHI_FLOOD_PATH_PRESENTATION
-            || _presentation === BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION
-            || _presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION
-            || _boundaryReady)
+          : _presentation === BHOTE_KOSHI_INCIDENT_PLACES_PRESENTATION ||
+              _presentation === BHOTE_KOSHI_FLOOD_PATH_PRESENTATION ||
+              _presentation === BHOTE_KOSHI_PATH_OVERVIEW_PRESENTATION ||
+              _presentation === BHOTE_KOSHI_TRIGGER_RECORD_PRESENTATION ||
+              _boundaryReady
             ? 'nominal'
             : 'degraded',
         source: 'OpenStreetMap + GeoPera',

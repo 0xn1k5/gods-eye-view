@@ -26,7 +26,8 @@ const X_HOSTS = new Set([
 ]);
 const X_WIDGET_URL = 'https://platform.twitter.com/widgets.js';
 const FACEBOOK_SDK_ID = 'facebook-jssdk';
-const FACEBOOK_SDK_URL = 'https://connect.facebook.net/en_US/sdk.js#xfbml=0&version=v24.0';
+const FACEBOOK_SDK_URL =
+  'https://connect.facebook.net/en_US/sdk.js#xfbml=0&version=v24.0';
 const EMBED_TIMEOUT_MS = 15000;
 const CARD_EXIT_DURATION_MS = 620;
 const MEDIA_PRECONNECT_ORIGINS = Object.freeze({
@@ -44,7 +45,8 @@ let _facebookEmbedSequence = 0;
 const youtubeApis = new WeakMap();
 
 function loadYouTubeApi(documentRef, globalRef) {
-  if (typeof globalRef.YT?.Player === 'function') return Promise.resolve(globalRef.YT);
+  if (typeof globalRef.YT?.Player === 'function')
+    return Promise.resolve(globalRef.YT);
   if (youtubeApis.has(documentRef)) return youtubeApis.get(documentRef);
   const pending = new Promise((resolve, reject) => {
     const previous = globalRef.onYouTubeIframeAPIReady;
@@ -55,30 +57,54 @@ function loadYouTubeApi(documentRef, globalRef) {
       if (settled) return;
       settled = true;
       globalRef.clearTimeout(timer);
-      if (globalRef.onYouTubeIframeAPIReady === ready) globalRef.onYouTubeIframeAPIReady = previous;
-      if (error) { script.remove(); reject(error); }
-      else resolve(globalRef.YT);
+      if (globalRef.onYouTubeIframeAPIReady === ready)
+        globalRef.onYouTubeIframeAPIReady = previous;
+      if (error) {
+        script.remove();
+        reject(error);
+      } else resolve(globalRef.YT);
     };
     const ready = () => {
-      try { previous?.(); } finally {
-        finish(typeof globalRef.YT?.Player === 'function' ? null : new Error('YouTube API unavailable'));
+      try {
+        previous?.();
+      } finally {
+        finish(
+          typeof globalRef.YT?.Player === 'function'
+            ? null
+            : new Error('YouTube API unavailable'),
+        );
       }
     };
     globalRef.onYouTubeIframeAPIReady = ready;
     script.src = 'https://www.youtube.com/iframe_api';
     script.async = true;
-    script.addEventListener('error', () => finish(new Error('YouTube API unavailable')), { once: true });
-    timer = globalRef.setTimeout(() => finish(new Error('YouTube API timed out')), 5000);
+    script.addEventListener(
+      'error',
+      () => finish(new Error('YouTube API unavailable')),
+      { once: true },
+    );
+    timer = globalRef.setTimeout(
+      () => finish(new Error('YouTube API timed out')),
+      5000,
+    );
     documentRef.head.append(script);
-  }).catch((error) => { youtubeApis.delete(documentRef); throw error; });
+  }).catch((error) => {
+    youtubeApis.delete(documentRef);
+    throw error;
+  });
   youtubeApis.set(documentRef, pending);
   return pending;
 }
 
 /** A trimmed clip follows provider time, never time spent loading its iframe. */
 export function createTrimmedYouTubePlayback({
-  iframe, endAtSec, startAtSec = 0, loadApi, globalRef = globalThis,
-  isCurrent = () => true, onStatus = () => {},
+  iframe,
+  endAtSec,
+  startAtSec = 0,
+  loadApi,
+  globalRef = globalThis,
+  isCurrent = () => true,
+  onStatus = () => {},
 }) {
   let player = null;
   let phase = 'starting';
@@ -87,7 +113,8 @@ export function createTrimmedYouTubePlayback({
   let currentTime = startAtSec;
   let poll = null;
   let deadline = null;
-  const live = () => active && isCurrent() && ['starting', 'playing'].includes(phase);
+  const live = () =>
+    active && isCurrent() && ['starting', 'playing'].includes(phase);
   const clear = () => {
     globalRef.clearTimeout(deadline);
     globalRef.clearTimeout(poll);
@@ -97,7 +124,11 @@ export function createTrimmedYouTubePlayback({
     if (!live()) return;
     phase = outcome;
     clear();
-    try { player?.pauseVideo?.(); } catch { /* Removed provider frame. */ }
+    try {
+      player?.pauseVideo?.();
+    } catch {
+      /* Removed provider frame. */
+    }
     onStatus(outcome);
   };
   const sample = (stateHint) => {
@@ -109,55 +140,84 @@ export function createTrimmedYouTubePlayback({
       const time = player?.getCurrentTime?.();
       if (Number.isFinite(time)) currentTime = time;
       const state = stateHint ?? player?.getPlayerState?.();
-      if (currentTime >= endAtSec || (state === 0 && currentTime >= endAtSec - 0.1)) {
-        finish('completed'); return;
+      if (
+        currentTime >= endAtSec ||
+        (state === 0 && currentTime >= endAtSec - 0.1)
+      ) {
+        finish('completed');
+        return;
       }
-      if (state === 0) { finish('unavailable'); return; }
+      if (state === 0) {
+        finish('unavailable');
+        return;
+      }
       // Autoplay can begin before the API attaches, without a new PLAYING edge.
       if (!started && (state === 1 || currentTime > previousTime)) {
         started = true;
         phase = 'playing';
         globalRef.clearTimeout(deadline);
-        deadline = globalRef.setTimeout(() => finish('timeout'), (endAtSec - startAtSec) * 1000 + 5000);
+        deadline = globalRef.setTimeout(
+          () => finish('timeout'),
+          (endAtSec - startAtSec) * 1000 + 5000,
+        );
       }
-    } catch { finish('unavailable'); return; }
+    } catch {
+      finish('unavailable');
+      return;
+    }
     poll = globalRef.setTimeout(() => sample(), 100);
   };
   deadline = globalRef.setTimeout(() => finish('timeout'), 5000);
-  Promise.resolve().then(loadApi).then((api) => {
-    if (!live()) return;
-    player = new api.Player(iframe, { events: {
-      onReady(event) {
-        if (!live()) return;
-        player = event.target;
-        sample();
-        if (!live()) return;
-        try { event.target.mute(); event.target.playVideo(); } catch { finish('unavailable'); }
-      },
-      onStateChange(event) {
-        if (!live()) return;
-        if (event.target) player = event.target;
-        sample(event.data);
-      },
-      onError: () => finish('unavailable'),
-      onAutoplayBlocked: () => finish('blocked'),
-    } });
-  }).catch(() => finish('unavailable'));
+  Promise.resolve()
+    .then(loadApi)
+    .then((api) => {
+      if (!live()) return;
+      player = new api.Player(iframe, {
+        events: {
+          onReady(event) {
+            if (!live()) return;
+            player = event.target;
+            sample();
+            if (!live()) return;
+            try {
+              event.target.mute();
+              event.target.playVideo();
+            } catch {
+              finish('unavailable');
+            }
+          },
+          onStateChange(event) {
+            if (!live()) return;
+            if (event.target) player = event.target;
+            sample(event.data);
+          },
+          onError: () => finish('unavailable'),
+          onAutoplayBlocked: () => finish('blocked'),
+        },
+      });
+    })
+    .catch(() => finish('unavailable'));
   return {
     getState: () => ({ phase, currentTime }),
     destroy() {
       active = false;
       phase = 'cancelled';
       clear();
-      try { player?.destroy?.(); } catch { /* Detached frame already released. */ }
+      try {
+        player?.destroy?.();
+      } catch {
+        /* Detached frame already released. */
+      }
       player = null;
     },
   };
 }
 
 function facebookSdkReady(api) {
-  return typeof api?.XFBML?.parse === 'function'
-    && typeof api?.Event?.subscribe === 'function';
+  return (
+    typeof api?.XFBML?.parse === 'function' &&
+    typeof api?.Event?.subscribe === 'function'
+  );
 }
 
 function loadFacebookSdk(documentRef, globalRef = globalThis) {
@@ -199,10 +259,11 @@ function loadFacebookSdk(documentRef, globalRef = globalThis) {
       () => finish(new Error('Facebook player API could not load.')),
       { once: true },
     );
-    timer = globalRef.setTimeout?.(
-      () => finish(new Error('Facebook player API timed out.')),
-      EMBED_TIMEOUT_MS,
-    ) ?? null;
+    timer =
+      globalRef.setTimeout?.(
+        () => finish(new Error('Facebook player API timed out.')),
+        EMBED_TIMEOUT_MS,
+      ) ?? null;
   }).catch((error) => {
     _facebookSdkPromise = null;
     throw error;
@@ -221,22 +282,24 @@ export function publicEmbeddedMediaUrl(value) {
   }
   const host = url.hostname.toLowerCase();
   if (
-    url.protocol !== 'https:'
-    || url.username
-    || url.password
-    || (url.port && url.port !== '443')
-    || !host.includes('.')
-    || host.includes(':')
-    || /^\d+(\.\d+){3}$/.test(host)
-    || /(^|\.)(localhost|local|internal|test|invalid)$/.test(host)
-  ) return null;
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    (url.port && url.port !== '443') ||
+    !host.includes('.') ||
+    host.includes(':') ||
+    /^\d+(\.\d+){3}$/.test(host) ||
+    /(^|\.)(localhost|local|internal|test|invalid)$/.test(host)
+  )
+    return null;
   return url;
 }
 
 function youtubeVideoId(url) {
   const host = url.hostname.toLowerCase();
   if (!YOUTUBE_HOSTS.has(host)) return null;
-  if (host === 'youtu.be') return /^\/([\w-]{11})\/?$/.exec(url.pathname)?.[1] || null;
+  if (host === 'youtu.be')
+    return /^\/([\w-]{11})\/?$/.exec(url.pathname)?.[1] || null;
   if (url.pathname === '/watch') return url.searchParams.get('v');
   return /^\/(?:embed|shorts)\/([\w-]{11})\/?$/.exec(url.pathname)?.[1] || null;
 }
@@ -244,16 +307,21 @@ function youtubeVideoId(url) {
 function isFacebookVideoUrl(url) {
   const host = url.hostname.toLowerCase();
   if (!FACEBOOK_HOSTS.has(host)) return false;
-  if (host === 'fb.watch' || host === 'www.fb.watch') return /^\/[\w.-]+\/?$/.test(url.pathname);
-  return /^\/reel\/[\w.-]+\/?$/.test(url.pathname)
-    || (url.pathname === '/watch/' && Boolean(url.searchParams.get('v')))
-    || /\/videos\/[\w.-]+\/?$/.test(url.pathname)
-    || /^\/share\/(?:v|r)\/[\w.-]+\/?$/.test(url.pathname);
+  if (host === 'fb.watch' || host === 'www.fb.watch')
+    return /^\/[\w.-]+\/?$/.test(url.pathname);
+  return (
+    /^\/reel\/[\w.-]+\/?$/.test(url.pathname) ||
+    (url.pathname === '/watch/' && Boolean(url.searchParams.get('v'))) ||
+    /\/videos\/[\w.-]+\/?$/.test(url.pathname) ||
+    /^\/share\/(?:v|r)\/[\w.-]+\/?$/.test(url.pathname)
+  );
 }
 
 function xPostId(url) {
   if (!X_HOSTS.has(url.hostname.toLowerCase())) return null;
-  return /^\/[A-Za-z0-9_]{1,15}\/status\/(\d+)\/?$/.exec(url.pathname)?.[1] || null;
+  return (
+    /^\/[A-Za-z0-9_]{1,15}\/status\/(\d+)\/?$/.exec(url.pathname)?.[1] || null
+  );
 }
 
 /** Resolve only providers that can render inside a Bhote Koshi callout. */
@@ -279,11 +347,10 @@ export function resolveEmbeddedMediaSource(value) {
 }
 
 /** Provider-owned iframe URL for YouTube or Facebook callouts. */
-export function embeddedMediaFrameUrl(source, {
-  autoplay = false,
-  startAtSec = 0,
-  endAtSec = null,
-} = {}) {
+export function embeddedMediaFrameUrl(
+  source,
+  { autoplay = false, startAtSec = 0, endAtSec = null } = {},
+) {
   if (source?.provider === 'youtube') {
     const url = new URL(`https://www.youtube-nocookie.com/embed/${source.id}`);
     url.searchParams.set('playsinline', '1');
@@ -342,24 +409,40 @@ function loadXWidgets(documentRef, globalRef = globalThis) {
       script.dataset.gevXWidgets = 'true';
       documentRef.head?.append(script);
     }
-    script.addEventListener?.('error', () => finish(new Error('X embed could not load.')), {
-      once: true,
-    });
+    script.addEventListener?.(
+      'error',
+      () => finish(new Error('X embed could not load.')),
+      {
+        once: true,
+      },
+    );
     const waitForApi = () => {
       if (xWidgetsReady(globalRef.twttr)) {
         finish();
         return;
       }
-      if (typeof globalRef.twttr?.ready === 'function') globalRef.twttr.ready(ready);
+      if (typeof globalRef.twttr?.ready === 'function')
+        globalRef.twttr.ready(ready);
       else ready();
     };
     script.addEventListener?.('load', waitForApi, { once: true });
-    if (typeof globalRef.twttr?.ready === 'function') globalRef.twttr.ready(ready);
+    if (typeof globalRef.twttr?.ready === 'function')
+      globalRef.twttr.ready(ready);
     if (script.dataset?.gevXLoaded === 'true') waitForApi();
-    else script.addEventListener?.('load', () => { script.dataset.gevXLoaded = 'true'; }, {
-      once: true,
-    });
-    timer = setTimeout(() => finish(new Error('X embed timed out.')), EMBED_TIMEOUT_MS);
+    else
+      script.addEventListener?.(
+        'load',
+        () => {
+          script.dataset.gevXLoaded = 'true';
+        },
+        {
+          once: true,
+        },
+      );
+    timer = setTimeout(
+      () => finish(new Error('X embed timed out.')),
+      EMBED_TIMEOUT_MS,
+    );
   }).catch((error) => {
     _xWidgetsPromise = null;
     throw error;
@@ -368,19 +451,26 @@ function loadXWidgets(documentRef, globalRef = globalThis) {
 }
 
 function providerLabel(provider) {
-  return ({ youtube: 'YOUTUBE', facebook: 'FACEBOOK', x: 'X' })[provider] || 'SOURCE';
+  return (
+    { youtube: 'YOUTUBE', facebook: 'FACEBOOK', x: 'X' }[provider] || 'SOURCE'
+  );
 }
 
 function isPortraitMedia(media = {}) {
   const width = Number(media.width);
   const height = Number(media.height);
-  return String(media.orientation || '').toLowerCase() === 'portrait'
-    || (Number.isFinite(width) && Number.isFinite(height) && height > width);
+  return (
+    String(media.orientation || '').toLowerCase() === 'portrait' ||
+    (Number.isFinite(width) && Number.isFinite(height) && height > width)
+  );
 }
 
 function ensureProviderConnections(documentRef, provider) {
   for (const origin of MEDIA_PRECONNECT_ORIGINS[provider] || []) {
-    if (documentRef.querySelector?.(`link[data-gev-media-preconnect="${origin}"]`)) continue;
+    if (
+      documentRef.querySelector?.(`link[data-gev-media-preconnect="${origin}"]`)
+    )
+      continue;
     const link = documentRef.createElement('link');
     link.rel = 'preconnect';
     link.href = origin;
@@ -394,17 +484,30 @@ function anchorOnScreen(viewer, anchor, root) {
   if (!viewer?.scene || !anchor || !root) return null;
   const camera = viewer.camera;
   if (camera?.positionWC && camera?.directionWC) {
-    const delta = Cesium.Cartesian3.subtract(anchor, camera.positionWC, new Cesium.Cartesian3());
+    const delta = Cesium.Cartesian3.subtract(
+      anchor,
+      camera.positionWC,
+      new Cesium.Cartesian3(),
+    );
     if (Cesium.Cartesian3.dot(delta, camera.directionWC) <= 0) return null;
   }
-  const pixel = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, anchor);
+  const pixel = Cesium.SceneTransforms.worldToWindowCoordinates(
+    viewer.scene,
+    anchor,
+  );
   if (!pixel) return null;
   const canvasBounds = viewer.canvas?.getBoundingClientRect?.();
   const rootBounds = root.getBoundingClientRect?.();
   if (!canvasBounds || !rootBounds) return null;
   const x = pixel.x + canvasBounds.left - rootBounds.left;
   const y = pixel.y + canvasBounds.top - rootBounds.top;
-  if (x < -40 || y < -40 || x > rootBounds.width + 40 || y > rootBounds.height + 40) return null;
+  if (
+    x < -40 ||
+    y < -40 ||
+    x > rootBounds.width + 40 ||
+    y > rootBounds.height + 40
+  )
+    return null;
   return { x, y, width: rootBounds.width, height: rootBounds.height };
 }
 
@@ -419,15 +522,27 @@ function placeCard(card, leader, anchor) {
   let laneRight = anchor.width - margin;
   let laneBottom = anchor.height - margin;
   if (rootBounds && documentRef?.querySelector) {
-    const leftPanel = documentRef.querySelector('#scene-panel')?.getBoundingClientRect?.();
-    const rightRail = documentRef.querySelector('#right-context-rail')?.getBoundingClientRect?.();
-    const commandDock = documentRef.querySelector('#command-dock')?.getBoundingClientRect?.();
-    if (leftPanel?.width > 0) laneLeft = Math.max(laneLeft, leftPanel.right - rootBounds.left + margin);
-    if (rightRail?.width > 0) laneRight = Math.min(laneRight, rightRail.left - rootBounds.left - margin);
-    if (commandDock?.height > 0) laneBottom = Math.min(
-      laneBottom,
-      commandDock.top - rootBounds.top - margin,
-    );
+    const leftPanel = documentRef
+      .querySelector('#scene-panel')
+      ?.getBoundingClientRect?.();
+    const rightRail = documentRef
+      .querySelector('#right-context-rail')
+      ?.getBoundingClientRect?.();
+    const commandDock = documentRef
+      .querySelector('#command-dock')
+      ?.getBoundingClientRect?.();
+    if (leftPanel?.width > 0)
+      laneLeft = Math.max(laneLeft, leftPanel.right - rootBounds.left + margin);
+    if (rightRail?.width > 0)
+      laneRight = Math.min(
+        laneRight,
+        rightRail.left - rootBounds.left - margin,
+      );
+    if (commandDock?.height > 0)
+      laneBottom = Math.min(
+        laneBottom,
+        commandDock.top - rootBounds.top - margin,
+      );
     if (laneRight - laneLeft < width) {
       laneLeft = margin;
       laneRight = anchor.width - margin;
@@ -437,11 +552,13 @@ function placeCard(card, leader, anchor) {
   if (left + width > laneRight) left = anchor.x - width - gap;
   left = Math.max(laneLeft, Math.min(laneRight - width, left));
   const belowAnchor = anchor.y + gap;
-  const prefersBelow = card.classList.contains('is-youtube')
-    || card.classList.contains('is-portrait');
-  const desiredTop = prefersBelow && belowAnchor + height <= laneBottom
-    ? belowAnchor
-    : anchor.y - height * 0.42;
+  const prefersBelow =
+    card.classList.contains('is-youtube') ||
+    card.classList.contains('is-portrait');
+  const desiredTop =
+    prefersBelow && belowAnchor + height <= laneBottom
+      ? belowAnchor
+      : anchor.y - height * 0.42;
   const top = Math.max(margin, Math.min(laneBottom - height, desiredTop));
   card.style.left = `${left}px`;
   card.style.top = `${top}px`;
@@ -449,7 +566,9 @@ function placeCard(card, leader, anchor) {
   const localY = anchor.y - top;
   const edgeX = localX < 0 ? 0 : width;
   const edgeY = Math.max(16, Math.min(height - 16, localY));
-  leader.querySelector('path')?.setAttribute('d', `M ${localX} ${localY} L ${edgeX} ${edgeY}`);
+  leader
+    .querySelector('path')
+    ?.setAttribute('d', `M ${localX} ${localY} L ${edgeX} ${edgeY}`);
   const dot = leader.querySelector('circle');
   dot?.setAttribute('cx', String(localX));
   dot?.setAttribute('cy', String(localY));
@@ -492,9 +611,9 @@ export function createBhoteKoshiEmbeddedMedia({
   let generation = 0;
   const leavingRecords = new Set();
 
-  const prefersReducedMotion = () => (
-    globalRef.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
-  );
+  const prefersReducedMotion = () =>
+    globalRef.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ===
+    true;
   const scheduleFrame = (callback) => {
     if (typeof globalRef.requestAnimationFrame === 'function') {
       return { kind: 'frame', id: globalRef.requestAnimationFrame(callback) };
@@ -507,7 +626,8 @@ export function createBhoteKoshiEmbeddedMedia({
   };
   const cancelScheduledFrame = (scheduled) => {
     if (!scheduled) return;
-    if (scheduled.kind === 'frame') globalRef.cancelAnimationFrame?.(scheduled.id);
+    if (scheduled.kind === 'frame')
+      globalRef.cancelAnimationFrame?.(scheduled.id);
     else globalRef.clearTimeout?.(scheduled.id);
   };
 
@@ -585,34 +705,41 @@ export function createBhoteKoshiEmbeddedMedia({
     embed.dataset.autoplay = 'false';
     session.embed = embed;
     host.append(embed);
-    void facebookLoader(documentRef, globalRef).then((api) => {
-      if (!session.active) return;
-      session.api = api;
-      session.readyListener = (message) => {
-        if (!session.active || message?.type !== 'video'
-            || (message.id && message.id !== embed.id)) return;
-        globalRef.clearTimeout?.(session.timer);
-        session.timer = null;
-        session.player = message.instance;
-        session.ready = true;
-        session.error = null;
-        session.onReady?.();
-        setFacebookSessionPlayback(session, session.shouldPlay);
-      };
-      api.Event.subscribe('xfbml.ready', session.readyListener);
-      api.XFBML.parse(session.host);
-      session.timer = globalRef.setTimeout?.(() => {
-        if (!session.active || session.ready) return;
-        session.error = new Error(
-          'Facebook embed unavailable. The post may be private, removed, region-restricted, or blocked.',
-        );
-        session.onError?.(session.error);
-      }, EMBED_TIMEOUT_MS) ?? null;
-    }).catch((error) => {
-      if (!session.active) return;
-      session.error = error;
-      session.onError?.(error);
-    });
+    void facebookLoader(documentRef, globalRef)
+      .then((api) => {
+        if (!session.active) return;
+        session.api = api;
+        session.readyListener = (message) => {
+          if (
+            !session.active ||
+            message?.type !== 'video' ||
+            (message.id && message.id !== embed.id)
+          )
+            return;
+          globalRef.clearTimeout?.(session.timer);
+          session.timer = null;
+          session.player = message.instance;
+          session.ready = true;
+          session.error = null;
+          session.onReady?.();
+          setFacebookSessionPlayback(session, session.shouldPlay);
+        };
+        api.Event.subscribe('xfbml.ready', session.readyListener);
+        api.XFBML.parse(session.host);
+        session.timer =
+          globalRef.setTimeout?.(() => {
+            if (!session.active || session.ready) return;
+            session.error = new Error(
+              'Facebook embed unavailable. The post may be private, removed, region-restricted, or blocked.',
+            );
+            session.onError?.(session.error);
+          }, EMBED_TIMEOUT_MS) ?? null;
+      })
+      .catch((error) => {
+        if (!session.active) return;
+        session.error = error;
+        session.onError?.(error);
+      });
     return session;
   }
 
@@ -644,9 +771,11 @@ export function createBhoteKoshiEmbeddedMedia({
       }
     }
   };
-  const removePostRender = viewer.scene?.postRender?.addEventListener?.(position);
+  const removePostRender =
+    viewer.scene?.postRender?.addEventListener?.(position);
 
-  function hide({ immediate = false } = {}) {
+  function hide({ immediate = false, preserveWarm = false } = {}) {
+    if (!preserveWarm) clearWarm();
     generation += 1;
     const current = record;
     record = null;
@@ -662,15 +791,17 @@ export function createBhoteKoshiEmbeddedMedia({
     current.card.classList.remove('is-entering');
     current.card.classList.add('is-leaving');
     leavingRecords.add(current);
-    current.exitTimer = globalRef.setTimeout?.(
-      () => removeRecord(current),
-      CARD_EXIT_DURATION_MS,
-    ) ?? null;
+    current.exitTimer =
+      globalRef.setTimeout?.(
+        () => removeRecord(current),
+        CARD_EXIT_DURATION_MS,
+      ) ?? null;
   }
 
   function clearWarm(key = null) {
     if (!warmRecord || (key && warmRecord.key !== key)) return;
-    if (warmRecord.facebookSession) destroyFacebookSession(warmRecord.facebookSession);
+    if (warmRecord.facebookSession)
+      destroyFacebookSession(warmRecord.facebookSession);
     else warmRecord.iframe?.remove?.();
     warmRecord = null;
   }
@@ -694,9 +825,10 @@ export function createBhoteKoshiEmbeddedMedia({
       clearWarm();
       return false;
     }
-    const startAtSec = source.provider === 'youtube'
-      ? Math.max(0, Number(media.embedStartAtSec ?? media.clipInSec) || 0)
-      : 0;
+    const startAtSec =
+      source.provider === 'youtube'
+        ? Math.max(0, Number(media.embedStartAtSec ?? media.clipInSec) || 0)
+        : 0;
     ensureProviderConnections(documentRef, source.provider);
     const endAtSec = media.embedEndAtSec;
     const key = `${source.provider}:${source.id || source.url}:${startAtSec}:${endAtSec ?? ''}`;
@@ -713,7 +845,11 @@ export function createBhoteKoshiEmbeddedMedia({
     }
     const iframe = documentRef.createElement('iframe');
     iframe.className = 'bhote-embedded-media-warmup';
-    iframe.src = embeddedMediaFrameUrl(source, { autoplay: false, startAtSec, endAtSec });
+    iframe.src = embeddedMediaFrameUrl(source, {
+      autoplay: false,
+      startAtSec,
+      endAtSec,
+    });
     iframe.title = `Preloading ${providerLabel(source.provider)} media`;
     iframe.tabIndex = -1;
     iframe.setAttribute('aria-hidden', 'true');
@@ -729,15 +865,20 @@ export function createBhoteKoshiEmbeddedMedia({
     try {
       const api = await xLoader(documentRef, globalRef);
       if (token !== generation || record !== current) return;
-      const widget = await api.widgets.createTweet(current.source.id, current.player, {
-        align: 'center',
-        conversation: 'none',
-        dnt: true,
-        theme: 'dark',
-        width: 390,
-      });
+      const widget = await api.widgets.createTweet(
+        current.source.id,
+        current.player,
+        {
+          align: 'center',
+          conversation: 'none',
+          dnt: true,
+          theme: 'dark',
+          width: 390,
+        },
+      );
       if (token !== generation || record !== current) return;
-      if (!widget) throw new Error('The X post is unavailable or cannot be embedded.');
+      if (!widget)
+        throw new Error('The X post is unavailable or cannot be embedded.');
       current.status.textContent = 'X POST · PROVIDER CONTROLS';
       position();
     } catch (error) {
@@ -749,8 +890,9 @@ export function createBhoteKoshiEmbeddedMedia({
   }
 
   function bindFacebook(current, token, warmKey, autoplay) {
-    const session = takeWarmFacebook(warmKey, current.player)
-      || createFacebookSession(current.source, current.player);
+    const session =
+      takeWarmFacebook(warmKey, current.player) ||
+      createFacebookSession(current.source, current.player);
     current.facebookSession = session;
     session.shouldPlay = autoplay === true;
     session.onReady = () => {
@@ -775,6 +917,7 @@ export function createBhoteKoshiEmbeddedMedia({
   }
 
   function setPlayback(playing) {
+    if (!playing) clearWarm();
     // Removing an uncontrolled provider frame also cancels delayed autoplay.
     // Provider commands alone cannot stop a frame that has not loaded yet.
     if (!playing && record && !record.facebookSession) {
@@ -792,37 +935,49 @@ export function createBhoteKoshiEmbeddedMedia({
       hide();
       return false;
     }
-    const startAtSec = source.provider === 'youtube'
-      ? Math.max(0, Number(media.embedStartAtSec ?? media.clipInSec) || 0)
-      : 0;
+    const startAtSec =
+      source.provider === 'youtube'
+        ? Math.max(0, Number(media.embedStartAtSec ?? media.clipInSec) || 0)
+        : 0;
     ensureProviderConnections(documentRef, source.provider);
     const endAtSec = media.embedEndAtSec;
     const warmKey = `${source.provider}:${source.id || source.url}:${startAtSec}:${endAtSec ?? ''}`;
-    const key = source.provider === 'facebook'
-      ? warmKey
-      : `${warmKey}:${autoplay ? 1 : 0}`;
+    const key =
+      source.provider === 'facebook'
+        ? warmKey
+        : `${warmKey}:${autoplay ? 1 : 0}`;
     if (record?.key === key) {
       record.anchor = anchor;
       if (source.provider === 'facebook') setPlayback(autoplay);
       position();
       return true;
     }
-    hide();
+    if (warmRecord && warmRecord.key !== warmKey) clearWarm();
+    hide({ preserveWarm: true });
     const token = ++generation;
     const card = documentRef.createElement('section');
     const portraitClass = isPortraitMedia(media) ? ' is-portrait' : '';
     card.className = `bhote-embedded-callout is-${source.provider}${portraitClass}`;
     card.dataset.provider = source.provider;
-    card.setAttribute('aria-label', `Embedded ${providerLabel(source.provider)} media for ${observation?.title || 'witness source'}`);
-    const leader = documentRef.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    card.setAttribute(
+      'aria-label',
+      `Embedded ${providerLabel(source.provider)} media for ${observation?.title || 'witness source'}`,
+    );
+    const leader = documentRef.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'svg',
+    );
     leader.classList.add('bhote-embedded-callout-leader');
     leader.setAttribute('aria-hidden', 'true');
-    leader.innerHTML = '<path pathLength="1" fill="none" stroke="rgba(147,213,228,.72)" stroke-width="1.5"/><circle r="4" fill="#6be8ff" stroke="#ffffff" stroke-width="1.5"/>';
+    leader.innerHTML =
+      '<path pathLength="1" fill="none" stroke="rgba(147,213,228,.72)" stroke-width="1.5"/><circle r="4" fill="#6be8ff" stroke="#ffffff" stroke-width="1.5"/>';
     const player = documentRef.createElement('div');
     player.className = 'bhote-embedded-callout-player';
     const footer = documentRef.createElement('footer');
     const title = documentRef.createElement('strong');
-    title.textContent = String(observation?.shortTitle || observation?.title || 'Witness source').toUpperCase();
+    title.textContent = String(
+      observation?.shortTitle || observation?.title || 'Witness source',
+    ).toUpperCase();
     const status = documentRef.createElement('small');
     status.setAttribute('role', 'status');
     status.textContent = `${providerLabel(source.provider)} · EMBEDDED SOURCE`;
@@ -854,36 +1009,58 @@ export function createBhoteKoshiEmbeddedMedia({
       bindFacebook(record, token, warmKey, autoplay);
     } else {
       const iframe = documentRef.createElement('iframe');
-      iframe.src = embeddedMediaFrameUrl(source, { autoplay, startAtSec, endAtSec });
-      const controlled = autoplay && Number.isFinite(Number(endAtSec)) && Number(endAtSec) > startAtSec;
+      iframe.src = embeddedMediaFrameUrl(source, {
+        autoplay,
+        startAtSec,
+        endAtSec,
+      });
+      const controlled =
+        autoplay &&
+        Number.isFinite(Number(endAtSec)) &&
+        Number(endAtSec) > startAtSec;
       if (controlled) {
         const url = new URL(iframe.src);
         url.searchParams.set('enablejsapi', '1');
-        if (globalRef.location?.origin) url.searchParams.set('origin', globalRef.location.origin);
+        if (globalRef.location?.origin)
+          url.searchParams.set('origin', globalRef.location.origin);
         iframe.src = url.href;
       }
       iframe.title = `${providerLabel(source.provider)} media: ${observation?.title || 'witness source'}`;
-      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.allow =
+        'autoplay; encrypted-media; picture-in-picture; fullscreen';
       iframe.allowFullscreen = true;
       iframe.loading = 'eager';
       iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-      iframe.addEventListener?.('load', () => {
-        if (token !== generation || record?.key !== key) return;
-        clearWarm(warmKey);
-        if (!record.youtubeSession || ['starting', 'playing'].includes(record.youtubeSession.getState().phase)) {
-          status.textContent = `${providerLabel(source.provider)} · PROVIDER CONTROLS`;
-        }
-        position();
-      }, { once: true });
+      iframe.addEventListener?.(
+        'load',
+        () => {
+          if (token !== generation || record?.key !== key) return;
+          clearWarm(warmKey);
+          if (
+            !record.youtubeSession ||
+            ['starting', 'playing'].includes(
+              record.youtubeSession.getState().phase,
+            )
+          ) {
+            status.textContent = `${providerLabel(source.provider)} · PROVIDER CONTROLS`;
+          }
+          position();
+        },
+        { once: true },
+      );
       player.append(iframe);
       if (controlled) {
         const current = record;
         current.youtubeSession = createTrimmedYouTubePlayback({
-          iframe, endAtSec: Number(endAtSec), startAtSec, globalRef,
+          iframe,
+          endAtSec: Number(endAtSec),
+          startAtSec,
+          globalRef,
           loadApi: () => youtubeLoader(documentRef, globalRef),
           isCurrent: () => token === generation && record === current,
           onStatus: (phase) => {
-            if (phase !== 'completed') status.textContent = `YOUTUBE ${phase.toUpperCase()} · OPEN ORIGINAL`;
+            if (phase !== 'completed')
+              status.textContent = `YOUTUBE ${phase.toUpperCase()} · OPEN ORIGINAL`;
           },
         });
       }

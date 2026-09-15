@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import { isPointerFree } from './inputOwnership.js';
 import {
   clearOverlaySource,
   hitTestWorldOverlay,
@@ -13,7 +14,10 @@ import {
 } from '../renderGovernor.js';
 import { announceNavigationAuthority } from '../navigationPolicy.js';
 import { BHOTE_KOSHI_CREDIT, registerDynamicCredit } from './dataCredits.js';
-import { buildSourceShotPaths, SOURCE_PATH_BEAT_IDS } from './bhoteKoshiShotPaths.js';
+import {
+  buildSourceShotPaths,
+  SOURCE_PATH_BEAT_IDS,
+} from './bhoteKoshiShotPaths.js';
 import {
   createBhoteKoshiEmbeddedMedia,
   resolveEmbeddedMediaSource,
@@ -40,23 +44,49 @@ const FLOOD_COLOR = Cesium.Color.fromCssColorString('#d8954e').withAlpha(0.68);
 const SURGE_COLOR = Cesium.Color.fromCssColorString('#e8b47c');
 const CINEMATIC_INPUT_EVENTS = Object.freeze(['pointerdown', 'wheel']);
 const CINEMATIC_VIEW_SPECS = Object.freeze([
-  { id: 'immediate-collapse-viewpoint', headingDeg: 224, pitchDeg: -38, rangeM: 15000 },
+  {
+    id: 'immediate-collapse-viewpoint',
+    headingDeg: 224,
+    pitchDeg: -38,
+    rangeM: 15000,
+  },
   { id: 'debris-dammed-lake', headingDeg: 232, pitchDeg: -37, rangeM: 13200 },
   { id: 'second-landslide', headingDeg: 224, pitchDeg: -38, rangeM: 12000 },
   { id: 'gyirong-border-gate', headingDeg: 208, pitchDeg: -42, rangeM: 6100 },
   { id: 'timure-cluster', headingDeg: 198, pitchDeg: -40, rangeM: 5200 },
   { id: 'syabru-besi', headingDeg: 205, pitchDeg: -38, rangeM: 7200 },
   { id: 'dhunche', headingDeg: 208, pitchDeg: -39, rangeM: 7800 },
-  { id: 'mailung-upper-trishuli', headingDeg: 211, pitchDeg: -40, rangeM: 8400 },
+  {
+    id: 'mailung-upper-trishuli',
+    headingDeg: 211,
+    pitchDeg: -40,
+    rangeM: 8400,
+  },
   { id: 'mailung-bazzar', headingDeg: 212, pitchDeg: -40, rangeM: 8600 },
   { id: 'dandagaun', headingDeg: 214, pitchDeg: -40, rangeM: 8600 },
   { id: 'dandagaun-viewpoint', headingDeg: 215, pitchDeg: -41, rangeM: 9200 },
   { id: 'betrawati-bazaar', headingDeg: 216, pitchDeg: -41, rangeM: 9800 },
   { id: 'bhainse', headingDeg: 219, pitchDeg: -41, rangeM: 11500 },
-  { id: 'bidur-trishuli-bridge', headingDeg: 248, pitchDeg: -46, rangeM: 15500 },
-  { id: 'devighat-taadi-khola-bridge', headingDeg: 224, pitchDeg: -42, rangeM: 13000 },
+  {
+    id: 'bidur-trishuli-bridge',
+    headingDeg: 248,
+    pitchDeg: -46,
+    rangeM: 15500,
+  },
+  {
+    id: 'devighat-taadi-khola-bridge',
+    headingDeg: 224,
+    pitchDeg: -42,
+    rangeM: 13000,
+  },
   { id: 'charaudi', headingDeg: 232, pitchDeg: -42, rangeM: 15000 },
-  { id: 'charaudi', progress: 1, headingDeg: 232, pitchDeg: -42, rangeM: 15000 },
+  {
+    id: 'charaudi',
+    progress: 1,
+    headingDeg: 232,
+    pitchDeg: -42,
+    rangeM: 15000,
+  },
 ]);
 const PASSIVE_ENABLE_ORIGINS = new Set([
   'scene',
@@ -79,24 +109,27 @@ const DEFAULT_RENDER_HOST = Object.freeze({
 });
 const DEFAULT_EVENT_LOADER = async () => {
   const response = await fetch(eventAsset('event.json'), { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Bhote Koshi event pack unavailable (${response.status})`);
+  if (!response.ok)
+    throw new Error(`Bhote Koshi event pack unavailable (${response.status})`);
   return response.json();
 };
-const DEFAULT_IMAGERY_PROVIDER_FACTORY = (url, options) => (
-  Cesium.SingleTileImageryProvider.fromUrl(url, options)
-);
+const DEFAULT_IMAGERY_PROVIDER_FACTORY = (url, options) =>
+  Cesium.SingleTileImageryProvider.fromUrl(url, options);
 const DEFAULT_TERRAIN_SAMPLER = async (viewer, observations) => {
   if (
-    !viewer?.terrainProvider
-    || !viewer.terrainProvider.availability
-    || typeof Cesium.sampleTerrainMostDetailed !== 'function'
+    !viewer?.terrainProvider ||
+    !viewer.terrainProvider.availability ||
+    typeof Cesium.sampleTerrainMostDetailed !== 'function'
   ) {
     return null;
   }
-  const cartographics = observations.map((observation) => (
-    Cesium.Cartographic.fromDegrees(observation.lon, observation.lat)
-  ));
-  return Cesium.sampleTerrainMostDetailed(viewer.terrainProvider, cartographics);
+  const cartographics = observations.map((observation) =>
+    Cesium.Cartographic.fromDegrees(observation.lon, observation.lat),
+  );
+  return Cesium.sampleTerrainMostDetailed(
+    viewer.terrainProvider,
+    cartographics,
+  );
 };
 const DEFAULT_MEDIA_LOADER = async (url, { signal } = {}) => {
   if (typeof createImageBitmap !== 'function') {
@@ -108,12 +141,18 @@ const DEFAULT_MEDIA_LOADER = async (url, { signal } = {}) => {
     mode: 'cors',
     signal,
   });
-  if (!response.ok) throw new Error(`Evidence poster unavailable (${response.status})`);
+  if (!response.ok)
+    throw new Error(`Evidence poster unavailable (${response.status})`);
   return createImageBitmap(await response.blob());
 };
 const DEFAULT_VIDEO_FACTORY = () => {
   const video = globalThis.document?.createElement?.('video');
-  if (!video || typeof video.play !== 'function' || typeof video.pause !== 'function') return null;
+  if (
+    !video ||
+    typeof video.play !== 'function' ||
+    typeof video.pause !== 'function'
+  )
+    return null;
   video.muted = true;
   video.playsInline = true;
   video.preload = 'auto';
@@ -125,7 +164,9 @@ export function clampUnit(value) {
 }
 
 export function elapsedLabel(progress, totalSeconds) {
-  const elapsed = Math.round(clampUnit(progress) * Math.max(0, Number(totalSeconds) || 0));
+  const elapsed = Math.round(
+    clampUnit(progress) * Math.max(0, Number(totalSeconds) || 0),
+  );
   const minutes = Math.floor(elapsed / 60);
   const seconds = elapsed % 60;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
@@ -147,7 +188,8 @@ export function updateCorridorPositionCache(progress, terrainPositions, cache) {
   const normalizedProgress = clampUnit(progress);
   const segmentCount = Math.max(0, positions.length - 1);
   const visibleCount = visibleSegmentCount(normalizedProgress, segmentCount);
-  if (cache.progress === normalizedProgress && cache.source === positions) return false;
+  if (cache.progress === normalizedProgress && cache.source === positions)
+    return false;
 
   cache.progress = normalizedProgress;
   cache.source = positions;
@@ -160,9 +202,8 @@ export function updateCorridorPositionCache(progress, terrainPositions, cache) {
 
   const scaledProgress = normalizedProgress * segmentCount;
   const startIndex = Math.min(segmentCount - 1, Math.floor(scaledProgress));
-  const segmentProgress = normalizedProgress >= 1
-    ? 1
-    : scaledProgress - startIndex;
+  const segmentProgress =
+    normalizedProgress >= 1 ? 1 : scaledProgress - startIndex;
   cache.headPosition = Cesium.Cartesian3.lerp(
     positions[startIndex],
     positions[startIndex + 1],
@@ -183,9 +224,7 @@ export function floodProgressForStoryProgress(progress, window = null) {
   const end = window?.end ?? BHOTE_KOSHI_CORRIDOR_END;
   if (storyProgress <= start) return 0;
   if (storyProgress >= end) return 1;
-  return (
-    (storyProgress - start) / (end - start)
-  );
+  return (storyProgress - start) / (end - start);
 }
 
 /**
@@ -198,21 +237,35 @@ export function buildEvidenceTimeline(observations, corridor) {
   const firstChainage = Number(points[0]?.chainageM);
   const lastChainage = Number(points[points.length - 1]?.chainageM);
   const span = Math.max(1, lastChainage - firstChainage);
-  const timeline = beats.map((observation, sourceIndex) => {
-    const trigger = observation?.trigger || {};
-    let activationProgress;
-    if (trigger.mode === 'corridor' && Number.isFinite(Number(trigger.chainageM))) {
-      const corridorProgress = clampUnit((Number(trigger.chainageM) - firstChainage) / span);
-      activationProgress = BHOTE_KOSHI_PROLOGUE_END
-        + corridorProgress * (BHOTE_KOSHI_CORRIDOR_END - BHOTE_KOSHI_PROLOGUE_END);
-    } else {
-      activationProgress = clampUnit(trigger.storyProgress);
-    }
-    return { observation, sourceIndex, activationProgress };
-  }).sort((a, b) => a.activationProgress - b.activationProgress || a.sourceIndex - b.sourceIndex);
+  const timeline = beats
+    .map((observation, sourceIndex) => {
+      const trigger = observation?.trigger || {};
+      let activationProgress;
+      if (
+        trigger.mode === 'corridor' &&
+        Number.isFinite(Number(trigger.chainageM))
+      ) {
+        const corridorProgress = clampUnit(
+          (Number(trigger.chainageM) - firstChainage) / span,
+        );
+        activationProgress =
+          BHOTE_KOSHI_PROLOGUE_END +
+          corridorProgress *
+            (BHOTE_KOSHI_CORRIDOR_END - BHOTE_KOSHI_PROLOGUE_END);
+      } else {
+        activationProgress = clampUnit(trigger.storyProgress);
+      }
+      return { observation, sourceIndex, activationProgress };
+    })
+    .sort(
+      (a, b) =>
+        a.activationProgress - b.activationProgress ||
+        a.sourceIndex - b.sourceIndex,
+    );
 
   for (let index = 0; index < timeline.length; index += 1) {
-    timeline[index].deactivationProgress = timeline[index + 1]?.activationProgress ?? 1.000001;
+    timeline[index].deactivationProgress =
+      timeline[index + 1]?.activationProgress ?? 1.000001;
   }
   return timeline;
 }
@@ -223,7 +276,10 @@ export function activeEvidenceIndex(progress, timeline) {
   let activeIndex = -1;
   for (let index = 0; index < timeline.length; index += 1) {
     if (normalized < timeline[index].activationProgress) break;
-    if (normalized < timeline[index].deactivationProgress || index === timeline.length - 1) {
+    if (
+      normalized < timeline[index].deactivationProgress ||
+      index === timeline.length - 1
+    ) {
       activeIndex = index;
     }
   }
@@ -232,9 +288,9 @@ export function activeEvidenceIndex(progress, timeline) {
 
 /** Resolve a stable evidence id to a visible point inside that beat's window. */
 export function evidenceBeatProgress(beatId, timeline, reveal = 0.36) {
-  const beat = (Array.isArray(timeline) ? timeline : []).find(({ observation }) => (
-    observation?.id === beatId
-  ));
+  const beat = (Array.isArray(timeline) ? timeline : []).find(
+    ({ observation }) => observation?.id === beatId,
+  );
   if (!beat) return null;
   const start = clampUnit(beat.activationProgress);
   const end = Math.max(start, Math.min(1, beat.deactivationProgress));
@@ -244,7 +300,9 @@ export function evidenceBeatProgress(beatId, timeline, reveal = 0.36) {
 /** Resolve the exact standalone story-clock span owned by one embedded shot. */
 export function evidenceSequenceWindow(beatId, timeline) {
   const beats = Array.isArray(timeline) ? timeline : [];
-  const beatIndex = beats.findIndex(({ observation }) => observation?.id === beatId);
+  const beatIndex = beats.findIndex(
+    ({ observation }) => observation?.id === beatId,
+  );
   if (beatIndex < 0) return null;
   const beat = beats[beatIndex];
   const startProgress = clampUnit(beat.activationProgress);
@@ -276,18 +334,30 @@ export function evidenceBeatPresentation(progress, beat) {
     };
   }
   const start = clampUnit(beat.activationProgress);
-  const end = Math.max(start + 0.000001, Math.min(1.000001, beat.deactivationProgress));
-  const localProgress = clampUnit((clampUnit(progress) - start) / (end - start));
-  const beatDurationSeconds = Math.max(0.25, (end - start) * BHOTE_KOSHI_PLAYBACK_SECONDS);
+  const end = Math.max(
+    start + 0.000001,
+    Math.min(1.000001, beat.deactivationProgress),
+  );
+  const localProgress = clampUnit(
+    (clampUnit(progress) - start) / (end - start),
+  );
+  const beatDurationSeconds = Math.max(
+    0.25,
+    (end - start) * BHOTE_KOSHI_PLAYBACK_SECONDS,
+  );
   const dotEnd = Math.min(0.12, 0.25 / beatDurationSeconds);
   const leaderStart = dotEnd * 0.35;
   const leaderEnd = Math.min(0.24, leaderStart + 0.35 / beatDurationSeconds);
-  const contentStart = Math.min(leaderEnd, leaderStart + 0.12 / beatDurationSeconds);
+  const contentStart = Math.min(
+    leaderEnd,
+    leaderStart + 0.12 / beatDurationSeconds,
+  );
   const contentEnd = Math.min(0.34, contentStart + 0.6 / beatDurationSeconds);
   const dotReveal = smoothstep(0, dotEnd, localProgress);
   const leaderReveal = smoothstep(leaderStart, leaderEnd, localProgress);
   const contentReveal = smoothstep(contentStart, contentEnd, localProgress);
-  const contentHold = 1 - smoothstep(BHOTE_KOSHI_CAMERA_HOLD_RATIO, 0.78, localProgress);
+  const contentHold =
+    1 - smoothstep(BHOTE_KOSHI_CAMERA_HOLD_RATIO, 0.78, localProgress);
   const leaderHold = 1 - smoothstep(0.74, 0.9, localProgress);
   const dotHold = 1 - smoothstep(0.86, 1, localProgress);
   const alpha = Math.min(dotReveal, dotHold);
@@ -314,7 +384,10 @@ export function adjacentEvidenceIndex(progress, timeline, direction) {
 
 /** Compact, source-bounded disclosure for multi-source geolocation beats. */
 export function evidenceCorroborationLabel(observation) {
-  const count = Math.max(0, Math.floor(Number(observation?.corroboration?.sourceCount) || 0));
+  const count = Math.max(
+    0,
+    Math.floor(Number(observation?.corroboration?.sourceCount) || 0),
+  );
   return count > 1 ? `${count} GEOLOCATED SOURCE-MAP PLACEMENTS` : '';
 }
 
@@ -323,7 +396,7 @@ export function interpolateHeadingDegrees(start, end, amount) {
   const from = Number(start) || 0;
   const to = Number(end) || 0;
   const delta = ((to - from + 540) % 360) - 180;
-  return ((from + delta * clampUnit(amount)) % 360 + 360) % 360;
+  return (((from + delta * clampUnit(amount)) % 360) + 360) % 360;
 }
 
 /** Resolve the editorial camera beats against the terrain-sampled evidence anchors. */
@@ -333,16 +406,21 @@ export function buildCinematicKeyframes(timeline, anchors) {
   const resolved = new Map();
   for (let index = 0; index < beats.length; index += 1) {
     const id = beats[index]?.observation?.id;
-    if (id && positions[index]) resolved.set(id, { beat: beats[index], target: positions[index] });
+    if (id && positions[index])
+      resolved.set(id, { beat: beats[index], target: positions[index] });
   }
   return CINEMATIC_VIEW_SPECS.flatMap((spec) => {
     const entry = resolved.get(spec.id);
     if (!entry) return [];
-    return [{
-      ...spec,
-      progress: Number.isFinite(spec.progress) ? spec.progress : entry.beat.activationProgress,
-      target: entry.target,
-    }];
+    return [
+      {
+        ...spec,
+        progress: Number.isFinite(spec.progress)
+          ? spec.progress
+          : entry.beat.activationProgress,
+        target: entry.target,
+      },
+    ];
   }).sort((a, b) => a.progress - b.progress);
 }
 
@@ -361,13 +439,16 @@ export function sampleCinematicPose(progress, keyframes, result = {}) {
     }
   }
   if (normalized <= frames[0].progress) from = to = frames[0];
-  if (normalized >= frames[frames.length - 1].progress) from = to = frames[frames.length - 1];
+  if (normalized >= frames[frames.length - 1].progress)
+    from = to = frames[frames.length - 1];
   const span = Math.max(0.000001, to.progress - from.progress);
-  const linearAmount = from === to ? 0 : clampUnit((normalized - from.progress) / span);
-  const travelAmount = linearAmount <= BHOTE_KOSHI_CAMERA_HOLD_RATIO
-    ? 0
-    : (linearAmount - BHOTE_KOSHI_CAMERA_HOLD_RATIO)
-      / (1 - BHOTE_KOSHI_CAMERA_HOLD_RATIO);
+  const linearAmount =
+    from === to ? 0 : clampUnit((normalized - from.progress) / span);
+  const travelAmount =
+    linearAmount <= BHOTE_KOSHI_CAMERA_HOLD_RATIO
+      ? 0
+      : (linearAmount - BHOTE_KOSHI_CAMERA_HOLD_RATIO) /
+        (1 - BHOTE_KOSHI_CAMERA_HOLD_RATIO);
   const amount = travelAmount * travelAmount * (3 - 2 * travelAmount);
   result.target = Cesium.Cartesian3.lerp(
     from.target,
@@ -375,7 +456,11 @@ export function sampleCinematicPose(progress, keyframes, result = {}) {
     amount,
     result.target || new Cesium.Cartesian3(),
   );
-  result.headingDeg = interpolateHeadingDegrees(from.headingDeg, to.headingDeg, amount);
+  result.headingDeg = interpolateHeadingDegrees(
+    from.headingDeg,
+    to.headingDeg,
+    amount,
+  );
   result.pitchDeg = Cesium.Math.lerp(from.pitchDeg, to.pitchDeg, amount);
   result.rangeM = Cesium.Math.lerp(from.rangeM, to.rangeM, amount);
   result.fromId = from.id;
@@ -385,7 +470,10 @@ export function sampleCinematicPose(progress, keyframes, result = {}) {
 
 /** Wrap a compact card summary without clipping a word at the canvas edge. */
 export function evidenceSummaryLines(value, maxChars = 52, maxLines = 2) {
-  const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+  const words = String(value || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   const limit = Math.max(8, Math.floor(Number(maxChars) || 52));
   const lineLimit = Math.max(1, Math.floor(Number(maxLines) || 2));
   const lines = [];
@@ -457,7 +545,8 @@ const EVIDENCE_CARD_LAYOUTS = Object.freeze({
 /** Resolve one stable card footprint before the entry enters the shared host. */
 export function evidenceCardLayout(observation) {
   const media = observation?.media || {};
-  if (!media.videoPath && !media.posterPath && !media.posterUrl) return EVIDENCE_CARD_LAYOUTS.link;
+  if (!media.videoPath && !media.posterPath && !media.posterUrl)
+    return EVIDENCE_CARD_LAYOUTS.link;
   const width = Number(media.width);
   const height = Number(media.height);
   const orientation = String(media.orientation || '').toLowerCase();
@@ -471,9 +560,11 @@ export function evidenceCardLayout(observation) {
 export function usesProviderEmbeddedEvidence(observation) {
   const source = resolveEmbeddedMediaSource(observation?.media?.sourceUrl);
   if (!source) return false;
-  return source.provider === 'youtube'
-    || source.provider === 'facebook'
-    || !observation?.media?.videoPath;
+  return (
+    source.provider === 'youtube' ||
+    source.provider === 'facebook' ||
+    !observation?.media?.videoPath
+  );
 }
 
 function evidenceFrameCanvas(observation) {
@@ -487,19 +578,35 @@ function evidenceFrameCanvas(observation) {
 }
 
 function drawCover(ctx, image, x, y, width, height) {
-  const sourceWidth = Number(image?.videoWidth || image?.width || image?.naturalWidth) || width;
-  const sourceHeight = Number(image?.videoHeight || image?.height || image?.naturalHeight) || height;
+  const sourceWidth =
+    Number(image?.videoWidth || image?.width || image?.naturalWidth) || width;
+  const sourceHeight =
+    Number(image?.videoHeight || image?.height || image?.naturalHeight) ||
+    height;
   const scale = Math.max(width / sourceWidth, height / sourceHeight);
   const cropWidth = width / scale;
   const cropHeight = height / scale;
   const sourceX = Math.max(0, (sourceWidth - cropWidth) / 2);
   const sourceY = Math.max(0, (sourceHeight - cropHeight) / 2);
-  ctx.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
+  ctx.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    cropWidth,
+    cropHeight,
+    x,
+    y,
+    width,
+    height,
+  );
 }
 
 function drawContain(ctx, image, x, y, width, height) {
-  const sourceWidth = Number(image?.videoWidth || image?.width || image?.naturalWidth) || width;
-  const sourceHeight = Number(image?.videoHeight || image?.height || image?.naturalHeight) || height;
+  const sourceWidth =
+    Number(image?.videoWidth || image?.width || image?.naturalWidth) || width;
+  const sourceHeight =
+    Number(image?.videoHeight || image?.height || image?.naturalHeight) ||
+    height;
   const scale = Math.min(width / sourceWidth, height / sourceHeight);
   const drawWidth = sourceWidth * scale;
   const drawHeight = sourceHeight * scale;
@@ -513,7 +620,10 @@ function drawContain(ctx, image, x, y, width, height) {
 }
 
 function scaledOverlayFont(font, scale = 2) {
-  return String(font).replace(/(\d+(?:\.\d+)?)px/, (_, size) => `${Number(size) * scale}px`);
+  return String(font).replace(
+    /(\d+(?:\.\d+)?)px/,
+    (_, size) => `${Number(size) * scale}px`,
+  );
 }
 
 function drawEvidenceFallback(ctx, observation, width, height) {
@@ -539,7 +649,12 @@ function ellipsizeEvidenceText(value, limit) {
 }
 
 /** Repaint one stable frame with a poster or the current source-video frame. */
-export function updateEvidenceFrame(canvas, observation, media = null, options = {}) {
+export function updateEvidenceFrame(
+  canvas,
+  observation,
+  media = null,
+  options = {},
+) {
   if (!canvas || typeof canvas.getContext !== 'function') return false;
   const ctx = canvas.getContext('2d');
   if (!ctx) return false;
@@ -557,16 +672,19 @@ export function updateEvidenceFrame(canvas, observation, media = null, options =
   if (media) {
     try {
       const fit = String(
-        observation.media?.fit || (layout.kind === 'portrait' ? 'contain' : 'cover'),
+        observation.media?.fit ||
+          (layout.kind === 'portrait' ? 'contain' : 'cover'),
       );
-      if (fit === 'contain') drawContain(ctx, media, 0, 0, canvas.width, mediaHeight);
+      if (fit === 'contain')
+        drawContain(ctx, media, 0, 0, canvas.width, mediaHeight);
       else drawCover(ctx, media, 0, 0, canvas.width, mediaHeight);
       mediaRendered = true;
     } catch {
       // The deterministic local fallback below remains the visual source.
     }
   }
-  if (!mediaRendered) drawEvidenceFallback(ctx, observation, canvas.width, mediaHeight);
+  if (!mediaRendered)
+    drawEvidenceFallback(ctx, observation, canvas.width, mediaHeight);
 
   if (options.videoActive && mediaRendered) {
     const mediaProgress = clampUnit(options.mediaProgress);
@@ -592,8 +710,14 @@ export function updateEvidenceFrame(canvas, observation, media = null, options =
   );
   ctx.fillStyle = WORLD_OVERLAY_STYLE.detail;
   ctx.font = scaledOverlayFont(WORLD_OVERLAY_STYLE.fontDetail);
-  const publisher = String(observation.media?.publisher || 'SOURCE LINK').toUpperCase();
-  ctx.fillText(`${ellipsizeEvidenceText(publisher, 24)} / OPEN`, 16, infoY + 53);
+  const publisher = String(
+    observation.media?.publisher || 'SOURCE LINK',
+  ).toUpperCase();
+  ctx.fillText(
+    `${ellipsizeEvidenceText(publisher, 24)} / OPEN`,
+    16,
+    infoY + 53,
+  );
   return true;
 }
 
@@ -752,9 +876,7 @@ function createPanel(event, handlers) {
   const refs = collectPanelReferences(panel);
   refs.beforeDate.textContent = event.imagery.before.label;
   refs.afterDate.textContent = event.imagery.after.label;
-  refs.time.textContent = (
-    `~0:00 / ${elapsedLabel(1, event.reconstruction.elapsedSeconds)}`
-  );
+  refs.time.textContent = `~0:00 / ${elapsedLabel(1, event.reconstruction.elapsedSeconds)}`;
   refs.caveat.textContent = event.reconstruction.caveat;
 
   for (const report of event.fieldReports) {
@@ -770,25 +892,53 @@ function createPanel(event, handlers) {
     refs.reportList.appendChild(button);
   }
 
-  panel.querySelector('[data-action="close"]').addEventListener('click', handlers.close);
-  panel.querySelector('[data-action="play"]').addEventListener('click', handlers.play);
-  panel.querySelector('[data-action="play-scene"]').addEventListener('click', handlers.playScene);
-  panel.querySelector('[data-action="cinematic"]').addEventListener('click', handlers.toggleCinematic);
-  panel.querySelector('[data-action="previous-beat"]').addEventListener('click', handlers.previousBeat);
-  panel.querySelector('[data-action="next-beat"]').addEventListener('click', handlers.nextBeat);
-  panel.querySelector('[data-action="story-replay"]').addEventListener('click', handlers.replayCinematic);
-  panel.querySelector('[data-action="open-source"]').addEventListener('click', handlers.openActiveSource);
-  panel.querySelector('[data-action="geolocation-map"]').addEventListener('click', handlers.openGeolocationMap);
-  panel.querySelector('[data-action="corridor"]').addEventListener('click', handlers.focusCorridor);
-  panel.querySelector('[data-role="split"]').addEventListener('input', (inputEvent) => {
-    handlers.setSplit(Number(inputEvent.target.value) / 100);
-  });
-  panel.querySelector('[data-role="progress"]').addEventListener('input', (inputEvent) => {
-    handlers.previewProgress(Number(inputEvent.target.value) / 1000);
-  });
-  panel.querySelector('[data-role="progress"]').addEventListener('change', (inputEvent) => {
-    handlers.commitProgress(Number(inputEvent.target.value) / 1000, { final: true });
-  });
+  panel
+    .querySelector('[data-action="close"]')
+    .addEventListener('click', handlers.close);
+  panel
+    .querySelector('[data-action="play"]')
+    .addEventListener('click', handlers.play);
+  panel
+    .querySelector('[data-action="play-scene"]')
+    .addEventListener('click', handlers.playScene);
+  panel
+    .querySelector('[data-action="cinematic"]')
+    .addEventListener('click', handlers.toggleCinematic);
+  panel
+    .querySelector('[data-action="previous-beat"]')
+    .addEventListener('click', handlers.previousBeat);
+  panel
+    .querySelector('[data-action="next-beat"]')
+    .addEventListener('click', handlers.nextBeat);
+  panel
+    .querySelector('[data-action="story-replay"]')
+    .addEventListener('click', handlers.replayCinematic);
+  panel
+    .querySelector('[data-action="open-source"]')
+    .addEventListener('click', handlers.openActiveSource);
+  panel
+    .querySelector('[data-action="geolocation-map"]')
+    .addEventListener('click', handlers.openGeolocationMap);
+  panel
+    .querySelector('[data-action="corridor"]')
+    .addEventListener('click', handlers.focusCorridor);
+  panel
+    .querySelector('[data-role="split"]')
+    .addEventListener('input', (inputEvent) => {
+      handlers.setSplit(Number(inputEvent.target.value) / 100);
+    });
+  panel
+    .querySelector('[data-role="progress"]')
+    .addEventListener('input', (inputEvent) => {
+      handlers.previewProgress(Number(inputEvent.target.value) / 1000);
+    });
+  panel
+    .querySelector('[data-role="progress"]')
+    .addEventListener('change', (inputEvent) => {
+      handlers.commitProgress(Number(inputEvent.target.value) / 1000, {
+        final: true,
+      });
+    });
   const rightRail = document.getElementById?.('right-context-rail');
   rightRail?.classList.add('bhote-event-active');
   (rightRail || document.body).appendChild(panel);
@@ -893,13 +1043,17 @@ export function createBhoteKoshiEventLayer({
   let _comparisonSurfaceGeneration = 0;
 
   function wantsTerrainComparison() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneControls.imageryComparison === true;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.imageryComparison === true
+    );
   }
 
   function usesPhotorealFloodSurface() {
-    return _mapStackController?.getActiveId?.() === 'photoreal'
-      && !wantsTerrainComparison();
+    return (
+      _mapStackController?.getActiveId?.() === 'photoreal' &&
+      !wantsTerrainComparison()
+    );
   }
 
   async function syncTerrainComparison() {
@@ -930,10 +1084,14 @@ export function createBhoteKoshiEventLayer({
     _sceneController = controller;
     if (typeof controller?.subscribeSceneClock === 'function') {
       _sceneClockUnsubscribe = controller.subscribeSceneClock((snapshot) => {
-        if (_presentation !== BHOTE_KOSHI_SCENE_PRESENTATION
-            || !_sceneContext?.sceneId
-            || snapshot?.sceneId !== _sceneContext.sceneId) return;
-        const playbackStopped = _sceneContext.running === true && snapshot.running === false;
+        if (
+          _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION ||
+          !_sceneContext?.sceneId ||
+          snapshot?.sceneId !== _sceneContext.sceneId
+        )
+          return;
+        const playbackStopped =
+          _sceneContext.running === true && snapshot.running === false;
         _sceneContext = { ..._sceneContext, ...snapshot };
         if (playbackStopped || snapshot.stopped === true) {
           _sceneMediaPlaybackCompletedBeatId = _sceneBeatId;
@@ -982,13 +1140,18 @@ export function createBhoteKoshiEventLayer({
   }
 
   async function resolveEvidenceAnchors(event, signal) {
-    const observations = Array.isArray(event.evidenceSpine) ? event.evidenceSpine : [];
+    const observations = Array.isArray(event.evidenceSpine)
+      ? event.evidenceSpine
+      : [];
     let sampled = null;
     try {
       sampled = await terrainSampler(_viewer, observations, { signal });
     } catch (error) {
       if (error?.name === 'AbortError') throw error;
-      console.warn('[Data:BhoteKoshi] Evidence terrain sampling fell back:', error);
+      console.warn(
+        '[Data:BhoteKoshi] Evidence terrain sampling fell back:',
+        error,
+      );
     }
     throwIfEnableCancelled(signal, _enabled);
     return observations.map((observation, index) => {
@@ -1007,15 +1170,26 @@ export function createBhoteKoshiEventLayer({
       if (!_enabled) return null;
       if (_witnessEmbedActive && !breadcrumb) return null;
       if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION) {
-        if (_sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT || breadcrumb) return null;
-        if (_evidenceTimeline[index]?.observation?.id !== _sceneBeatId) return null;
-        if (sceneEvidenceDefersUntilCameraSettles() && !sceneEvidenceCameraSettled()) return null;
+        if (_sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT || breadcrumb)
+          return null;
+        if (_evidenceTimeline[index]?.observation?.id !== _sceneBeatId)
+          return null;
+        if (
+          sceneEvidenceDefersUntilCameraSettles() &&
+          !sceneEvidenceCameraSettled()
+        )
+          return null;
         if (index === _embeddedEvidenceIndex) return null;
-        if (_evidenceTimeline[index]?.observation?.id === _sceneMediaPlaybackCompletedBeatId) return null;
+        if (
+          _evidenceTimeline[index]?.observation?.id ===
+          _sceneMediaPlaybackCompletedBeatId
+        )
+          return null;
         return _evidenceAnchors[index] || null;
       }
       const activeIndex = activeEvidenceIndex(_progress, _evidenceTimeline);
-      if (breadcrumb ? index >= activeIndex : index !== activeIndex) return null;
+      if (breadcrumb ? index >= activeIndex : index !== activeIndex)
+        return null;
       if (!breadcrumb && index === _embeddedEvidenceIndex) return null;
       return _evidenceAnchors[index] || null;
     };
@@ -1029,16 +1203,17 @@ export function createBhoteKoshiEventLayer({
       witness.lat,
       (Number(witness.elevationM) || 0) + 18,
     );
-    const shown = _embeddedMedia?.show?.({
-      observation: {
-        title: witness.title,
-        shortTitle: 'Rasuwagadhi witness',
-        media: { sourceUrl: witness.sourceUrl },
-      },
-      anchor,
-      sourceUrl: witness.sourceUrl,
-      autoplay: false,
-    }) === true;
+    const shown =
+      _embeddedMedia?.show?.({
+        observation: {
+          title: witness.title,
+          shortTitle: 'Rasuwagadhi witness',
+          media: { sourceUrl: witness.sourceUrl },
+        },
+        anchor,
+        sourceUrl: witness.sourceUrl,
+        autoplay: false,
+      }) === true;
     if (shown) _embeddedEvidenceIndex = -1;
     return shown;
   }
@@ -1060,11 +1235,12 @@ export function createBhoteKoshiEventLayer({
       _embeddedMedia?.hide?.();
       return false;
     }
-    const shown = _embeddedMedia?.show?.({
-      observation,
-      anchor: _evidenceAnchors[index],
-      autoplay: sceneEvidenceMediaAutoplays() || _playing,
-    }) === true;
+    const shown =
+      _embeddedMedia?.show?.({
+        observation,
+        anchor: _evidenceAnchors[index],
+        autoplay: sceneEvidenceMediaAutoplays() || _playing,
+      }) === true;
     _embeddedEvidenceIndex = shown ? index : -1;
     if (shown && sceneEvidenceMediaAutoplays()) startSceneMediaPlayback(index);
     return shown;
@@ -1086,15 +1262,18 @@ export function createBhoteKoshiEventLayer({
   }
 
   function sceneEvidenceMediaAutoplays() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-      && _sceneControls.evidenceMediaAutoplay === true
-      && !_sceneControls.timelineSeek;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT &&
+      _sceneControls.evidenceMediaAutoplay === true &&
+      !_sceneControls.timelineSeek
+    );
   }
 
   function sceneTimelineSeek() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneControls.timelineSeek && typeof _sceneControls.timelineSeek === 'object'
+    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.timelineSeek &&
+      typeof _sceneControls.timelineSeek === 'object'
       ? _sceneControls.timelineSeek
       : null;
   }
@@ -1112,7 +1291,8 @@ export function createBhoteKoshiEventLayer({
   }
 
   function stopSceneMediaPlayback({ pauseMedia = true } = {}) {
-    const hadPlayback = _sceneMediaPlaybackTimer != null || _sceneMediaPlaybackBeatId != null;
+    const hadPlayback =
+      _sceneMediaPlaybackTimer != null || _sceneMediaPlaybackBeatId != null;
     if (_sceneMediaPlaybackTimer != null) {
       globalThis.window?.clearTimeout?.(_sceneMediaPlaybackTimer);
       _sceneMediaPlaybackTimer = null;
@@ -1132,34 +1312,53 @@ export function createBhoteKoshiEventLayer({
       SCENE_MEDIA_EXIT_SECONDS,
       Number(_sceneControls.mediaExitDurationSec) || 0,
     );
-    _sceneMediaPlaybackTimer = globalThis.window?.setTimeout?.(() => {
-      if (_sceneMediaPlaybackBeatId !== beatId) return;
-      _sceneMediaPlaybackTimer = null;
-      _sceneMediaPlaybackBeatId = null;
-      renderHost.request('bhote-koshi-scene-media-exit');
-    }, exitDurationSec * 1000) ?? null;
+    _sceneMediaPlaybackTimer =
+      globalThis.window?.setTimeout?.(() => {
+        if (_sceneMediaPlaybackBeatId !== beatId) return;
+        _sceneMediaPlaybackTimer = null;
+        _sceneMediaPlaybackBeatId = null;
+        renderHost.request('bhote-koshi-scene-media-exit');
+      }, exitDurationSec * 1000) ?? null;
   }
 
   function startSceneMediaPlayback(index) {
     if (!sceneEvidenceMediaAutoplays()) return;
     const beatId = _evidenceTimeline[index]?.observation?.id;
-    if (!beatId || beatId === _sceneMediaPlaybackCompletedBeatId
-        || beatId === _sceneMediaPlaybackBeatId) return;
+    if (
+      !beatId ||
+      beatId === _sceneMediaPlaybackCompletedBeatId ||
+      beatId === _sceneMediaPlaybackBeatId
+    )
+      return;
     stopSceneMediaPlayback({ pauseMedia: false });
     _sceneMediaPlaybackBeatId = beatId;
     _embeddedMedia?.play?.();
     if (sceneUsesTrimmedMedia(beatId)) {
       const deadline = Date.now() + 18000;
       const check = () => {
-        if (!_enabled || _sceneBeatId !== beatId || _sceneMediaPlaybackBeatId !== beatId) return;
+        if (
+          !_enabled ||
+          _sceneBeatId !== beatId ||
+          _sceneMediaPlaybackBeatId !== beatId
+        )
+          return;
         const state = _embeddedMedia?.getPlaybackState?.();
-        if (['completed', 'blocked', 'unavailable', 'timeout', 'cancelled'].includes(state?.phase)
-            || Date.now() >= deadline) {
+        if (
+          [
+            'completed',
+            'blocked',
+            'unavailable',
+            'timeout',
+            'cancelled',
+          ].includes(state?.phase) ||
+          Date.now() >= deadline
+        ) {
           _sceneMediaPlaybackTimer = null;
           completeSceneMediaPlayback();
           return;
         }
-        _sceneMediaPlaybackTimer = globalThis.window?.setTimeout?.(check, 100) ?? null;
+        _sceneMediaPlaybackTimer =
+          globalThis.window?.setTimeout?.(check, 100) ?? null;
       };
       check();
       return;
@@ -1168,80 +1367,115 @@ export function createBhoteKoshiEventLayer({
       SCENE_MEDIA_EXIT_SECONDS,
       Number(_sceneControls.mediaExitDurationSec) || 0,
     );
-    const postMediaPathDurationSec = scenePathMovesDuringCamera() ? 0
-      : sceneUsesSourcePath() ? Number(_sceneControls.evidencePathDurationSec) || 0
-        : sceneEvidenceSequenceAnimates() && _sceneControls.evidencePath !== 'none'
+    const postMediaPathDurationSec = scenePathMovesDuringCamera()
+      ? 0
+      : sceneUsesSourcePath()
+        ? Number(_sceneControls.evidencePathDurationSec) || 0
+        : sceneEvidenceSequenceAnimates() &&
+            _sceneControls.evidencePath !== 'none'
           ? Number(_sceneControls.evidenceSequenceDurationSec) || 0
           : 0;
-    const availableMediaSec = (Number(_sceneContext?.holdSec) || 0)
-      - exitDurationSec
-      - postMediaPathDurationSec;
+    const availableMediaSec =
+      (Number(_sceneContext?.holdSec) || 0) -
+      exitDurationSec -
+      postMediaPathDurationSec;
     const durationSec = Math.max(
       SCENE_MEDIA_MIN_PLAYBACK_SECONDS,
       Number(_sceneControls.mediaPlaybackHoldSec) || 0,
       availableMediaSec,
     );
-    _sceneMediaPlaybackTimer = globalThis.window?.setTimeout?.(() => {
-      if (!_enabled || _sceneBeatId !== beatId || _sceneMediaPlaybackBeatId !== beatId) return;
-      _sceneMediaPlaybackTimer = null;
-      completeSceneMediaPlayback();
-    }, durationSec * 1000) ?? null;
+    _sceneMediaPlaybackTimer =
+      globalThis.window?.setTimeout?.(() => {
+        if (
+          !_enabled ||
+          _sceneBeatId !== beatId ||
+          _sceneMediaPlaybackBeatId !== beatId
+        )
+          return;
+        _sceneMediaPlaybackTimer = null;
+        completeSceneMediaPlayback();
+      }, durationSec * 1000) ?? null;
   }
 
   function sceneUsesTrimmedMedia(beatId) {
-    const media = _evidenceTimeline.find((item) => item.observation?.id === beatId)?.observation?.media;
-    return Number(media?.embedEndAtSec) > Number(media?.embedStartAtSec || 0)
-      && resolveEmbeddedMediaSource(media?.sourceUrl)?.provider === 'youtube';
+    const media = _evidenceTimeline.find(
+      (item) => item.observation?.id === beatId,
+    )?.observation?.media;
+    return (
+      Number(media?.embedEndAtSec) > Number(media?.embedStartAtSec || 0) &&
+      resolveEmbeddedMediaSource(media?.sourceUrl)?.provider === 'youtube'
+    );
   }
 
   function getSceneShotMediaHold(beatId) {
-    if (!_enabled || _sceneBeatId !== beatId || !sceneEvidenceMediaAutoplays()
-        || !sceneUsesTrimmedMedia(beatId)) return null;
+    if (
+      !_enabled ||
+      _sceneBeatId !== beatId ||
+      !sceneEvidenceMediaAutoplays() ||
+      !sceneUsesTrimmedMedia(beatId)
+    )
+      return null;
     return {
-      pending: _sceneMediaPlaybackCompletedBeatId !== beatId || _sceneMediaPlaybackBeatId === beatId,
+      pending:
+        _sceneMediaPlaybackCompletedBeatId !== beatId ||
+        _sceneMediaPlaybackBeatId === beatId,
       maxWaitMs: 20000,
     };
   }
 
   function sceneMediaPlaybackBlocksPath() {
-    return _sceneMediaPlaybackBeatId === _sceneBeatId
-      && _sceneControls.evidencePathDuringMedia !== true;
+    return (
+      _sceneMediaPlaybackBeatId === _sceneBeatId &&
+      _sceneControls.evidencePathDuringMedia !== true
+    );
   }
 
   function sceneUsesSourcePath() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneControls.evidencePath === 'source';
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.evidencePath === 'source'
+    );
   }
 
   function sceneUsesPathHistory() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneControls.evidencePath === 'history';
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.evidencePath === 'history'
+    );
   }
 
   function sceneUsesCumulativePath() {
-    return (sceneUsesSourcePath() || sceneUsesPathHistory())
-      && _sceneControls.evidencePathHistory === true;
+    return (
+      (sceneUsesSourcePath() || sceneUsesPathHistory()) &&
+      _sceneControls.evidencePathHistory === true
+    );
   }
 
   function scenePathMovesDuringCamera() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-      && _sceneControls.evidencePathDuringCamera === true;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT &&
+      _sceneControls.evidencePathDuringCamera === true
+    );
   }
 
   function sceneKeepsFloodVisible() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneControls.evidencePathPersistent === true;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.evidencePathPersistent === true
+    );
   }
 
   function scenePathCanPrepare() {
-    return !sceneEvidenceDefersUntilCameraSettles()
-      || sceneEvidenceCameraSettled()
-      || scenePathMovesDuringCamera()
+    return (
+      !sceneEvidenceDefersUntilCameraSettles() ||
+      sceneEvidenceCameraSettled() ||
+      scenePathMovesDuringCamera() ||
       // Media-led shots defer the new segment, not the completed upstream
       // prefix. Reconstruct that prefix for travel, direct loads and replay.
-      || (sceneKeepsFloodVisible() && sceneUsesCumulativePath())
-      || sceneUsesPathHistory();
+      (sceneKeepsFloodVisible() && sceneUsesCumulativePath()) ||
+      sceneUsesPathHistory()
+    );
   }
 
   function sourcePathPositions(beatId) {
@@ -1256,8 +1490,14 @@ export function createBhoteKoshiEventLayer({
       // a single high sample can make the front dive backward in screen space.
       if (_sceneControls.evidencePathElevation !== 'source') {
         // Sample once while preparing the shot, never from an animation frame.
-        try { height = _viewer?.scene?.sampleHeight?.(position, [_floodCore, _floodHalo, _surgePoint].filter(Boolean)); } catch {}
-        if (!Number.isFinite(height)) height = _viewer?.scene?.globe?.getHeight?.(position);
+        try {
+          height = _viewer?.scene?.sampleHeight?.(
+            position,
+            [_floodCore, _floodHalo, _surgePoint].filter(Boolean),
+          );
+        } catch {}
+        if (!Number.isFinite(height))
+          height = _viewer?.scene?.globe?.getHeight?.(position);
       }
       if (!Number.isFinite(height)) height = point.fallbackElevationM;
       return Cesium.Cartesian3.fromDegrees(point.lon, point.lat, height + 8);
@@ -1277,7 +1517,10 @@ export function createBhoteKoshiEventLayer({
   }
 
   function prepareScenePath() {
-    if ((!sceneUsesSourcePath() && !sceneUsesPathHistory()) || !scenePathCanPrepare()) {
+    if (
+      (!sceneUsesSourcePath() && !sceneUsesPathHistory()) ||
+      !scenePathCanPrepare()
+    ) {
       _scenePathBeatId = null;
       _scenePathPositions = [];
       _scenePathStartProgress = 0;
@@ -1323,66 +1566,89 @@ export function createBhoteKoshiEventLayer({
   }
 
   function activeFloodPositions() {
-    return (sceneUsesSourcePath() || sceneUsesPathHistory())
+    return sceneUsesSourcePath() || sceneUsesPathHistory()
       ? _scenePathPositions
       : _terrainPositions;
   }
 
   function sceneEvidenceDefersUntilCameraSettles() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-      && _sceneControls.deferEvidenceUntilCameraSettled === true;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT &&
+      _sceneControls.deferEvidenceUntilCameraSettled === true
+    );
   }
 
   function sceneEvidenceSequenceAnimates() {
-    return _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-      && _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-      && _sceneControls.evidenceSequence === true;
+    return (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT &&
+      _sceneControls.evidenceSequence === true
+    );
   }
 
   function sceneEvidenceCameraSettled() {
-    return !sceneEvidenceDefersUntilCameraSettles()
-      || _sceneControls.cameraSettled === true;
+    return (
+      !sceneEvidenceDefersUntilCameraSettles() ||
+      _sceneControls.cameraSettled === true
+    );
   }
 
   function sceneEvidencePresentation(index) {
     const beat = _evidenceTimeline[index];
-    if (beat && _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-        && _sceneControls.evidenceHoldCard === true) {
-      const span = Math.min(1, beat.deactivationProgress) - beat.activationProgress;
+    if (
+      beat &&
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.evidenceHoldCard === true
+    ) {
+      const span =
+        Math.min(1, beat.deactivationProgress) - beat.activationProgress;
       const reveal = Math.min(1, _sceneRevealProgress * 6);
-      return evidenceBeatPresentation(beat.activationProgress + span * _sceneBeatReveal * reveal, beat);
+      return evidenceBeatPresentation(
+        beat.activationProgress + span * _sceneBeatReveal * reveal,
+        beat,
+      );
     }
-    if (!beat || sceneEvidenceSequenceAnimates() || !sceneEvidenceDefersUntilCameraSettles()) {
+    if (
+      !beat ||
+      sceneEvidenceSequenceAnimates() ||
+      !sceneEvidenceDefersUntilCameraSettles()
+    ) {
       return evidenceBeatPresentation(_progress, beat);
     }
     const start = clampUnit(beat.activationProgress);
     const end = Math.max(start, Math.min(1, beat.deactivationProgress));
-    const revealProgress = start
-      + (end - start) * _sceneBeatReveal * clampUnit(_sceneRevealProgress);
+    const revealProgress =
+      start +
+      (end - start) * _sceneBeatReveal * clampUnit(_sceneRevealProgress);
     return evidenceBeatPresentation(revealProgress, beat);
   }
 
   function stopSceneEvidenceReveal() {
-    if (_sceneRevealAnimationFrame != null) cancelAnimationFrame(_sceneRevealAnimationFrame);
+    if (_sceneRevealAnimationFrame != null)
+      cancelAnimationFrame(_sceneRevealAnimationFrame);
     _sceneRevealAnimationFrame = null;
     if (_sceneRevealHoldActive) renderHost.release(SCENE_REVEAL_RENDER_HOLD);
     _sceneRevealHoldActive = false;
   }
 
   function stopScenePathReveal() {
-    if (_scenePathAnimationFrame != null) cancelAnimationFrame(_scenePathAnimationFrame);
+    if (_scenePathAnimationFrame != null)
+      cancelAnimationFrame(_scenePathAnimationFrame);
     _scenePathAnimationFrame = null;
-    if (_scenePathDeadlineTimer != null) globalThis.window?.clearTimeout?.(_scenePathDeadlineTimer);
+    if (_scenePathDeadlineTimer != null)
+      globalThis.window?.clearTimeout?.(_scenePathDeadlineTimer);
     _scenePathDeadlineTimer = null;
     if (_scenePathHoldActive) renderHost.release(SCENE_PATH_RENDER_HOLD);
     _scenePathHoldActive = false;
   }
 
   function finishScenePathReveal(targetProgress, requestReason) {
-    if (_scenePathAnimationFrame != null) cancelAnimationFrame(_scenePathAnimationFrame);
+    if (_scenePathAnimationFrame != null)
+      cancelAnimationFrame(_scenePathAnimationFrame);
     _scenePathAnimationFrame = null;
-    if (_scenePathDeadlineTimer != null) globalThis.window?.clearTimeout?.(_scenePathDeadlineTimer);
+    if (_scenePathDeadlineTimer != null)
+      globalThis.window?.clearTimeout?.(_scenePathDeadlineTimer);
     _scenePathDeadlineTimer = null;
     _scenePathRevealProgress = targetProgress;
     updateFloodTrace(_scenePathRevealProgress);
@@ -1394,8 +1660,12 @@ export function createBhoteKoshiEventLayer({
 
   function scenePathProgressWindow() {
     if (sceneUsesPathHistory()) return { start: 1, target: 1 };
-    if (sceneUsesSourcePath()) return { start: _scenePathStartProgress, target: 1 };
-    const sequenceWindow = evidenceSequenceWindow(_sceneBeatId, _evidenceTimeline);
+    if (sceneUsesSourcePath())
+      return { start: _scenePathStartProgress, target: 1 };
+    const sequenceWindow = evidenceSequenceWindow(
+      _sceneBeatId,
+      _evidenceTimeline,
+    );
     if (!sequenceWindow) return null;
     return {
       start: floodProgressForStoryProgress(
@@ -1420,10 +1690,16 @@ export function createBhoteKoshiEventLayer({
 
     const progressWindow = scenePathProgressWindow();
     const startProgress = clampUnit(progressWindow?.start ?? 0);
-    const targetProgress = Math.max(startProgress, clampUnit(progressWindow?.target ?? startProgress));
+    const targetProgress = Math.max(
+      startProgress,
+      clampUnit(progressWindow?.target ?? startProgress),
+    );
     const cameraProgress = clampUnit(Number(seek.cameraProgress) || 0);
     const holdElapsedSec = Math.max(0, Number(seek.holdElapsedSec) || 0);
-    const flightDurationSec = Math.max(0.2, Number(seek.flightDurationSec) || 0.2);
+    const flightDurationSec = Math.max(
+      0.2,
+      Number(seek.flightDurationSec) || 0.2,
+    );
 
     if (sceneUsesPathHistory()) {
       _scenePathRevealProgress = 1;
@@ -1432,34 +1708,57 @@ export function createBhoteKoshiEventLayer({
     }
 
     if (scenePathMovesDuringCamera()) {
-      const authoredDurationSec = Number(_sceneControls.evidencePathTravelDurationSec);
-      const pathDurationSec = Math.max(0.12,
+      const authoredDurationSec = Number(
+        _sceneControls.evidencePathTravelDurationSec,
+      );
+      const pathDurationSec = Math.max(
+        0.12,
         Number.isFinite(authoredDurationSec) && authoredDurationSec > 0
           ? Math.min(authoredDurationSec, flightDurationSec * 0.9)
-          : Math.min(2.5, flightDurationSec * 0.6));
+          : Math.min(2.5, flightDurationSec * 0.6),
+      );
       const cameraElapsedSec = cameraProgress * flightDurationSec;
       const linear = clampUnit(cameraElapsedSec / pathDurationSec);
       const eased = 1 - (1 - linear) ** 2;
-      _scenePathRevealProgress = startProgress + (targetProgress - startProgress) * eased;
-      _sceneRevealProgress = cameraProgress >= 1
-        ? 1
-        : clampUnit(cameraElapsedSec / Math.max(0.25,
-          Number(_sceneControls.evidenceRevealDurationSec) || 0.9));
+      _scenePathRevealProgress =
+        startProgress + (targetProgress - startProgress) * eased;
+      _sceneRevealProgress =
+        cameraProgress >= 1
+          ? 1
+          : clampUnit(
+              cameraElapsedSec /
+                Math.max(
+                  0.25,
+                  Number(_sceneControls.evidenceRevealDurationSec) || 0.9,
+                ),
+            );
       return true;
     }
 
-    const mediaDurationSec = _sceneControls.evidenceMediaAutoplay === true
-      ? Math.max(SCENE_MEDIA_MIN_PLAYBACK_SECONDS,
-        Number(_sceneControls.mediaPlaybackHoldSec) || 0)
-      : 0;
-    const exitDurationSec = _sceneControls.evidenceMediaAutoplay === true
-      ? Math.max(SCENE_MEDIA_EXIT_SECONDS, Number(_sceneControls.mediaExitDurationSec) || 0)
-      : 0;
-    const pathDurationSec = Math.max(0.25, Number(
-      sceneUsesSourcePath() ? _sceneControls.evidencePathDurationSec
-        : sceneEvidenceSequenceAnimates() ? _sceneControls.evidenceSequenceDurationSec
-          : _sceneControls.evidenceRevealDurationSec,
-    ) || 0.9);
+    const mediaDurationSec =
+      _sceneControls.evidenceMediaAutoplay === true
+        ? Math.max(
+            SCENE_MEDIA_MIN_PLAYBACK_SECONDS,
+            Number(_sceneControls.mediaPlaybackHoldSec) || 0,
+          )
+        : 0;
+    const exitDurationSec =
+      _sceneControls.evidenceMediaAutoplay === true
+        ? Math.max(
+            SCENE_MEDIA_EXIT_SECONDS,
+            Number(_sceneControls.mediaExitDurationSec) || 0,
+          )
+        : 0;
+    const pathDurationSec = Math.max(
+      0.25,
+      Number(
+        sceneUsesSourcePath()
+          ? _sceneControls.evidencePathDurationSec
+          : sceneEvidenceSequenceAnimates()
+            ? _sceneControls.evidenceSequenceDurationSec
+            : _sceneControls.evidenceRevealDurationSec,
+      ) || 0.9,
+    );
     const pathStartSec = Math.max(
       0,
       Number(_sceneControls.evidencePathStartDelaySec) || 0,
@@ -1469,14 +1768,16 @@ export function createBhoteKoshiEventLayer({
     );
     const linear = clampUnit((holdElapsedSec - pathStartSec) / pathDurationSec);
     _sceneRevealProgress = smoothstep(0, 1, linear);
-    _scenePathRevealProgress = startProgress
-      + (targetProgress - startProgress) * _sceneRevealProgress;
+    _scenePathRevealProgress =
+      startProgress + (targetProgress - startProgress) * _sceneRevealProgress;
     const sequenceWindow = sceneEvidenceSequenceAnimates()
       ? evidenceSequenceWindow(_sceneBeatId, _evidenceTimeline)
       : null;
     if (sequenceWindow) {
-      _progress = sequenceWindow.startProgress
-        + (sequenceWindow.targetProgress - sequenceWindow.startProgress) * _sceneRevealProgress;
+      _progress =
+        sequenceWindow.startProgress +
+        (sequenceWindow.targetProgress - sequenceWindow.startProgress) *
+          _sceneRevealProgress;
     }
     return true;
   }
@@ -1489,7 +1790,10 @@ export function createBhoteKoshiEventLayer({
     const progressWindow = scenePathProgressWindow();
     if (!progressWindow) return;
     const startProgress = clampUnit(progressWindow.start);
-    const targetProgress = Math.max(startProgress, clampUnit(progressWindow.target));
+    const targetProgress = Math.max(
+      startProgress,
+      clampUnit(progressWindow.target),
+    );
     _scenePathRevealProgress = startProgress;
     updateFloodTrace(_scenePathRevealProgress);
     updateSurgeFront(_scenePathRevealProgress);
@@ -1503,17 +1807,21 @@ export function createBhoteKoshiEventLayer({
     // travel timing when supplied, bounded by the actual flight so the amber
     // head always finishes ahead of the camera rather than sharing one global
     // speed across every segment.
-    const authoredDurationSec = Number(_sceneControls.evidencePathTravelDurationSec);
-    const durationSec = Number.isFinite(authoredDurationSec) && authoredDurationSec > 0
-      ? Math.min(authoredDurationSec, travelDurationSec * 0.9)
-      : Math.min(2.5, travelDurationSec * 0.6);
+    const authoredDurationSec = Number(
+      _sceneControls.evidencePathTravelDurationSec,
+    );
+    const durationSec =
+      Number.isFinite(authoredDurationSec) && authoredDurationSec > 0
+        ? Math.min(authoredDurationSec, travelDurationSec * 0.9)
+        : Math.min(2.5, travelDurationSec * 0.6);
     const durationMs = Math.max(120, durationSec * 1000);
     const travelId = travel.id;
     let lastTickAt = performance.now();
     let activeElapsedMs = 0;
     const accrueActiveTime = (now) => {
       const tickAt = Math.max(lastTickAt, Number(now) || lastTickAt);
-      if (!sceneMediaPlaybackBlocksPath()) activeElapsedMs += tickAt - lastTickAt;
+      if (!sceneMediaPlaybackBlocksPath())
+        activeElapsedMs += tickAt - lastTickAt;
       lastTickAt = tickAt;
       return activeElapsedMs;
     };
@@ -1524,32 +1832,36 @@ export function createBhoteKoshiEventLayer({
     // blocked render loop still establishes the complete tail before arrival.
     const finishAtDeadline = () => {
       const currentTravel = _sceneControls.cameraTravel;
-      if (!_enabled
-          || !scenePathMovesDuringCamera()
-          || !currentTravel?.active
-          || currentTravel.cancelled
-          || currentTravel.id !== travelId) return;
+      if (
+        !_enabled ||
+        !scenePathMovesDuringCamera() ||
+        !currentTravel?.active ||
+        currentTravel.cancelled ||
+        currentTravel.id !== travelId
+      )
+        return;
       const remainingMs = durationMs - accrueActiveTime(performance.now());
       if (remainingMs > 0) {
-        _scenePathDeadlineTimer = globalThis.window?.setTimeout?.(
-          finishAtDeadline,
-          Math.max(32, remainingMs),
-        ) ?? null;
+        _scenePathDeadlineTimer =
+          globalThis.window?.setTimeout?.(
+            finishAtDeadline,
+            Math.max(32, remainingMs),
+          ) ?? null;
         return;
       }
       finishScenePathReveal(targetProgress, 'bhote-koshi-scene-path-deadline');
     };
-    _scenePathDeadlineTimer = globalThis.window?.setTimeout?.(
-      finishAtDeadline,
-      durationMs,
-    ) ?? null;
+    _scenePathDeadlineTimer =
+      globalThis.window?.setTimeout?.(finishAtDeadline, durationMs) ?? null;
     const step = (now) => {
       const currentTravel = _sceneControls.cameraTravel;
-      if (!_enabled
-          || !scenePathMovesDuringCamera()
-          || !currentTravel?.active
-          || currentTravel.cancelled
-          || currentTravel.id !== travelId) {
+      if (
+        !_enabled ||
+        !scenePathMovesDuringCamera() ||
+        !currentTravel?.active ||
+        currentTravel.cancelled ||
+        currentTravel.id !== travelId
+      ) {
         stopScenePathReveal();
         return;
       }
@@ -1558,15 +1870,18 @@ export function createBhoteKoshiEventLayer({
       // the camera reaches it. Combined with the shorter travel window, this
       // keeps the front alongside or ahead of a normally eased Cesium flight.
       const eased = 1 - (1 - linear) ** 2;
-      _scenePathRevealProgress = startProgress
-        + (targetProgress - startProgress) * eased;
+      _scenePathRevealProgress =
+        startProgress + (targetProgress - startProgress) * eased;
       updateFloodTrace(_scenePathRevealProgress);
       updateSurgeFront(_scenePathRevealProgress);
       renderHost.request('bhote-koshi-scene-path-travel');
       if (linear < 1) {
         _scenePathAnimationFrame = requestAnimationFrame(step);
       } else {
-        finishScenePathReveal(targetProgress, 'bhote-koshi-scene-path-complete');
+        finishScenePathReveal(
+          targetProgress,
+          'bhote-koshi-scene-path-complete',
+        );
       }
     };
     _scenePathAnimationFrame = requestAnimationFrame(step);
@@ -1575,16 +1890,20 @@ export function createBhoteKoshiEventLayer({
   function startSceneEvidenceReveal() {
     stopSceneEvidenceReveal();
     const sequenceAnimates = sceneEvidenceSequenceAnimates();
-    if ((!sequenceAnimates && !sceneEvidenceDefersUntilCameraSettles())
-        || !sceneEvidenceCameraSettled()) return;
+    if (
+      (!sequenceAnimates && !sceneEvidenceDefersUntilCameraSettles()) ||
+      !sceneEvidenceCameraSettled()
+    )
+      return;
     const sequenceWindow = sequenceAnimates
       ? evidenceSequenceWindow(_sceneBeatId, _evidenceTimeline)
       : null;
     if (sequenceAnimates && !sequenceWindow) return;
     _sceneRevealProgress = 0;
-    const sourceWindow = sceneUsesSourcePath() || sceneUsesPathHistory()
-      ? scenePathProgressWindow()
-      : null;
+    const sourceWindow =
+      sceneUsesSourcePath() || sceneUsesPathHistory()
+        ? scenePathProgressWindow()
+        : null;
     // The independent travel clock owns persistent path motion. Older beats
     // retain the arrival-gated reveal behavior for both card and path.
     if (!scenePathMovesDuringCamera()) {
@@ -1595,40 +1914,51 @@ export function createBhoteKoshiEventLayer({
     const durationMs = Math.max(
       250,
       (Number(
-        sceneUsesSourcePath() ? _sceneControls.evidencePathDurationSec : sequenceAnimates
-          ? _sceneControls.evidenceSequenceDurationSec
-          : _sceneControls.evidenceRevealDurationSec,
+        sceneUsesSourcePath()
+          ? _sceneControls.evidencePathDurationSec
+          : sequenceAnimates
+            ? _sceneControls.evidenceSequenceDurationSec
+            : _sceneControls.evidenceRevealDurationSec,
       ) || 0.9) * 1000,
     );
-    const targetFloodProgress = sourceWindow ? sourceWindow.target
-      : _sceneControls.evidencePath === 'none' ? 0
-        : floodProgressForStoryProgress(_progress, _event?.reconstruction?.storyFloodWindow);
+    const targetFloodProgress = sourceWindow
+      ? sourceWindow.target
+      : _sceneControls.evidencePath === 'none'
+        ? 0
+        : floodProgressForStoryProgress(
+            _progress,
+            _event?.reconstruction?.storyFloodWindow,
+          );
     if (sequenceWindow) updateProgress(sequenceWindow.startProgress);
     let lastTickAt = performance.now();
     let activeElapsedMs = 0;
     renderHost.hold(SCENE_REVEAL_RENDER_HOLD);
     _sceneRevealHoldActive = true;
     const step = (now) => {
-      if (!_enabled
-          || !sceneEvidenceCameraSettled()
-          || (sequenceAnimates && !sceneEvidenceSequenceAnimates())) {
+      if (
+        !_enabled ||
+        !sceneEvidenceCameraSettled() ||
+        (sequenceAnimates && !sceneEvidenceSequenceAnimates())
+      ) {
         stopSceneEvidenceReveal();
         return;
       }
       const tickAt = Math.max(lastTickAt, Number(now) || lastTickAt);
-      if (!sceneMediaPlaybackBlocksPath()) activeElapsedMs += tickAt - lastTickAt;
+      if (!sceneMediaPlaybackBlocksPath())
+        activeElapsedMs += tickAt - lastTickAt;
       lastTickAt = tickAt;
       const linear = clampUnit(activeElapsedMs / durationMs);
       _sceneRevealProgress = smoothstep(0, 1, linear);
       if (sequenceWindow) {
         updateProgress(
-          sequenceWindow.startProgress
-          + (sequenceWindow.targetProgress - sequenceWindow.startProgress) * _sceneRevealProgress,
+          sequenceWindow.startProgress +
+            (sequenceWindow.targetProgress - sequenceWindow.startProgress) *
+              _sceneRevealProgress,
         );
       } else if (!scenePathMovesDuringCamera()) {
         const floodProgress = sourceWindow
-          ? sourceWindow.start
-            + (sourceWindow.target - sourceWindow.start) * _sceneRevealProgress
+          ? sourceWindow.start +
+            (sourceWindow.target - sourceWindow.start) * _sceneRevealProgress
           : targetFloodProgress * _sceneRevealProgress;
         updateFloodTrace(floodProgress);
         updateSurgeFront(floodProgress);
@@ -1647,22 +1977,42 @@ export function createBhoteKoshiEventLayer({
 
   function stopEvidenceVideoFrameLoop(video = _evidenceVideo) {
     if (_evidenceVideoFrameHandle == null) return;
-    try { video?.cancelVideoFrameCallback?.(_evidenceVideoFrameHandle); } catch {}
+    try {
+      video?.cancelVideoFrameCallback?.(_evidenceVideoFrameHandle);
+    } catch {}
     _evidenceVideoFrameHandle = null;
   }
 
-  function startEvidenceVideoFrameLoop(video, index, generation, clipIn, clipDuration) {
-    if (!sceneEvidenceMediaAutoplays()
-        || typeof video?.requestVideoFrameCallback !== 'function'
-        || _evidenceVideoFrameHandle != null) return;
+  function startEvidenceVideoFrameLoop(
+    video,
+    index,
+    generation,
+    clipIn,
+    clipDuration,
+  ) {
+    if (
+      !sceneEvidenceMediaAutoplays() ||
+      typeof video?.requestVideoFrameCallback !== 'function' ||
+      _evidenceVideoFrameHandle != null
+    )
+      return;
     const drawFrame = () => {
       _evidenceVideoFrameHandle = null;
-      if (!_enabled || generation !== _evidenceVideoGeneration
-          || video !== _evidenceVideo || !sceneEvidenceMediaAutoplays()) return;
-      if (redrawEvidenceSlot(index, video, {
-        videoActive: true,
-        mediaProgress: clampUnit(((Number(video.currentTime) || 0) - clipIn) / clipDuration),
-      })) {
+      if (
+        !_enabled ||
+        generation !== _evidenceVideoGeneration ||
+        video !== _evidenceVideo ||
+        !sceneEvidenceMediaAutoplays()
+      )
+        return;
+      if (
+        redrawEvidenceSlot(index, video, {
+          videoActive: true,
+          mediaProgress: clampUnit(
+            ((Number(video.currentTime) || 0) - clipIn) / clipDuration,
+          ),
+        })
+      ) {
         renderHost.request('bhote-koshi-evidence-video-frame');
       }
       _evidenceVideoFrameHandle = video.requestVideoFrameCallback(drawFrame);
@@ -1679,13 +2029,19 @@ export function createBhoteKoshiEventLayer({
     _evidenceVideoIndex = -1;
     _evidenceVideoReady = false;
     if (video) {
-      try { video.pause(); } catch {}
+      try {
+        video.pause();
+      } catch {}
       try {
         video.removeAttribute?.('src');
         video.load?.();
       } catch {}
     }
-    if (restorePoster && previousIndex >= 0 && redrawEvidenceSlot(previousIndex)) {
+    if (
+      restorePoster &&
+      previousIndex >= 0 &&
+      redrawEvidenceSlot(previousIndex)
+    ) {
       renderHost.request('bhote-koshi-evidence-poster-restore');
     }
   }
@@ -1707,14 +2063,24 @@ export function createBhoteKoshiEventLayer({
     video.preload = 'auto';
     video.loop = true;
     const markReady = () => {
-      if (!_enabled || generation !== _evidenceVideoGeneration || video !== _evidenceVideo) return;
+      if (
+        !_enabled ||
+        generation !== _evidenceVideoGeneration ||
+        video !== _evidenceVideo
+      )
+        return;
       _evidenceVideoReady = true;
       renderHost.request('bhote-koshi-evidence-video-ready');
       syncEvidenceMedia();
     };
     video.addEventListener?.('loadeddata', markReady, { once: true });
     video.addEventListener?.('seeked', () => {
-      if (!_enabled || generation !== _evidenceVideoGeneration || video !== _evidenceVideo) return;
+      if (
+        !_enabled ||
+        generation !== _evidenceVideoGeneration ||
+        video !== _evidenceVideo
+      )
+        return;
       renderHost.request('bhote-koshi-evidence-video-seek');
     });
     video.src = eventAsset(videoPath);
@@ -1722,8 +2088,12 @@ export function createBhoteKoshiEventLayer({
   }
 
   function syncEvidenceMedia() {
-    if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-        && !_evidenceTimeline.some(({ observation }) => observation.id === _sceneBeatId)) {
+    if (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      !_evidenceTimeline.some(
+        ({ observation }) => observation.id === _sceneBeatId,
+      )
+    ) {
       releaseEvidenceVideo();
       _embeddedEvidenceIndex = -1;
       _embeddedMedia?.hide?.({ immediate: true });
@@ -1732,9 +2102,12 @@ export function createBhoteKoshiEventLayer({
     if (!sceneEvidenceCameraSettled()) {
       releaseEvidenceVideo();
       _embeddedEvidenceIndex = -1;
-      _embeddedMedia?.hide?.();
-      if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-          && _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT) {
+      const warmingEvidence =
+        _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+        _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT;
+      // Keep the same preload across camera frames; stop/disable still cancels it.
+      _embeddedMedia?.hide?.({ preserveWarm: warmingEvidence });
+      if (warmingEvidence) {
         const upcoming = _evidenceTimeline.find(
           ({ observation }) => observation.id === _sceneBeatId,
         )?.observation;
@@ -1746,16 +2119,22 @@ export function createBhoteKoshiEventLayer({
       }
       return;
     }
-    if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-        && _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT) {
+    if (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+    ) {
       releaseEvidenceVideo();
       _embeddedEvidenceIndex = -1;
       _embeddedMedia?.hide?.();
       return;
     }
-    const index = _presentation === BHOTE_KOSHI_SCENE_PRESENTATION && _sceneControls.evidenceHoldCard
-      ? _evidenceTimeline.findIndex(({ observation }) => observation.id === _sceneBeatId)
-      : activeEvidenceIndex(_progress, _evidenceTimeline);
+    const index =
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneControls.evidenceHoldCard
+        ? _evidenceTimeline.findIndex(
+            ({ observation }) => observation.id === _sceneBeatId,
+          )
+        : activeEvidenceIndex(_progress, _evidenceTimeline);
     if (index < 0) {
       releaseEvidenceVideo();
       _embeddedEvidenceIndex = -1;
@@ -1768,7 +2147,10 @@ export function createBhoteKoshiEventLayer({
       _embeddedMedia?.hide?.({ immediate: true });
       return;
     }
-    if (_evidenceTimeline[index]?.observation?.id === _sceneMediaPlaybackCompletedBeatId) {
+    if (
+      _evidenceTimeline[index]?.observation?.id ===
+      _sceneMediaPlaybackCompletedBeatId
+    ) {
       if (_evidenceVideo || _evidenceVideoIndex >= 0) {
         releaseEvidenceVideo({ restorePoster: false });
       }
@@ -1790,13 +2172,15 @@ export function createBhoteKoshiEventLayer({
     const mediaDuration = Number(video.duration);
     const clipOut = Number.isFinite(declaredOut)
       ? Math.max(clipIn + 0.1, declaredOut)
-      : Number.isFinite(mediaDuration) ? Math.max(clipIn + 0.1, mediaDuration) : clipIn + 4;
+      : Number.isFinite(mediaDuration)
+        ? Math.max(clipIn + 0.1, mediaDuration)
+        : clipIn + 4;
     const clipDuration = clipOut - clipIn;
     const targetTime = clipIn + presentation.localProgress * clipDuration;
     const beatDuration = Math.max(
       0.1,
-      (Math.min(1, beat.deactivationProgress) - beat.activationProgress)
-        * BHOTE_KOSHI_PLAYBACK_SECONDS,
+      (Math.min(1, beat.deactivationProgress) - beat.activationProgress) *
+        BHOTE_KOSHI_PLAYBACK_SECONDS,
     );
     const sceneAutoplay = sceneEvidenceMediaAutoplays();
     video.playbackRate = sceneAutoplay
@@ -1804,13 +2188,22 @@ export function createBhoteKoshiEventLayer({
       : Math.max(0.5, Math.min(2, clipDuration / beatDuration));
     if (!_playing && !sceneAutoplay) {
       stopEvidenceVideoFrameLoop(video);
-      try { video.pause(); } catch {}
+      try {
+        video.pause();
+      } catch {}
       if (Math.abs((Number(video.currentTime) || 0) - targetTime) > 0.04) {
-        try { video.currentTime = targetTime; } catch {}
+        try {
+          video.currentTime = targetTime;
+        } catch {}
       }
     } else {
-      if (_playing && Math.abs((Number(video.currentTime) || 0) - targetTime) > 0.42) {
-        try { video.currentTime = targetTime; } catch {}
+      if (
+        _playing &&
+        Math.abs((Number(video.currentTime) || 0) - targetTime) > 0.42
+      ) {
+        try {
+          video.currentTime = targetTime;
+        } catch {}
       }
       if (video.paused) {
         try {
@@ -1820,13 +2213,21 @@ export function createBhoteKoshiEventLayer({
         } catch {}
       }
       if (sceneAutoplay) {
-        startEvidenceVideoFrameLoop(video, index, _evidenceVideoGeneration, clipIn, clipDuration);
+        startEvidenceVideoFrameLoop(
+          video,
+          index,
+          _evidenceVideoGeneration,
+          clipIn,
+          clipDuration,
+        );
       }
     }
-    if (redrawEvidenceSlot(index, video, {
-      videoActive: true,
-      mediaProgress: presentation.localProgress,
-    })) {
+    if (
+      redrawEvidenceSlot(index, video, {
+        videoActive: true,
+        mediaProgress: presentation.localProgress,
+      })
+    ) {
       renderHost.request('bhote-koshi-evidence-video-frame');
     }
   }
@@ -1884,7 +2285,12 @@ export function createBhoteKoshiEventLayer({
         minDistance: 0,
         maxDistance: 220000,
         distanceFadeStartRatio: 0.82,
-        distanceScale: { near: 1200, nearValue: 1, far: 180000, farValue: 0.72 },
+        distanceScale: {
+          near: 1200,
+          nearValue: 1,
+          far: 180000,
+          farValue: 0.72,
+        },
         edgeFade: 'keyhole',
         horizonCull: true,
         terrainOcclusion: true,
@@ -1893,8 +2299,11 @@ export function createBhoteKoshiEventLayer({
         anchorGapPaddingPx: 26,
         // This short upstream reach sits immediately above its witness pin.
         // Keep the landscape card below it rather than hiding the whole path.
-        placement: _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-          && observation.id === 'debris-dammed-lake' ? 'below' : 'right',
+        placement:
+          _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+          observation.id === 'debris-dammed-lake'
+            ? 'below'
+            : 'right',
         verticalOnly: false,
         leaderStyle: 'elbow',
         viewportMargin: 18,
@@ -1913,7 +2322,12 @@ export function createBhoteKoshiEventLayer({
         minDistance: 0,
         maxDistance: 260000,
         distanceFadeStartRatio: 0.7,
-        distanceScale: { near: 1800, nearValue: 1, far: 220000, farValue: 0.66 },
+        distanceScale: {
+          near: 1800,
+          nearValue: 1,
+          far: 220000,
+          farValue: 0.66,
+        },
         edgeFade: 'keyhole',
         horizonCull: true,
         terrainOcclusion: true,
@@ -1928,59 +2342,78 @@ export function createBhoteKoshiEventLayer({
     });
     overlayHost.setVisible(
       BHOTE_KOSHI_OVERLAY_SOURCE_ID,
-      _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION
-        || _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT,
+      _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION ||
+        _sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT,
     );
   }
 
   async function loadEvidencePosters(event, signal, generation) {
     const observations = _evidenceTimeline.map((beat) => beat.observation);
-    await Promise.allSettled(observations.map(async (observation, index) => {
-      const posterUrl = observation.media?.posterPath
-        ? eventAsset(observation.media.posterPath)
-        : observation.media?.posterUrl;
-      if (!posterUrl) return;
-      let poster = null;
-      try {
-        poster = await mediaLoader(posterUrl, { signal });
-        if (signal.aborted || !_enabled || generation !== _mediaGeneration) {
+    await Promise.allSettled(
+      observations.map(async (observation, index) => {
+        const posterUrl = observation.media?.posterPath
+          ? eventAsset(observation.media.posterPath)
+          : observation.media?.posterUrl;
+        if (!posterUrl) return;
+        let poster = null;
+        try {
+          poster = await mediaLoader(posterUrl, { signal });
+          if (signal.aborted || !_enabled || generation !== _mediaGeneration) {
+            closeFrame(poster);
+            return;
+          }
+          const slot = _evidenceFrameSlots[index];
+          if (!slot) {
+            closeFrame(poster);
+            return;
+          }
+          closeFrame(slot.poster);
+          slot.poster = poster;
+          poster = null;
+          if (!redrawEvidenceSlot(index)) return;
+          renderHost.request('bhote-koshi-evidence-poster');
+        } catch (error) {
           closeFrame(poster);
-          return;
+          if (
+            error?.name !== 'AbortError' &&
+            error?.message !== 'Evidence poster decoding is unavailable'
+          ) {
+            console.warn(
+              `[Data:BhoteKoshi] Evidence poster failed for ${observation.id}:`,
+              error,
+            );
+          }
         }
-        const slot = _evidenceFrameSlots[index];
-        if (!slot) {
-          closeFrame(poster);
-          return;
-        }
-        closeFrame(slot.poster);
-        slot.poster = poster;
-        poster = null;
-        if (!redrawEvidenceSlot(index)) return;
-        renderHost.request('bhote-koshi-evidence-poster');
-      } catch (error) {
-        closeFrame(poster);
-        if (
-          error?.name !== 'AbortError'
-          && error?.message !== 'Evidence poster decoding is unavailable'
-        ) {
-          console.warn(`[Data:BhoteKoshi] Evidence poster failed for ${observation.id}:`, error);
-        }
-      }
-    }));
+      }),
+    );
   }
 
   async function prepareEventTerrain(event, signal) {
     _sourceShotPaths = buildSourceShotPaths(event);
-    const elevationOffsetM = _presentation === BHOTE_KOSHI_SCENE_PRESENTATION ? 55 : 8;
-    _terrainPositions = event.reconstruction.corridor.map((point) => (
-      Cesium.Cartesian3.fromDegrees(point.lon, point.lat, point.elevationM + elevationOffsetM)
-    ));
+    const elevationOffsetM =
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION ? 55 : 8;
+    _terrainPositions = event.reconstruction.corridor.map((point) =>
+      Cesium.Cartesian3.fromDegrees(
+        point.lon,
+        point.lat,
+        point.elevationM + elevationOffsetM,
+      ),
+    );
     prepareScenePath();
-    _evidenceTimeline = buildEvidenceTimeline(event.evidenceSpine, event.reconstruction.corridor);
-    const timelineEvent = { ...event, evidenceSpine: _evidenceTimeline.map((beat) => beat.observation) };
+    _evidenceTimeline = buildEvidenceTimeline(
+      event.evidenceSpine,
+      event.reconstruction.corridor,
+    );
+    const timelineEvent = {
+      ...event,
+      evidenceSpine: _evidenceTimeline.map((beat) => beat.observation),
+    };
     _evidenceAnchors = await resolveEvidenceAnchors(timelineEvent, signal);
     throwIfEnableCancelled(signal, _enabled);
-    _cinematicKeyframes = buildCinematicKeyframes(_evidenceTimeline, _evidenceAnchors);
+    _cinematicKeyframes = buildCinematicKeyframes(
+      _evidenceTimeline,
+      _evidenceAnchors,
+    );
     const requestedBeatProgress = evidenceBeatProgress(
       _sceneBeatId,
       _evidenceTimeline,
@@ -1995,7 +2428,9 @@ export function createBhoteKoshiEventLayer({
     _mediaAbortController = new AbortController();
     const mediaController = _mediaAbortController;
     const generation = ++_mediaGeneration;
-    signal?.addEventListener('abort', () => mediaController.abort(), { once: true });
+    signal?.addEventListener('abort', () => mediaController.abort(), {
+      once: true,
+    });
     void loadEvidencePosters(timelineEvent, mediaController.signal, generation);
     updateProgress(_progress);
   }
@@ -2092,7 +2527,10 @@ export function createBhoteKoshiEventLayer({
     splitHandle.type = 'button';
     splitHandle.className = 'bhote-koshi-split-handle';
     splitHandle.setAttribute('role', 'slider');
-    splitHandle.setAttribute('aria-label', 'Historical reference and post-event image divider');
+    splitHandle.setAttribute(
+      'aria-label',
+      'Historical reference and post-event image divider',
+    );
     splitHandle.setAttribute('aria-valuemin', '0');
     splitHandle.setAttribute('aria-valuemax', '100');
     splitHandle.setAttribute('aria-orientation', 'horizontal');
@@ -2108,9 +2546,10 @@ export function createBhoteKoshiEventLayer({
   }
 
   function setSplitFromClientX(clientX) {
-    const viewportWidth = Number(document.documentElement?.clientWidth)
-      || Number(window.innerWidth)
-      || 0;
+    const viewportWidth =
+      Number(document.documentElement?.clientWidth) ||
+      Number(window.innerWidth) ||
+      0;
     if (viewportWidth <= 0 || !Number.isFinite(Number(clientX))) return;
     setSplit(Number(clientX) / viewportWidth);
   }
@@ -2149,9 +2588,18 @@ export function createBhoteKoshiEventLayer({
   }
 
   function applyCinematicCamera() {
-    if (!_cinematicActive || !_viewer?.camera || _cinematicKeyframes.length === 0) return;
+    if (
+      !_cinematicActive ||
+      !_viewer?.camera ||
+      _cinematicKeyframes.length === 0
+    )
+      return;
     if (_lastCinematicProgress === _progress) return;
-    const pose = sampleCinematicPose(_progress, _cinematicKeyframes, _cinematicPose);
+    const pose = sampleCinematicPose(
+      _progress,
+      _cinematicKeyframes,
+      _cinematicPose,
+    );
     if (!pose) return;
     _cinematicOffset.heading = Cesium.Math.toRadians(pose.headingDeg);
     _cinematicOffset.pitch = Cesium.Math.toRadians(pose.pitchDeg);
@@ -2163,7 +2611,11 @@ export function createBhoteKoshiEventLayer({
   function syncCinematicButton() {
     const button = _panelRefs?.cinematicButton;
     if (!button) return;
-    setElementProperty(button, 'textContent', _cinematicActive ? '■ RELEASE CAMERA' : '◉ CINEMATIC');
+    setElementProperty(
+      button,
+      'textContent',
+      _cinematicActive ? '■ RELEASE CAMERA' : '◉ CINEMATIC',
+    );
     setElementAttribute(button, 'aria-pressed', String(_cinematicActive));
   }
 
@@ -2180,7 +2632,10 @@ export function createBhoteKoshiEventLayer({
     return true;
   }
 
-  function stopCinematic({ releaseCamera = true, preserveReplay = false } = {}) {
+  function stopCinematic({
+    releaseCamera = true,
+    preserveReplay = false,
+  } = {}) {
     if (!preserveReplay) _cinematicReplayArmed = false;
     if (!_cinematicActive) {
       syncPanel();
@@ -2188,7 +2643,8 @@ export function createBhoteKoshiEventLayer({
     }
     _cinematicActive = false;
     _lastCinematicProgress = null;
-    if (releaseCamera) _viewer?.camera?.lookAtTransform?.(Cesium.Matrix4.IDENTITY);
+    if (releaseCamera)
+      _viewer?.camera?.lookAtTransform?.(Cesium.Matrix4.IDENTITY);
     syncCinematicButton();
     renderHost.request('bhote-koshi-cinematic-stop');
   }
@@ -2236,9 +2692,13 @@ export function createBhoteKoshiEventLayer({
   }
 
   function handleEvidenceCardClick(event) {
-    if (!_enabled
-        || _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION
-        || _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT) return;
+    if (
+      !isPointerFree() ||
+      !_enabled ||
+      _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION ||
+      _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+    )
+      return;
     const target = _evidenceClickTarget;
     const bounds = target?.getBoundingClientRect?.();
     const offsetX = Number(event?.offsetX);
@@ -2247,10 +2707,14 @@ export function createBhoteKoshiEventLayer({
     const clientY = Number(event?.clientY);
     const x = Number.isFinite(offsetX)
       ? offsetX
-      : Number.isFinite(clientX) && bounds ? clientX - bounds.left : Number.NaN;
+      : Number.isFinite(clientX) && bounds
+        ? clientX - bounds.left
+        : Number.NaN;
     const y = Number.isFinite(offsetY)
       ? offsetY
-      : Number.isFinite(clientY) && bounds ? clientY - bounds.top : Number.NaN;
+      : Number.isFinite(clientY) && bounds
+        ? clientY - bounds.top
+        : Number.NaN;
     const hit = overlayHost.hitTest?.(x, y, {
       sourceId: BHOTE_KOSHI_OVERLAY_SOURCE_ID,
       filter: (entry) => String(entry?.id || '').startsWith('evidence-card-'),
@@ -2265,7 +2729,10 @@ export function createBhoteKoshiEventLayer({
   }
 
   function detachEvidenceCardActivation() {
-    _evidenceClickTarget?.removeEventListener?.('click', handleEvidenceCardClick);
+    _evidenceClickTarget?.removeEventListener?.(
+      'click',
+      handleEvidenceCardClick,
+    );
     _evidenceClickTarget = null;
   }
 
@@ -2277,15 +2744,28 @@ export function createBhoteKoshiEventLayer({
     if (!_enabled || _evidenceTimeline.length === 0) return false;
     invalidateIntroAutostart();
     stopPlayback();
-    const targetIndex = adjacentEvidenceIndex(_progress, _evidenceTimeline, direction);
+    const targetIndex = adjacentEvidenceIndex(
+      _progress,
+      _evidenceTimeline,
+      direction,
+    );
     if (targetIndex < 0) return false;
-    if (_presentation !== BHOTE_KOSHI_SCENE_PRESENTATION && !claimCinematicCamera()) return false;
+    if (
+      _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION &&
+      !claimCinematicCamera()
+    )
+      return false;
     updateProgress(_evidenceTimeline[targetIndex].activationProgress);
     return true;
   }
 
   async function navigateSceneShot(direction) {
-    if (!_sceneController?.loadAdjacentShot || !_sceneContext || _sceneActionPending) return false;
+    if (
+      !_sceneController?.loadAdjacentShot ||
+      !_sceneContext ||
+      _sceneActionPending
+    )
+      return false;
     _sceneActionPending = true;
     syncPanel();
     try {
@@ -2301,11 +2781,15 @@ export function createBhoteKoshiEventLayer({
   }
 
   async function playSceneShot() {
-    if (!_sceneController?.replayShot || !_sceneContext || _sceneActionPending) return false;
+    if (!_sceneController?.replayShot || !_sceneContext || _sceneActionPending)
+      return false;
     _sceneActionPending = true;
     syncPanel();
     try {
-      return await _sceneController.replayShot(_sceneContext.sceneId, _sceneContext.shotId);
+      return await _sceneController.replayShot(
+        _sceneContext.sceneId,
+        _sceneContext.shotId,
+      );
     } finally {
       _sceneActionPending = false;
       syncPanel();
@@ -2313,14 +2797,23 @@ export function createBhoteKoshiEventLayer({
   }
 
   async function playWholeScene() {
-    if (!_enabled || _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION
-        || !_sceneController?.continueScene || !_sceneContext?.sceneId || !_sceneContext?.shotId
-        || _sceneActionPending) return false;
+    if (
+      !_enabled ||
+      _presentation !== BHOTE_KOSHI_SCENE_PRESENTATION ||
+      !_sceneController?.continueScene ||
+      !_sceneContext?.sceneId ||
+      !_sceneContext?.shotId ||
+      _sceneActionPending
+    )
+      return false;
     const action = { type: 'scene' };
     _sceneActionPending = action;
     syncPanel();
     try {
-      return await _sceneController.continueScene(_sceneContext.sceneId, _sceneContext.shotId);
+      return await _sceneController.continueScene(
+        _sceneContext.sceneId,
+        _sceneContext.shotId,
+      );
     } catch (error) {
       console.warn('[Bhote Koshi] Scene playback failed:', error);
       return false;
@@ -2378,13 +2871,20 @@ export function createBhoteKoshiEventLayer({
     }
     _sceneScrubProgress = clampUnit(progress);
     const sceneDurationSec = Number(_sceneContext?.sceneDurationSec) || 0;
-    setElementProperty(_panelRefs?.progressInput, 'value', String(Math.round(_sceneScrubProgress * 1000)));
-    setElementProperty(_panelRefs?.time, 'textContent', (
-      `~${elapsedLabel(_sceneScrubProgress, sceneDurationSec)} / ${elapsedLabel(1, sceneDurationSec)}`
-    ));
+    setElementProperty(
+      _panelRefs?.progressInput,
+      'value',
+      String(Math.round(_sceneScrubProgress * 1000)),
+    );
+    setElementProperty(
+      _panelRefs?.time,
+      'textContent',
+      `~${elapsedLabel(_sceneScrubProgress, sceneDurationSec)} / ${elapsedLabel(1, sceneDurationSec)}`,
+    );
     if (_sceneSeekFrame != null) return;
-    const schedule = globalThis.requestAnimationFrame
-      || ((callback) => globalThis.setTimeout(callback, 16));
+    const schedule =
+      globalThis.requestAnimationFrame ||
+      ((callback) => globalThis.setTimeout(callback, 16));
     _sceneSeekFrame = schedule(() => {
       _sceneSeekFrame = null;
       void commitProgress(_sceneScrubProgress, { final: false });
@@ -2393,8 +2893,12 @@ export function createBhoteKoshiEventLayer({
 
   async function commitProgress(progress, { final = false } = {}) {
     if (_presentation !== BHOTE_KOSHI_SCENE_PRESENTATION) return;
-    if (!_sceneController?.seekScene || !_sceneContext?.sceneId
-        || (_sceneActionPending && !['scene', 'scene-seek'].includes(_sceneActionPending.type))) {
+    if (
+      !_sceneController?.seekScene ||
+      !_sceneContext?.sceneId ||
+      (_sceneActionPending &&
+        !['scene', 'scene-seek'].includes(_sceneActionPending.type))
+    ) {
       syncPanel();
       return;
     }
@@ -2410,12 +2914,19 @@ export function createBhoteKoshiEventLayer({
     _sceneActionPending = action;
     syncPanel();
     try {
-      await _sceneController.seekScene(_sceneContext.sceneId, requestedProgress);
+      await _sceneController.seekScene(
+        _sceneContext.sceneId,
+        requestedProgress,
+      );
     } catch (error) {
       console.warn('[Bhote Koshi] Scene clock seek failed:', error);
     } finally {
-      if (generation === _sceneSeekGeneration && final) _sceneScrubProgress = null;
-      if (_sceneActionPending === action && generation === _sceneSeekGeneration) {
+      if (generation === _sceneSeekGeneration && final)
+        _sceneScrubProgress = null;
+      if (
+        _sceneActionPending === action &&
+        generation === _sceneSeekGeneration
+      ) {
         _sceneActionPending = false;
         syncPanel();
       }
@@ -2424,7 +2935,8 @@ export function createBhoteKoshiEventLayer({
 
   function openActiveEvidenceSource() {
     const beatIndex = currentEvidenceIndex();
-    const sourceUrl = _evidenceTimeline[beatIndex]?.observation?.media?.sourceUrl;
+    const sourceUrl =
+      _evidenceTimeline[beatIndex]?.observation?.media?.sourceUrl;
     if (!sourceUrl) return false;
     openExternal(sourceUrl);
     return true;
@@ -2440,51 +2952,104 @@ export function createBhoteKoshiEventLayer({
   function syncPanel() {
     if (!_panelRefs || !_event) return;
     const sceneDirected = _presentation === BHOTE_KOSHI_SCENE_PRESENTATION;
-    const sceneClockProgress = clampUnit(Number(_sceneContext?.sceneProgress) || 0);
-    const visibleSceneProgress = _sceneScrubProgress == null
-      ? sceneClockProgress
-      : clampUnit(_sceneScrubProgress);
+    const sceneClockProgress = clampUnit(
+      Number(_sceneContext?.sceneProgress) || 0,
+    );
+    const visibleSceneProgress =
+      _sceneScrubProgress == null
+        ? sceneClockProgress
+        : clampUnit(_sceneScrubProgress);
     const displayProgress = sceneDirected ? visibleSceneProgress : _progress;
-    setElementProperty(_panelRefs.progressInput, 'value', String(Math.round(displayProgress * 1000)));
-    setElementProperty(_panelRefs.progressInput, 'disabled', sceneDirected && (
-      !_sceneController?.seekScene || !_sceneContext?.sceneId
-      || Boolean(_sceneActionPending && !['scene', 'scene-seek'].includes(_sceneActionPending.type))
-    ));
-    setElementAttribute(_panelRefs.progressInput, 'aria-label', sceneDirected
-      ? 'Seek Nepal scene clock'
-      : 'Schematic downstream progression');
-    setElementProperty(_panelRefs.timelineLabel, 'textContent', (
-      sceneDirected ? 'NEPAL SCENE CLOCK' : 'RECONSTRUCTION CLOCK'
-    ));
+    setElementProperty(
+      _panelRefs.progressInput,
+      'value',
+      String(Math.round(displayProgress * 1000)),
+    );
+    setElementProperty(
+      _panelRefs.progressInput,
+      'disabled',
+      sceneDirected &&
+        (!_sceneController?.seekScene ||
+          !_sceneContext?.sceneId ||
+          Boolean(
+            _sceneActionPending &&
+            !['scene', 'scene-seek'].includes(_sceneActionPending.type),
+          )),
+    );
+    setElementAttribute(
+      _panelRefs.progressInput,
+      'aria-label',
+      sceneDirected
+        ? 'Seek Nepal scene clock'
+        : 'Schematic downstream progression',
+    );
+    setElementProperty(
+      _panelRefs.timelineLabel,
+      'textContent',
+      sceneDirected ? 'NEPAL SCENE CLOCK' : 'RECONSTRUCTION CLOCK',
+    );
     const sceneDuration = Number(_sceneContext?.sceneDurationSec) || 0;
-    setElementProperty(_panelRefs.time, 'textContent', sceneDirected
-      ? (`~${elapsedLabel(visibleSceneProgress, sceneDuration)} / ${elapsedLabel(1, sceneDuration)}`)
-      : (`~${elapsedLabel(_progress, _event.reconstruction.elapsedSeconds)} / `
-        + elapsedLabel(1, _event.reconstruction.elapsedSeconds)));
+    setElementProperty(
+      _panelRefs.time,
+      'textContent',
+      sceneDirected
+        ? `~${elapsedLabel(visibleSceneProgress, sceneDuration)} / ${elapsedLabel(1, sceneDuration)}`
+        : `~${elapsedLabel(_progress, _event.reconstruction.elapsedSeconds)} / ` +
+            elapsedLabel(1, _event.reconstruction.elapsedSeconds),
+    );
     const playLabel = sceneDirected
-      ? (_sceneActionPending && _sceneActionPending.type !== 'scene' ? '… PLAYING SHOT' : '▶ PLAY SHOT')
-      : (_playing
+      ? _sceneActionPending && _sceneActionPending.type !== 'scene'
+        ? '… PLAYING SHOT'
+        : '▶ PLAY SHOT'
+      : _playing
         ? 'Ⅱ PAUSE'
-        : (_progress >= 1
-          ? (_cinematicReplayArmed ? '↺ REPLAY CINEMATIC' : '↺ REPLAY')
-          : '▶ PLAY'));
+        : _progress >= 1
+          ? _cinematicReplayArmed
+            ? '↺ REPLAY CINEMATIC'
+            : '↺ REPLAY'
+          : '▶ PLAY';
     setElementProperty(_panelRefs.playButton, 'textContent', playLabel);
-    setElementProperty(_panelRefs.playSceneButton, 'textContent',
-      _sceneActionPending?.type === 'scene' ? '… PLAYING SCENE' : '▶ PLAY SCENE');
-    setElementProperty(_panelRefs.playSceneButton, 'disabled', !sceneDirected
-      || !_sceneController?.continueScene || !_sceneContext?.sceneId || !_sceneContext?.shotId
-      || Number(_sceneContext.shotIndex) >= Number(_sceneContext.shotCount) - 1
-      || Boolean(_sceneActionPending));
-    setElementAttribute(_panelRefs.playSceneButton, 'aria-label',
-      `Continue ${_sceneContext?.sceneTitle || 'current scene'} from next shot`);
-    setElementProperty(_panelRefs.storyReplayButton, 'textContent', '↺ FULL STORY');
+    setElementProperty(
+      _panelRefs.playSceneButton,
+      'textContent',
+      _sceneActionPending?.type === 'scene'
+        ? '… PLAYING SCENE'
+        : '▶ PLAY SCENE',
+    );
+    setElementProperty(
+      _panelRefs.playSceneButton,
+      'disabled',
+      !sceneDirected ||
+        !_sceneController?.continueScene ||
+        !_sceneContext?.sceneId ||
+        !_sceneContext?.shotId ||
+        Number(_sceneContext.shotIndex) >=
+          Number(_sceneContext.shotCount) - 1 ||
+        Boolean(_sceneActionPending),
+    );
+    setElementAttribute(
+      _panelRefs.playSceneButton,
+      'aria-label',
+      `Continue ${_sceneContext?.sceneTitle || 'current scene'} from next shot`,
+    );
+    setElementProperty(
+      _panelRefs.storyReplayButton,
+      'textContent',
+      '↺ FULL STORY',
+    );
     if (!sceneDirected) {
       setElementProperty(_panelRefs.storyReplayButton, 'disabled', false);
-      setElementAttribute(_panelRefs.storyReplayButton, 'aria-label', 'Replay the full reconstruction');
+      setElementAttribute(
+        _panelRefs.storyReplayButton,
+        'aria-label',
+        'Replay the full reconstruction',
+      );
     }
     const beatIndex = currentEvidenceIndex();
     const sceneBeatIndex = sceneDirected
-      ? _evidenceTimeline.findIndex(({ observation: item }) => item.id === _sceneBeatId)
+      ? _evidenceTimeline.findIndex(
+          ({ observation: item }) => item.id === _sceneBeatId,
+        )
       : beatIndex;
     const observation = _evidenceTimeline[sceneBeatIndex]?.observation || null;
     const sceneShotIndex = Math.max(0, Number(_sceneContext?.shotIndex) || 0);
@@ -2492,14 +3057,18 @@ export function createBhoteKoshiEventLayer({
       ? Math.max(0, Number(_sceneContext?.shotCount) || 0)
       : _evidenceTimeline.length;
     const displayIndex = sceneDirected ? sceneShotIndex : beatIndex;
-    setElementProperty(_panelRefs.beatIndex, 'textContent', (
-      `${String(displayIndex + 1).padStart(2, '0')} / ${String(beatCount).padStart(2, '0')}`
-    ));
-    setElementProperty(_panelRefs.beatTitle, 'textContent', (
+    setElementProperty(
+      _panelRefs.beatIndex,
+      'textContent',
+      `${String(displayIndex + 1).padStart(2, '0')} / ${String(beatCount).padStart(2, '0')}`,
+    );
+    setElementProperty(
+      _panelRefs.beatTitle,
+      'textContent',
       sceneDirected
-        ? (_sceneContext?.shotTitle || 'SCENE SHOT')
-        : (observation?.shortTitle || observation?.title || 'EVIDENCE')
-    ));
+        ? _sceneContext?.shotTitle || 'SCENE SHOT'
+        : observation?.shortTitle || observation?.title || 'EVIDENCE',
+    );
     const sourceCount = Math.max(
       0,
       Math.floor(Number(observation?.corroboration?.sourceCount) || 0),
@@ -2509,25 +3078,42 @@ export function createBhoteKoshiEventLayer({
       'TIME UNVERIFIED',
       sourceCount > 1 ? `${sourceCount} SOURCES` : '',
       observation?.imageryCoverage === 'outside' ? 'OUTSIDE IMAGERY SWIPE' : '',
-    ].filter(Boolean).join(' / ');
-    setElementProperty(_panelRefs.beatMeta, 'textContent', sceneDirected
-      ? `${String(_sceneContext?.sceneTitle || 'NEPAL FLOOD INCIDENT').toUpperCase()} / AUTHORED SHOT`
-      : beatMeta);
-    setElementProperty(_panelRefs.previousButton, 'disabled', (
-      Boolean(_sceneActionPending) || displayIndex <= 0
-    ));
+    ]
+      .filter(Boolean)
+      .join(' / ');
+    setElementProperty(
+      _panelRefs.beatMeta,
+      'textContent',
+      sceneDirected
+        ? `${String(_sceneContext?.sceneTitle || 'NEPAL FLOOD INCIDENT').toUpperCase()} / AUTHORED SHOT`
+        : beatMeta,
+    );
+    setElementProperty(
+      _panelRefs.previousButton,
+      'disabled',
+      Boolean(_sceneActionPending) || displayIndex <= 0,
+    );
     setElementProperty(
       _panelRefs.nextButton,
       'disabled',
-      Boolean(_sceneActionPending) || beatCount === 0 || displayIndex >= beatCount - 1,
+      Boolean(_sceneActionPending) ||
+        beatCount === 0 ||
+        displayIndex >= beatCount - 1,
     );
-    setElementProperty(_panelRefs.playButton, 'disabled', (
-      sceneDirected && (!_sceneController?.replayShot || !_sceneContext || Boolean(_sceneActionPending))
-    ));
+    setElementProperty(
+      _panelRefs.playButton,
+      'disabled',
+      sceneDirected &&
+        (!_sceneController?.replayShot ||
+          !_sceneContext ||
+          Boolean(_sceneActionPending)),
+    );
     setElementAttribute(
       _panelRefs.playButton,
       'aria-label',
-      sceneDirected ? `Play ${_sceneContext?.shotTitle || 'current scene shot'}` : 'Play reconstruction',
+      sceneDirected
+        ? `Play ${_sceneContext?.shotTitle || 'current scene shot'}`
+        : 'Play reconstruction',
     );
     setElementAttribute(
       _panelRefs.previousButton,
@@ -2539,9 +3125,17 @@ export function createBhoteKoshiEventLayer({
       'aria-label',
       sceneDirected ? 'Load next scene shot' : 'Next story beat',
     );
-    setElementProperty(_panelRefs.openSourceButton, 'disabled', !observation?.media?.sourceUrl);
+    setElementProperty(
+      _panelRefs.openSourceButton,
+      'disabled',
+      !observation?.media?.sourceUrl,
+    );
     syncCinematicButton();
-    setElementProperty(_panelRefs.splitInput, 'value', String(Math.round(_split * 100)));
+    setElementProperty(
+      _panelRefs.splitInput,
+      'value',
+      String(Math.round(_split * 100)),
+    );
     const beforePercent = Math.round(_split * 100);
     setElementProperty(
       _panelRefs.splitReadout,
@@ -2552,50 +3146,73 @@ export function createBhoteKoshiEventLayer({
 
   function syncPresentationMode() {
     const sceneDirected = _presentation === BHOTE_KOSHI_SCENE_PRESENTATION;
-    const imageryAvailable = !sceneDirected || _sceneControls.imageryComparison === true;
-    const scrubberAvailable = !sceneDirected || Boolean(_sceneController?.seekScene);
-    const knownSceneBeat = !sceneDirected || _evidenceTimeline.some(
-      ({ observation }) => observation.id === _sceneBeatId,
-    );
-    const evidenceAvailable = !sceneDirected
-      || (_sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT && knownSceneBeat);
+    const imageryAvailable =
+      !sceneDirected || _sceneControls.imageryComparison === true;
+    const scrubberAvailable =
+      !sceneDirected || Boolean(_sceneController?.seekScene);
+    const knownSceneBeat =
+      !sceneDirected ||
+      _evidenceTimeline.some(
+        ({ observation }) => observation.id === _sceneBeatId,
+      );
+    const evidenceAvailable =
+      !sceneDirected ||
+      (_sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT && knownSceneBeat);
     _panel?.classList?.toggle('bhote-event-scene-beat', sceneDirected);
-    if (_panelRefs?.playSceneButton) _panelRefs.playSceneButton.hidden = !sceneDirected;
-    if (_panelRefs?.imagerySection) _panelRefs.imagerySection.hidden = !imageryAvailable;
-    if (_panelRefs?.observedStatus) _panelRefs.observedStatus.hidden = !imageryAvailable;
-    if (_panelRefs?.progressInput) _panelRefs.progressInput.hidden = !scrubberAvailable;
+    if (_panelRefs?.playSceneButton)
+      _panelRefs.playSceneButton.hidden = !sceneDirected;
+    if (_panelRefs?.imagerySection)
+      _panelRefs.imagerySection.hidden = !imageryAvailable;
+    if (_panelRefs?.observedStatus)
+      _panelRefs.observedStatus.hidden = !imageryAvailable;
+    if (_panelRefs?.progressInput)
+      _panelRefs.progressInput.hidden = !scrubberAvailable;
     if (_splitLine) _splitLine.hidden = !imageryAvailable;
     if (_beforeLayer) _beforeLayer.show = imageryAvailable;
     if (_afterLayer) _afterLayer.show = imageryAvailable;
     if (_panelRefs?.caveat) {
       _panelRefs.caveat.textContent = imageryAvailable
-        ? (_event?.reconstruction?.caveat || '')
+        ? _event?.reconstruction?.caveat || ''
         : 'SCHEMATIC CORRIDOR, NOT MODELED ARRIVAL TIME.';
     }
-    if (_panelRefs?.imageryCloudNote) _panelRefs.imageryCloudNote.hidden = !imageryAvailable;
+    if (_panelRefs?.imageryCloudNote)
+      _panelRefs.imageryCloudNote.hidden = !imageryAvailable;
     for (const [button, control, sceneDefault] of [
       [_panelRefs?.cinematicButton, 'cinematic'],
       [_panelRefs?.storyReplayButton, 'storyReplay'],
       [_panelRefs?.corridorButton, 'corridor', true],
     ]) {
       if (!button) continue;
-      const available = !sceneDirected || sceneDefault === true || _sceneControls[control] === true;
+      const available =
+        !sceneDirected ||
+        sceneDefault === true ||
+        _sceneControls[control] === true;
       button.hidden = !available;
       if (!available) button.disabled = true;
     }
-    if (_panelRefs?.openSourceButton) _panelRefs.openSourceButton.hidden = !evidenceAvailable;
+    if (_panelRefs?.openSourceButton)
+      _panelRefs.openSourceButton.hidden = !evidenceAvailable;
     overlayHost.setVisible(BHOTE_KOSHI_OVERLAY_SOURCE_ID, evidenceAvailable);
   }
 
   function updateFloodTrace(progress) {
     if (!_floodHalo || !_floodCore) return;
-    if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-        && _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT) {
+    if (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+    ) {
       _floodHalo.show = false;
       _floodCore.show = false;
       return;
     }
-    if (!updateCorridorPositionCache(progress, activeFloodPositions(), _corridorPositionCache)) return;
+    if (
+      !updateCorridorPositionCache(
+        progress,
+        activeFloodPositions(),
+        _corridorPositionCache,
+      )
+    )
+      return;
     const positions = _corridorPositionCache.positions;
     _floodHalo.show = positions.length > 1;
     _floodCore.show = positions.length > 1;
@@ -2603,21 +3220,31 @@ export function createBhoteKoshiEventLayer({
 
   function updateSurgeFront(progress) {
     if (!_surgePoint) return;
-    if (_presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-        && _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT) {
+    if (
+      _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+      _sceneSurface !== BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+    ) {
       _surgePoint.show = false;
       return;
     }
     const headPosition = _corridorPositionCache.headPosition;
-    if (headPosition && !Cesium.Cartesian3.equals(_lastSurgePosition, headPosition)) {
+    if (
+      headPosition &&
+      !Cesium.Cartesian3.equals(_lastSurgePosition, headPosition)
+    ) {
       _surgePoint.position = headPosition;
       _lastSurgePosition = Cesium.Cartesian3.clone(
         headPosition,
         _lastSurgePosition || new Cesium.Cartesian3(),
       );
     }
-    const visible = Boolean(headPosition) && progress > 0
-      && (sceneUsesSourcePath() || sceneUsesPathHistory() || sceneKeepsFloodVisible() || progress < 1);
+    const visible =
+      Boolean(headPosition) &&
+      progress > 0 &&
+      (sceneUsesSourcePath() ||
+        sceneUsesPathHistory() ||
+        sceneKeepsFloodVisible() ||
+        progress < 1);
     if (_lastSurgeVisible !== visible) {
       _surgePoint.show = visible;
       _lastSurgeVisible = visible;
@@ -2627,19 +3254,26 @@ export function createBhoteKoshiEventLayer({
   function updateProgress(progress) {
     _witnessEmbedActive = false;
     _progress = clampUnit(progress);
-    const sourceWindow = sceneUsesSourcePath() ? scenePathProgressWindow() : null;
-    const floodProgress = scenePathMovesDuringCamera() || sceneUsesPathHistory()
-      ? _scenePathRevealProgress
-      : sourceWindow
-        ? sourceWindow.start
-          + (sourceWindow.target - sourceWindow.start) * _sceneRevealProgress
-        : _presentation === BHOTE_KOSHI_SCENE_PRESENTATION
-            && _sceneControls.evidencePath === 'none'
-          ? 0
-          : floodProgressForStoryProgress(_progress, _event?.reconstruction?.storyFloodWindow)
-            * (sceneEvidenceDefersUntilCameraSettles() && !sceneEvidenceSequenceAnimates()
-              ? _sceneRevealProgress
-              : 1);
+    const sourceWindow = sceneUsesSourcePath()
+      ? scenePathProgressWindow()
+      : null;
+    const floodProgress =
+      scenePathMovesDuringCamera() || sceneUsesPathHistory()
+        ? _scenePathRevealProgress
+        : sourceWindow
+          ? sourceWindow.start +
+            (sourceWindow.target - sourceWindow.start) * _sceneRevealProgress
+          : _presentation === BHOTE_KOSHI_SCENE_PRESENTATION &&
+              _sceneControls.evidencePath === 'none'
+            ? 0
+            : floodProgressForStoryProgress(
+                _progress,
+                _event?.reconstruction?.storyFloodWindow,
+              ) *
+              (sceneEvidenceDefersUntilCameraSettles() &&
+              !sceneEvidenceSequenceAnimates()
+                ? _sceneRevealProgress
+                : 1);
     updateFloodTrace(floodProgress);
     updateSurgeFront(floodProgress);
     applyCinematicCamera();
@@ -2650,10 +3284,14 @@ export function createBhoteKoshiEventLayer({
 
   function setSplit(split) {
     _split = clampUnit(split);
-    if (_viewer && _viewer.scene.splitPosition !== _split) _viewer.scene.splitPosition = _split;
+    if (_viewer && _viewer.scene.splitPosition !== _split)
+      _viewer.scene.splitPosition = _split;
     const cssValue = `${_split * 100}%`;
     if (_lastSplitCssValue !== cssValue) {
-      document.documentElement.style.setProperty('--bhote-koshi-split', cssValue);
+      document.documentElement.style.setProperty(
+        '--bhote-koshi-split',
+        cssValue,
+      );
       _lastSplitCssValue = cssValue;
     }
     if (_splitHandle) {
@@ -2756,7 +3394,11 @@ export function createBhoteKoshiEventLayer({
       throwIfEnableCancelled(signal, _enabled);
       registerDynamicCredit(viewer, BHOTE_KOSHI_CREDIT);
       _previousMapStack = _mapStackController?.getActiveId?.() || null;
-      if (!sceneDirected && _mapStackController && _previousMapStack !== 'esri-imagery') {
+      if (
+        !sceneDirected &&
+        _mapStackController &&
+        _previousMapStack !== 'esri-imagery'
+      ) {
         await _mapStackController.setStack('esri-imagery');
       }
       _eventMapGeneration = sceneDirected
@@ -2770,7 +3412,10 @@ export function createBhoteKoshiEventLayer({
       createFloodDataSource();
       ensureSplitLine(event);
       const panelView = createPanel(event, {
-        close: () => _dataManager?.setEnabled(BHOTE_KOSHI_LAYER_ID, false, { origin: 'user' }),
+        close: () =>
+          _dataManager?.setEnabled(BHOTE_KOSHI_LAYER_ID, false, {
+            origin: 'user',
+          }),
         play: handlePlay,
         playScene: playWholeScene,
         toggleCinematic,
@@ -2801,8 +3446,12 @@ export function createBhoteKoshiEventLayer({
       if (sceneEvidenceSequenceAnimates() && sceneEvidenceCameraSettled()) {
         startSceneEvidenceReveal();
       }
-      if (!sceneDirected && !PASSIVE_ENABLE_ORIGINS.has(origin)) focusCorridor();
-      if (!sceneDirected && (origin === 'scene' || !PASSIVE_ENABLE_ORIGINS.has(origin))) {
+      if (!sceneDirected && !PASSIVE_ENABLE_ORIGINS.has(origin))
+        focusCorridor();
+      if (
+        !sceneDirected &&
+        (origin === 'scene' || !PASSIVE_ENABLE_ORIGINS.has(origin))
+      ) {
         const introGeneration = ++_introGeneration;
         _introTimer = window.setTimeout(() => {
           if (introGeneration !== _introGeneration) return;
@@ -2817,7 +3466,10 @@ export function createBhoteKoshiEventLayer({
       try {
         await disable();
       } catch (cleanupError) {
-        console.warn('[Data:BhoteKoshi] Failed-enable cleanup error:', cleanupError);
+        console.warn(
+          '[Data:BhoteKoshi] Failed-enable cleanup error:',
+          cleanupError,
+        );
       }
       throw error;
     }
@@ -2871,7 +3523,9 @@ export function createBhoteKoshiEventLayer({
     _lastSurgePosition = null;
     _lastSurgeVisible = null;
     _panel?.remove();
-    document.getElementById?.('right-context-rail')?.classList.remove('bhote-event-active');
+    document
+      .getElementById?.('right-context-rail')
+      ?.classList.remove('bhote-event-active');
     _panel = null;
     _panelRefs = null;
     _splitDragging = false;
@@ -2908,11 +3562,11 @@ export function createBhoteKoshiEventLayer({
     _eventMapGeneration = null;
     try {
       if (
-        _mapStackController
-        && previousMapStack
-        && previousMapStack !== 'esri-imagery'
-        && _mapStackController.getActiveId?.() === 'esri-imagery'
-        && _mapStackController.getSwitchGeneration?.() === eventMapGeneration
+        _mapStackController &&
+        previousMapStack &&
+        previousMapStack !== 'esri-imagery' &&
+        _mapStackController.getActiveId?.() === 'esri-imagery' &&
+        _mapStackController.getSwitchGeneration?.() === eventMapGeneration
       ) {
         await _mapStackController.setStack(previousMapStack);
       }
@@ -2944,16 +3598,20 @@ export function createBhoteKoshiEventLayer({
     const previousPathDuringCamera = scenePathMovesDuringCamera();
     const previousTravelId = _sceneControls.cameraTravel?.id;
     const previousTravelActive = _sceneControls.cameraTravel?.active === true;
-    const previousTravelCompleted = _sceneControls.cameraTravel?.completed === true;
-    const previousTravelCancelled = _sceneControls.cameraTravel?.cancelled === true;
+    const previousTravelCompleted =
+      _sceneControls.cameraTravel?.completed === true;
+    const previousTravelCancelled =
+      _sceneControls.cameraTravel?.cancelled === true;
     if (params.presentation === BHOTE_KOSHI_SCENE_PRESENTATION) {
       _presentation = BHOTE_KOSHI_SCENE_PRESENTATION;
-      _sceneSurface = params.sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-        ? BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
-        : BHOTE_KOSHI_SCENE_PANEL_ONLY;
-      _sceneControls = params.sceneControls && typeof params.sceneControls === 'object'
-        ? { ...params.sceneControls }
-        : {};
+      _sceneSurface =
+        params.sceneSurface === BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+          ? BHOTE_KOSHI_SCENE_EVIDENCE_BEAT
+          : BHOTE_KOSHI_SCENE_PANEL_ONLY;
+      _sceneControls =
+        params.sceneControls && typeof params.sceneControls === 'object'
+          ? { ...params.sceneControls }
+          : {};
     } else if (params.presentation === 'standalone') {
       _presentation = 'standalone';
       _sceneContext = null;
@@ -2987,10 +3645,13 @@ export function createBhoteKoshiEventLayer({
     const beatChanged = previousBeatId !== _sceneBeatId;
     const travelId = _sceneControls.cameraTravel?.id;
     const travelActive = _sceneControls.cameraTravel?.active === true;
-    const travelChanged = previousTravelId !== travelId
-      || previousTravelActive !== travelActive
-      || previousTravelCompleted !== (_sceneControls.cameraTravel?.completed === true)
-      || previousTravelCancelled !== (_sceneControls.cameraTravel?.cancelled === true);
+    const travelChanged =
+      previousTravelId !== travelId ||
+      previousTravelActive !== travelActive ||
+      previousTravelCompleted !==
+        (_sceneControls.cameraTravel?.completed === true) ||
+      previousTravelCancelled !==
+        (_sceneControls.cameraTravel?.cancelled === true);
     if (beatChanged || !cameraIsSettled || !sceneEvidenceMediaAutoplays()) {
       stopSceneMediaPlayback();
       _sceneMediaPlaybackCompletedBeatId = null;
@@ -3006,9 +3667,11 @@ export function createBhoteKoshiEventLayer({
     const sequenceWindow = sceneEvidenceSequenceAnimates()
       ? evidenceSequenceWindow(_sceneBeatId, _evidenceTimeline)
       : null;
-    const beatProgress = sequenceWindow?.startProgress
-      ?? evidenceBeatProgress(_sceneBeatId, _evidenceTimeline, _sceneBeatReveal);
-    const hasProgress = beatProgress != null || Number.isFinite(Number(params.progress));
+    const beatProgress =
+      sequenceWindow?.startProgress ??
+      evidenceBeatProgress(_sceneBeatId, _evidenceTimeline, _sceneBeatReveal);
+    const hasProgress =
+      beatProgress != null || Number.isFinite(Number(params.progress));
     const hasSplit = Number.isFinite(Number(params.split));
     if (hasProgress) _progress = beatProgress ?? clampUnit(params.progress);
     if (hasSplit) _split = clampUnit(params.split);
@@ -3018,20 +3681,27 @@ export function createBhoteKoshiEventLayer({
         stopScenePathReveal();
       }
       void syncTerrainComparison().catch((error) => {
-        console.warn('[Data:BhoteKoshi] Comparison surface unavailable:', error);
+        console.warn(
+          '[Data:BhoteKoshi] Comparison surface unavailable:',
+          error,
+        );
       });
       syncFloodSurfaceMode();
       syncPresentationMode();
       prepareScenePath();
       const timelineSeekActive = applySceneTimelineSeek();
-      const pathWindow = scenePathMovesDuringCamera() || sceneUsesPathHistory()
-        ? scenePathProgressWindow()
-        : null;
+      const pathWindow =
+        scenePathMovesDuringCamera() || sceneUsesPathHistory()
+          ? scenePathProgressWindow()
+          : null;
       if (timelineSeekActive) {
         // applySceneTimelineSeek reconstructed the exact authored phase.
       } else if (sceneUsesPathHistory()) {
         _scenePathRevealProgress = 1;
-      } else if (pathWindow && (beatChanged || travelChanged || !previousPathDuringCamera)) {
+      } else if (
+        pathWindow &&
+        (beatChanged || travelChanged || !previousPathDuringCamera)
+      ) {
         if (_sceneControls.cameraTravel?.completed) {
           _scenePathRevealProgress = pathWindow.target;
         } else if (!_sceneControls.cameraTravel?.cancelled) {
@@ -3040,16 +3710,24 @@ export function createBhoteKoshiEventLayer({
       }
       if (hasProgress) updateProgress(_progress);
       if (hasSplit) setSplit(_split);
-      if (!timelineSeekActive && scenePathMovesDuringCamera()
-          && travelActive
-          && (beatChanged || travelChanged || !previousPathDuringCamera)) {
+      if (
+        !timelineSeekActive &&
+        scenePathMovesDuringCamera() &&
+        travelActive &&
+        (beatChanged || travelChanged || !previousPathDuringCamera)
+      ) {
         startScenePathReveal();
       }
-      if (!timelineSeekActive && cameraIsSettled && (nowDeferred || sceneEvidenceSequenceAnimates())
-          && (beatChanged || !previouslyDeferred || !cameraWasSettled)) {
+      if (
+        !timelineSeekActive &&
+        cameraIsSettled &&
+        (nowDeferred || sceneEvidenceSequenceAnimates()) &&
+        (beatChanged || !previouslyDeferred || !cameraWasSettled)
+      ) {
         startSceneEvidenceReveal();
       }
-      if (!sceneDirected && params.cinematic === true) startCinematic({ play: params.autoPlay !== false });
+      if (!sceneDirected && params.cinematic === true)
+        startCinematic({ play: params.autoPlay !== false });
       else if (!sceneDirected && params.autoPlay === true) startPlayback();
     }
     return true;
@@ -3101,7 +3779,12 @@ export function createBhoteKoshiEventLayer({
       };
     },
     getPlaybackState() {
-      return { enabled: _enabled, playing: _playing, progress: _progress, split: _split };
+      return {
+        enabled: _enabled,
+        playing: _playing,
+        progress: _progress,
+        split: _split,
+      };
     },
     getCinematicState() {
       const activeIndex = activeEvidenceIndex(_progress, _evidenceTimeline);
@@ -3110,7 +3793,8 @@ export function createBhoteKoshiEventLayer({
         progress: _progress,
         evidenceId: _evidenceTimeline[activeIndex]?.observation?.id || null,
         mediaReady: _evidenceVideoReady,
-        mediaEvidenceId: _evidenceTimeline[_evidenceVideoIndex]?.observation?.id || null,
+        mediaEvidenceId:
+          _evidenceTimeline[_evidenceVideoIndex]?.observation?.id || null,
       };
     },
   };

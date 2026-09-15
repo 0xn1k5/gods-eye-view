@@ -504,18 +504,22 @@ export function normalizeOverlayEntry(sourceId, entry) {
         : 'keyhole',
     horizonCull: entry.horizonCull !== false,
     terrainOcclusion: entry.terrainOcclusion === true,
-    sourceAlpha: typeof (entry.sourceAlpha ?? entry.alpha) === 'function'
-      ? (entry.sourceAlpha ?? entry.alpha)
-      : clamp01(entry.sourceAlpha ?? entry.alpha, 1),
-    presentationScale: typeof entry.presentationScale === 'function'
-      ? entry.presentationScale
-      : Math.max(0, Number(entry.presentationScale) || 1),
-    leaderProgress: typeof entry.leaderProgress === 'function'
-      ? entry.leaderProgress
-      : clamp01(entry.leaderProgress, 1),
-    contentAlpha: typeof entry.contentAlpha === 'function'
-      ? entry.contentAlpha
-      : clamp01(entry.contentAlpha, 1),
+    sourceAlpha:
+      typeof (entry.sourceAlpha ?? entry.alpha) === 'function'
+        ? (entry.sourceAlpha ?? entry.alpha)
+        : clamp01(entry.sourceAlpha ?? entry.alpha, 1),
+    presentationScale:
+      typeof entry.presentationScale === 'function'
+        ? entry.presentationScale
+        : Math.max(0, Number(entry.presentationScale) || 1),
+    leaderProgress:
+      typeof entry.leaderProgress === 'function'
+        ? entry.leaderProgress
+        : clamp01(entry.leaderProgress, 1),
+    contentAlpha:
+      typeof entry.contentAlpha === 'function'
+        ? entry.contentAlpha
+        : clamp01(entry.contentAlpha, 1),
     anchorDot: entry.anchorDot === true,
     leaderStyle: entry.leaderStyle === 'elbow' ? 'elbow' : 'straight',
     temporalAlpha: clamp01(entry.temporalAlpha, 1),
@@ -1805,19 +1809,36 @@ function resetFrameDomains() {
 // ordinary moving-source workload at a non-inlined call boundary.
 function applyPresentation(entry, source, record) {
   try {
-    const scale = Number(typeof entry.presentationScale === 'function'
-      ? entry.presentationScale() : entry.presentationScale);
+    const scale = Number(
+      typeof entry.presentationScale === 'function'
+        ? entry.presentationScale()
+        : entry.presentationScale,
+    );
     record.paintScale *= Number.isFinite(scale) ? Math.max(0, scale) : 1;
-    const alpha = Number(typeof entry.sourceAlpha === 'function'
-      ? entry.sourceAlpha() : entry.sourceAlpha);
-    record.sourceAlpha = source.options.alpha
-      * (Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 1);
-    const leader = Number(typeof entry.leaderProgress === 'function'
-      ? entry.leaderProgress() : entry.leaderProgress);
-    record.leaderProgress = Number.isFinite(leader) ? Math.max(0, Math.min(1, leader)) : 1;
-    const content = Number(typeof entry.contentAlpha === 'function'
-      ? entry.contentAlpha() : entry.contentAlpha);
-    record.contentAlpha = Number.isFinite(content) ? Math.max(0, Math.min(1, content)) : 1;
+    const alpha = Number(
+      typeof entry.sourceAlpha === 'function'
+        ? entry.sourceAlpha()
+        : entry.sourceAlpha,
+    );
+    record.sourceAlpha =
+      source.options.alpha *
+      (Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 1);
+    const leader = Number(
+      typeof entry.leaderProgress === 'function'
+        ? entry.leaderProgress()
+        : entry.leaderProgress,
+    );
+    record.leaderProgress = Number.isFinite(leader)
+      ? Math.max(0, Math.min(1, leader))
+      : 1;
+    const content = Number(
+      typeof entry.contentAlpha === 'function'
+        ? entry.contentAlpha()
+        : entry.contentAlpha,
+    );
+    record.contentAlpha = Number.isFinite(content)
+      ? Math.max(0, Math.min(1, content))
+      : 1;
     return true;
   } catch {
     return false;
@@ -1942,19 +1963,31 @@ function snapshotAndProject(entry, source, viewProjection, keyhole) {
     }
     record.paintScale *= altitudeFactor;
   }
-  record.altitudeAlpha = entry.altitudeFadeEnd === Number.POSITIVE_INFINITY
-    ? (Number.isFinite(cameraAltitude) && cameraAltitude < entry.minAltitude ? 0 : 1)
-    : altitudeFade(cameraAltitude, record.altitudeOptions);
+  record.altitudeAlpha =
+    entry.altitudeFadeEnd === Number.POSITIVE_INFINITY
+      ? Number.isFinite(cameraAltitude) && cameraAltitude < entry.minAltitude
+        ? 0
+        : 1
+      : altitudeFade(cameraAltitude, record.altitudeOptions);
   record.leaderProgress = 1;
   record.contentAlpha = 1;
-  if (entry.presentationScale !== 1 || entry.leaderProgress !== 1
-    || entry.contentAlpha !== 1 || typeof entry.sourceAlpha === 'function') {
+  if (
+    entry.presentationScale !== 1 ||
+    entry.leaderProgress !== 1 ||
+    entry.contentAlpha !== 1 ||
+    typeof entry.sourceAlpha === 'function'
+  ) {
     if (!applyPresentation(entry, source, record)) return null;
   } else {
     record.sourceAlpha = source.options.alpha * entry.sourceAlpha;
   }
-  if (record.distanceAlpha <= 0 || record.paintScale <= 0
-    || record.altitudeAlpha <= 0 || record.sourceAlpha <= 0) return null;
+  if (
+    record.distanceAlpha <= 0 ||
+    record.paintScale <= 0 ||
+    record.altitudeAlpha <= 0 ||
+    record.sourceAlpha <= 0
+  )
+    return null;
 
   measureOverlayEntry(_ctx, entry, record.layout);
   record.placementInput.anchorX = record.screen.x;

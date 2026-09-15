@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { claimPointer, releasePointer } from './inputOwnership.js';
 import * as Cesium from 'cesium';
 import { SOURCE_PATH_BEAT_IDS } from './bhoteKoshiShotPaths.js';
 import {
@@ -1777,6 +1778,13 @@ test('Debris-Dammed Lake card opens its source and is armed for approved local v
       beatReveal: 0.36,
     }, { origin: 'scene' });
     await layer.enable(viewer, { origin: 'scene' });
+    const lease = claimPointer('draw');
+    try {
+      viewer._test.canvas.dispatch('click', { offsetX: 640, offsetY: 420 });
+      assert.equal(opened.length, 0, 'drawing owns the pointer over evidence cards');
+    } finally {
+      releasePointer(lease);
+    }
     viewer._test.canvas.dispatch('click', { offsetX: 640, offsetY: 420 });
     assert.deepEqual(opened, [[
       event.evidenceSpine[1].media.sourceUrl,
@@ -2185,7 +2193,7 @@ test('Bhote Koshi frame path keeps evidence lookup scalar and wrapper-free', asy
   );
   assert.match(
     source,
-    /const beatIndex = currentEvidenceIndex\(\);\s*const sceneBeatIndex = sceneDirected\s*\? _evidenceTimeline\.findIndex\(\(\{ observation: item \}\) => item\.id === _sceneBeatId\)\s*:\s*beatIndex;\s*const observation = _evidenceTimeline\[sceneBeatIndex\]\?\.observation \|\| null;/,
+    /const beatIndex = currentEvidenceIndex\(\);\s*const sceneBeatIndex = sceneDirected\s*\? _evidenceTimeline\.findIndex\(\s*\(\{ observation: item \}\) => item\.id === _sceneBeatId,?\s*\)\s*:\s*beatIndex;\s*const observation =\s*_evidenceTimeline\[sceneBeatIndex\]\?\.observation \|\| null;/,
     'syncPanel must resolve authored scene beats to one scalar index before reading the observation',
   );
 });

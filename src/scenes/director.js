@@ -151,7 +151,10 @@ function recipeToScene(recipe) {
     return {
       id: uid('shot'),
       title: keyframe.title || `Shot ${idx + 1}`,
-      durationSec: Math.max(0.2, keyframe.duration || DEFAULT_SHOT_DURATION_SEC),
+      durationSec: Math.max(
+        0.2,
+        keyframe.duration || DEFAULT_SHOT_DURATION_SEC,
+      ),
       holdSec: Math.max(0, keyframe.hold || 0),
       camera: {
         lat: keyframe.lat,
@@ -164,14 +167,17 @@ function recipeToScene(recipe) {
       visual: {
         style: recipe.style || 'normal',
         bloom: {
-          enabled: typeof post.bloom === 'number' ? post.bloom > 0 : !!post.bloom,
-          intensity: typeof post.bloom === 'number'
-            ? decodeBloomIntensity(post.bloom, 1)
-            : BLOOM_INTENSITY_DEFAULT,
+          enabled:
+            typeof post.bloom === 'number' ? post.bloom > 0 : !!post.bloom,
+          intensity:
+            typeof post.bloom === 'number'
+              ? decodeBloomIntensity(post.bloom, 1)
+              : BLOOM_INTENSITY_DEFAULT,
           version: BLOOM_SCALE_VERSION,
         },
         sharpen: {
-          enabled: typeof post.sharpen === 'boolean' ? post.sharpen : !!post.sharpen,
+          enabled:
+            typeof post.sharpen === 'boolean' ? post.sharpen : !!post.sharpen,
           intensity: 65,
         },
         hud: {
@@ -194,10 +200,14 @@ function recipeToScene(recipe) {
   return {
     id: recipe.id || uid('scene'),
     title: recipe.title || 'Untitled Scene',
-    releaseLayerIds: [...new Set(
-      (Array.isArray(recipe.releaseLayerIds) ? recipe.releaseLayerIds : [])
-        .filter((layerId) => typeof layerId === 'string' && layerId.trim()),
-    )],
+    releaseLayerIds: [
+      ...new Set(
+        (Array.isArray(recipe.releaseLayerIds)
+          ? recipe.releaseLayerIds
+          : []
+        ).filter((layerId) => typeof layerId === 'string' && layerId.trim()),
+      ),
+    ],
     appliedShotPacks: [],
     shots,
   };
@@ -212,9 +222,9 @@ function createDefaultProject() {
     version: PROJECT_VERSION,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    installedBuiltInSceneIds: SCENE_RECIPES
-      .filter((recipe) => typeof recipe.installAlongsideSceneId === 'string')
-      .map((recipe) => recipe.id),
+    installedBuiltInSceneIds: SCENE_RECIPES.filter(
+      (recipe) => typeof recipe.installAlongsideSceneId === 'string',
+    ).map((recipe) => recipe.id),
     scenes: SCENE_RECIPES.map(recipeToScene),
   };
 }
@@ -291,8 +301,13 @@ function normalizeShot(
           ),
         ),
       },
-      ...(SCENE_MAP_STACK_IDS.has(visual.mapStack) ? { mapStack: visual.mapStack } : {}),
-      styleParams: visual.styleParams && typeof visual.styleParams === 'object' ? deepClone(visual.styleParams) : {},
+      ...(SCENE_MAP_STACK_IDS.has(visual.mapStack)
+        ? { mapStack: visual.mapStack }
+        : {}),
+      styleParams:
+        visual.styleParams && typeof visual.styleParams === 'object'
+          ? deepClone(visual.styleParams)
+          : {},
     },
     layers: Object.fromEntries(
       Object.entries(rawShot?.layers || {}).map(([layerId, value]) => [
@@ -300,7 +315,9 @@ function normalizeShot(
         normalizeLayerEntry(value),
       ]),
     ),
-    ...(typeof rawShot?.sourcePackId === 'string' ? { sourcePackId: rawShot.sourcePackId } : {}),
+    ...(typeof rawShot?.sourcePackId === 'string'
+      ? { sourcePackId: rawShot.sourcePackId }
+      : {}),
     ...(Number.isFinite(Number(rawShot?.sourcePackVersion))
       ? { sourcePackVersion: Number(rawShot.sourcePackVersion) }
       : {}),
@@ -330,11 +347,20 @@ function normalizeProject(rawProject) {
       return {
         id: scene?.id || uid('scene'),
         title: scene?.title || `Scene ${sceneIdx + 1}`,
-        releaseLayerIds: [...new Set(
-          (Array.isArray(scene?.releaseLayerIds) ? scene.releaseLayerIds : [])
-            .filter((layerId) => typeof layerId === 'string' && layerId.trim()),
-        )],
-        appliedShotPacks: (Array.isArray(scene?.appliedShotPacks) ? scene.appliedShotPacks : [])
+        releaseLayerIds: [
+          ...new Set(
+            (Array.isArray(scene?.releaseLayerIds)
+              ? scene.releaseLayerIds
+              : []
+            ).filter(
+              (layerId) => typeof layerId === 'string' && layerId.trim(),
+            ),
+          ),
+        ],
+        appliedShotPacks: (Array.isArray(scene?.appliedShotPacks)
+          ? scene.appliedShotPacks
+          : []
+        )
           .filter((entry) => typeof entry?.id === 'string')
           .map((entry) => ({
             id: entry.id,
@@ -342,10 +368,10 @@ function normalizeProject(rawProject) {
             ...(entry.shotBindings && typeof entry.shotBindings === 'object'
               ? {
                   shotBindings: Object.fromEntries(
-                    Object.entries(entry.shotBindings)
-                      .filter(([title, shotId]) => (
-                        typeof title === 'string' && typeof shotId === 'string'
-                      )),
+                    Object.entries(entry.shotBindings).filter(
+                      ([title, shotId]) =>
+                        typeof title === 'string' && typeof shotId === 'string',
+                    ),
                   ),
                 }
               : {}),
@@ -364,12 +390,14 @@ function normalizeProject(rawProject) {
     version: PROJECT_VERSION,
     createdAt: rawProject.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    installedBuiltInSceneIds: [...new Set(
-      (Array.isArray(rawProject.installedBuiltInSceneIds)
-        ? rawProject.installedBuiltInSceneIds
-        : [])
-        .filter((sceneId) => typeof sceneId === 'string' && sceneId.trim()),
-    )],
+    installedBuiltInSceneIds: [
+      ...new Set(
+        (Array.isArray(rawProject.installedBuiltInSceneIds)
+          ? rawProject.installedBuiltInSceneIds
+          : []
+        ).filter((sceneId) => typeof sceneId === 'string' && sceneId.trim()),
+      ),
+    ],
     scenes,
   };
 }
@@ -388,7 +416,12 @@ export class SceneDirector {
    * @param {Object} styleManager - Controls visual state (bloom, sharpen, HUD, detection, style presets)
    * @param {Object} dataManager - Manages data layer enable/disable and per-layer params
    */
-  constructor(viewer, styleManager, dataManager, { isMapStackAvailable = () => false } = {}) {
+  constructor(
+    viewer,
+    styleManager,
+    dataManager,
+    { isMapStackAvailable = () => false } = {},
+  ) {
     this._destroyed = false;
     this._pendingWork = new Set();
     this.viewer = viewer;
@@ -432,26 +465,47 @@ export class SceneDirector {
     /** @type {string|null} Scene whose layer state most recently landed. */
     this._loadedSceneId = null;
 
-    this._presentation = { status: 'Ready', progress: 0, runtime: '', playbackActive: false, keyboardEnabled: false };
-    this._state = createStateChannel(() => ({ ...this.getPlaybackStatus(), ...this._presentation, hasRun: !!this._lastRunJson }));
+    this._presentation = {
+      status: 'Ready',
+      progress: 0,
+      runtime: '',
+      playbackActive: false,
+      keyboardEnabled: false,
+    };
+    this._state = createStateChannel(() => ({
+      ...this.getPlaybackStatus(),
+      ...this._presentation,
+      hasRun: !!this._lastRunJson,
+    }));
     this._bootstrapLegacyShotPacks();
     // Upgrade only already-installed packs; unrelated Scenes are untouched.
     for (const scene of this._project.scenes) {
       for (const marker of [...(scene.appliedShotPacks || [])]) {
         const recipe = getSceneAppendRecipeById(marker.id);
-        if (recipe?.expansionFromVersion && marker.version > 0
-          && marker.version <= recipe.expansionFromVersion) {
-          this.appendShotPack(scene.id, marker.id, { render: false, announce: false });
+        if (
+          recipe?.expansionFromVersion &&
+          marker.version > 0 &&
+          marker.version <= recipe.expansionFromVersion
+        ) {
+          this.appendShotPack(scene.id, marker.id, {
+            render: false,
+            announce: false,
+          });
         }
       }
     }
     this._initUI();
-    this._visibilityUnsubscribe = this.dataManager.subscribeVisibilityRequests?.((change) => {
-      if (change.enabled !== false || !['user', 'voice', 'tool'].includes(change.origin)) return;
-      const scene = this._getSelectedScene();
-      if (!scene?.releaseLayerIds?.includes(change.layerId)) return;
-      this.stopScene('Scene layer turned off');
-    });
+    this._visibilityUnsubscribe =
+      this.dataManager.subscribeVisibilityRequests?.((change) => {
+        if (
+          change.enabled !== false ||
+          !['user', 'voice', 'tool'].includes(change.origin)
+        )
+          return;
+        const scene = this._getSelectedScene();
+        if (!scene?.releaseLayerIds?.includes(change.layerId)) return;
+        this.stopScene('Scene layer turned off');
+      });
   }
 
   _trackWork(promise) {
@@ -499,7 +553,10 @@ export class SceneDirector {
       const installed = new Set(project.installedBuiltInSceneIds || []);
       let migrated = false;
       for (const recipe of SCENE_RECIPES) {
-        if (typeof recipe.installAlongsideSceneId !== 'string' || installed.has(recipe.id)) {
+        if (
+          typeof recipe.installAlongsideSceneId !== 'string' ||
+          installed.has(recipe.id)
+        ) {
           continue;
         }
         let anchorIndex = project.scenes.findIndex(
@@ -527,7 +584,10 @@ export class SceneDirector {
         } catch (e) {
           // Keep the migrated in-memory project usable even if this origin
           // refuses persistence; the normal UI save path will surface errors.
-          console.warn('[Scenes] Could not persist built-in scene migration:', e);
+          console.warn(
+            '[Scenes] Could not persist built-in scene migration:',
+            e,
+          );
         }
       }
       return project;
@@ -754,16 +814,22 @@ export class SceneDirector {
       const expectedTitles = Array.isArray(bootstrap.fromShotTitles)
         ? bootstrap.fromShotTitles
         : [];
-      const scene = this._project.scenes.find((candidate) => (
-        candidate.title === bootstrap.targetSceneTitle
-        && candidate.shots.length === expectedTitles.length
-        && candidate.shots.every((shot, index) => shot.title === expectedTitles[index])
-      ));
+      const scene = this._project.scenes.find(
+        (candidate) =>
+          candidate.title === bootstrap.targetSceneTitle &&
+          candidate.shots.length === expectedTitles.length &&
+          candidate.shots.every(
+            (shot, index) => shot.title === expectedTitles[index],
+          ),
+      );
       if (!scene) continue;
 
       const originalProject = deepClone(this._project);
       try {
-        localStorage.setItem(STORAGE_CHECKPOINT_KEY, JSON.stringify(originalProject));
+        localStorage.setItem(
+          STORAGE_CHECKPOINT_KEY,
+          JSON.stringify(originalProject),
+        );
       } catch {
         this._toastStorageError();
         continue;
@@ -774,7 +840,11 @@ export class SceneDirector {
         id: null,
         cameraPath: bootstrap.cameraPath,
       }).shots;
-      for (let index = 0; index < Math.min(scene.shots.length, canonicalBase.length); index++) {
+      for (
+        let index = 0;
+        index < Math.min(scene.shots.length, canonicalBase.length);
+        index++
+      ) {
         canonicalBase[index].id = scene.shots[index].id;
         canonicalBase[index].camera = deepClone(scene.shots[index].camera);
       }
@@ -807,56 +877,95 @@ export class SceneDirector {
    * @param {boolean} [options.announce=true]
    * @returns {{appended: boolean, reason?: string, shotCount?: number, firstShotId?: string}}
    */
-  appendShotPack(sceneId, packId, {
-    writeCheckpoint = true,
-    render = true,
-    announce = true,
-  } = {}) {
-    const scene = this._project.scenes.find((candidate) => candidate.id === sceneId);
+  appendShotPack(
+    sceneId,
+    packId,
+    { writeCheckpoint = true, render = true, announce = true } = {},
+  ) {
+    const scene = this._project.scenes.find(
+      (candidate) => candidate.id === sceneId,
+    );
     if (!scene) return { appended: false, reason: 'scene-not-found' };
     const recipe = getSceneAppendRecipeById(packId);
     if (!recipe) return { appended: false, reason: 'pack-not-found' };
     scene.appliedShotPacks ||= [];
-    const marker = scene.appliedShotPacks.find((entry) => entry.id === recipe.id);
+    const marker = scene.appliedShotPacks.find(
+      (entry) => entry.id === recipe.id,
+    );
     const targetVersion = Number(recipe.version) || 1;
     if ((Number(marker?.version) || 0) >= targetVersion) {
       return { appended: false, reason: 'already-appended' };
     }
 
     const pack = recipeToScene(recipe);
-    const existingPackShots = scene.shots.filter((shot) => shot.sourcePackId === recipe.id);
-    const expanding = recipe.expansionFromVersion && marker?.version > 0
-      && marker.version <= recipe.expansionFromVersion
-      && existingPackShots.length !== recipe.requiredSourcePackBeatIds.length;
-    const existingPackBeatIds = existingPackShots.map((shot) =>
-      shot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId);
-    const previousSourcePackVariants = Array.isArray(recipe.previousRequiredSourcePackBeatIdVariants)
+    const existingPackShots = scene.shots.filter(
+      (shot) => shot.sourcePackId === recipe.id,
+    );
+    const expanding =
+      recipe.expansionFromVersion &&
+      marker?.version > 0 &&
+      marker.version <= recipe.expansionFromVersion &&
+      existingPackShots.length !== recipe.requiredSourcePackBeatIds.length;
+    const existingPackBeatIds = existingPackShots.map(
+      (shot) => shot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId,
+    );
+    const previousSourcePackVariants = Array.isArray(
+      recipe.previousRequiredSourcePackBeatIdVariants,
+    )
       ? recipe.previousRequiredSourcePackBeatIdVariants
       : [recipe.previousRequiredSourcePackBeatIds];
-    if (expanding && !previousSourcePackVariants.some((beatIds) =>
-      JSON.stringify(existingPackBeatIds) === JSON.stringify(beatIds))) {
-      return { appended: false, updated: false, reason: 'source-pack-mismatch' };
+    if (
+      expanding &&
+      !previousSourcePackVariants.some(
+        (beatIds) =>
+          JSON.stringify(existingPackBeatIds) === JSON.stringify(beatIds),
+      )
+    ) {
+      return {
+        appended: false,
+        updated: false,
+        reason: 'source-pack-mismatch',
+      };
     }
-    const adoptableTitles = new Set(Array.isArray(recipe.adoptExistingShotTitles)
-      ? recipe.adoptExistingShotTitles
-      : []);
+    const adoptableTitles = new Set(
+      Array.isArray(recipe.adoptExistingShotTitles)
+        ? recipe.adoptExistingShotTitles
+        : [],
+    );
     const adoptedShotIds = new Map();
     if (expanding && adoptableTitles.size) {
       for (const packShot of pack.shots) {
         if (!adoptableTitles.has(packShot.title)) continue;
-        const packBeatId = packShot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId;
-        if (existingPackShots.some((shot) =>
-          shot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId === packBeatId)) continue;
-        const candidates = scene.shots.filter((shot) =>
-          !shot.sourcePackId && shot.title === packShot.title);
-        if (candidates.length === 1) adoptedShotIds.set(packShot.id, candidates[0].id);
+        const packBeatId =
+          packShot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId;
+        if (
+          existingPackShots.some(
+            (shot) =>
+              shot.layers?.[recipe.requiredSourcePackLayerId]?.params
+                ?.beatId === packBeatId,
+          )
+        )
+          continue;
+        const candidates = scene.shots.filter(
+          (shot) => !shot.sourcePackId && shot.title === packShot.title,
+        );
+        if (candidates.length === 1)
+          adoptedShotIds.set(packShot.id, candidates[0].id);
       }
     }
     const appendedShots = marker
-      ? (expanding ? pack.shots.filter((shot) => !existingPackShots.some((existing) =>
-        existing.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId
-          === shot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId)
-          && !adoptedShotIds.has(shot.id)) : [])
+      ? expanding
+        ? pack.shots.filter(
+            (shot) =>
+              !existingPackShots.some(
+                (existing) =>
+                  existing.layers?.[recipe.requiredSourcePackLayerId]?.params
+                    ?.beatId ===
+                  shot.layers?.[recipe.requiredSourcePackLayerId]?.params
+                    ?.beatId,
+              ) && !adoptedShotIds.has(shot.id),
+          )
+        : []
       : pack.shots;
     const nextShots = deepClone([...scene.shots, ...appendedShots]);
     for (const [packShotId, existingShotId] of adoptedShotIds) {
@@ -873,13 +982,21 @@ export class SceneDirector {
     if (expanding) {
       // Insert additions around existing beats, never replace their IDs/cameras.
       for (let i = pack.shots.length - 1; i >= 0; i--) {
-        const added = appendedShots.find((shot) => shot.id === pack.shots[i].id);
+        const added = appendedShots.find(
+          (shot) => shot.id === pack.shots[i].id,
+        );
         if (!added) continue;
         const at = nextShots.findIndex((shot) => shot.id === added.id);
         const [shot] = nextShots.splice(at, 1);
-        const nextBeatId = pack.shots[i + 1]?.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId;
-        const before = nextShots.findIndex((item) => item.sourcePackId === recipe.id
-          && item.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId === nextBeatId);
+        const nextBeatId =
+          pack.shots[i + 1]?.layers?.[recipe.requiredSourcePackLayerId]?.params
+            ?.beatId;
+        const before = nextShots.findIndex(
+          (item) =>
+            item.sourcePackId === recipe.id &&
+            item.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId ===
+              nextBeatId,
+        );
         nextShots.splice(before < 0 ? nextShots.length : before, 0, shot);
       }
     }
@@ -888,51 +1005,80 @@ export class SceneDirector {
       : [];
     const addedBindings = Object.fromEntries([
       ...appendedShots.map((shot) => [shot.title, shot.id]),
-      ...[...adoptedShotIds].map(([packShotId, existingShotId]) => [
-        pack.shots.find((shot) => shot.id === packShotId)?.title,
-        existingShotId,
-      ]).filter(([title]) => typeof title === 'string'),
+      ...[...adoptedShotIds]
+        .map(([packShotId, existingShotId]) => [
+          pack.shots.find((shot) => shot.id === packShotId)?.title,
+          existingShotId,
+        ])
+        .filter(([title]) => typeof title === 'string'),
     ]);
     const markerBindings = marker?.shotBindings
       ? { ...marker.shotBindings, ...addedBindings }
       : null;
     if (requiredShotTitles.length) {
       const resolvedShots = markerBindings
-        ? requiredShotTitles.map((title) => (
-            nextShots.find((shot) => shot.id === markerBindings[title]) || null
-          ))
+        ? requiredShotTitles.map(
+            (title) =>
+              nextShots.find((shot) => shot.id === markerBindings[title]) ||
+              null,
+          )
         : nextShots;
-      const inventoryMatches = resolvedShots.length === requiredShotTitles.length
-        && (markerBindings
-          ? resolvedShots.every(Boolean)
-            && new Set(resolvedShots.map((shot) => shot.id)).size === requiredShotTitles.length
-          : resolvedShots.every((shot, index) => shot.title === requiredShotTitles[index]));
+      const inventoryMatches =
+        resolvedShots.length === requiredShotTitles.length &&
+        (markerBindings
+          ? resolvedShots.every(Boolean) &&
+            new Set(resolvedShots.map((shot) => shot.id)).size ===
+              requiredShotTitles.length
+          : resolvedShots.every(
+              (shot, index) => shot.title === requiredShotTitles[index],
+            ));
       if (!inventoryMatches) {
-        this._updateStatus(`Cannot update ${recipe.title}: shot inventory changed`);
-        return { appended: false, updated: false, reason: 'shot-inventory-mismatch' };
+        this._updateStatus(
+          `Cannot update ${recipe.title}: shot inventory changed`,
+        );
+        return {
+          appended: false,
+          updated: false,
+          reason: 'shot-inventory-mismatch',
+        };
       }
     }
-    const requiredSourcePackBeatIds = Array.isArray(recipe.requiredSourcePackBeatIds)
+    const requiredSourcePackBeatIds = Array.isArray(
+      recipe.requiredSourcePackBeatIds,
+    )
       ? recipe.requiredSourcePackBeatIds
       : [];
-    const requiredSourcePackLayerId = typeof recipe.requiredSourcePackLayerId === 'string'
-      ? recipe.requiredSourcePackLayerId
-      : null;
+    const requiredSourcePackLayerId =
+      typeof recipe.requiredSourcePackLayerId === 'string'
+        ? recipe.requiredSourcePackLayerId
+        : null;
     if (requiredSourcePackBeatIds.length && requiredSourcePackLayerId) {
       const sourcePackBeatIds = nextShots
         .filter((shot) => shot.sourcePackId === recipe.id)
-        .map((shot) => shot.layers?.[requiredSourcePackLayerId]?.params?.beatId);
-      const sourcePackMatches = sourcePackBeatIds.length === requiredSourcePackBeatIds.length
-        && sourcePackBeatIds.every((beatId, index) => beatId === requiredSourcePackBeatIds[index]);
+        .map(
+          (shot) => shot.layers?.[requiredSourcePackLayerId]?.params?.beatId,
+        );
+      const sourcePackMatches =
+        sourcePackBeatIds.length === requiredSourcePackBeatIds.length &&
+        sourcePackBeatIds.every(
+          (beatId, index) => beatId === requiredSourcePackBeatIds[index],
+        );
       if (!sourcePackMatches) {
-        this._updateStatus(`Cannot update ${recipe.title}: evidence beats changed`);
-        return { appended: false, updated: false, reason: 'source-pack-mismatch' };
+        this._updateStatus(
+          `Cannot update ${recipe.title}: evidence beats changed`,
+        );
+        return {
+          appended: false,
+          updated: false,
+          reason: 'source-pack-mismatch',
+        };
       }
     }
 
     const resolvePatchedShot = (patch) => {
       const boundShotId = markerBindings?.[patch.title];
-      if (boundShotId) return nextShots.find((shot) => shot.id === boundShotId) || null;
+      if (boundShotId)
+        return nextShots.find((shot) => shot.id === boundShotId) || null;
       const matches = nextShots.filter((shot) => shot.title === patch.title);
       return matches.length === 1 ? matches[0] : null;
     };
@@ -941,8 +1087,14 @@ export class SceneDirector {
       shot: resolvePatchedShot(patch),
     }));
     if (resolvedPatches.some(({ shot }) => !shot)) {
-      this._updateStatus(`Cannot update ${recipe.title}: shot bindings are incomplete`);
-      return { appended: false, updated: false, reason: 'shot-bindings-incomplete' };
+      this._updateStatus(
+        `Cannot update ${recipe.title}: shot bindings are incomplete`,
+      );
+      return {
+        appended: false,
+        updated: false,
+        reason: 'shot-bindings-incomplete',
+      };
     }
 
     let patchedShotCount = 0;
@@ -965,21 +1117,28 @@ export class SceneDirector {
       }
       patchedShotCount++;
     }
-    const nextReleaseLayerIds = [...new Set([
-      ...(scene.releaseLayerIds || []),
-      ...(pack.releaseLayerIds || []),
-    ])];
+    const nextReleaseLayerIds = [
+      ...new Set([
+        ...(scene.releaseLayerIds || []),
+        ...(pack.releaseLayerIds || []),
+      ]),
+    ];
     const shotBindings = Object.fromEntries(
-      requiredShotTitles.map((title) => [
-        title,
-        nextShots.find((shot) => shot.id === markerBindings?.[title])?.id
-          ?? nextShots.find((shot) => shot.title === title)?.id,
-      ]).filter(([, shotId]) => typeof shotId === 'string'),
+      requiredShotTitles
+        .map((title) => [
+          title,
+          nextShots.find((shot) => shot.id === markerBindings?.[title])?.id ??
+            nextShots.find((shot) => shot.title === title)?.id,
+        ])
+        .filter(([, shotId]) => typeof shotId === 'string'),
     );
 
     if (writeCheckpoint) {
       try {
-        localStorage.setItem(STORAGE_CHECKPOINT_KEY, JSON.stringify(this._project));
+        localStorage.setItem(
+          STORAGE_CHECKPOINT_KEY,
+          JSON.stringify(this._project),
+        );
       } catch {
         this._toastStorageError();
         return { appended: false, reason: 'checkpoint-failed' };
@@ -1007,9 +1166,11 @@ export class SceneDirector {
       this._renderShotList();
     }
     if (announce) {
-      this._updateStatus(marker
-        ? `Updated ${patchedShotCount} ${patchedShotCount === 1 ? 'shot' : 'shots'}: ${recipe.title}`
-        : `Appended ${appendedShots.length} shots: ${recipe.title}`);
+      this._updateStatus(
+        marker
+          ? `Updated ${patchedShotCount} ${patchedShotCount === 1 ? 'shot' : 'shots'}: ${recipe.title}`
+          : `Appended ${appendedShots.length} shots: ${recipe.title}`,
+      );
     }
     return {
       appended: appendedShots.length > 0,
@@ -1114,20 +1275,26 @@ export class SceneDirector {
    * @param {Object|null} [options.sceneSeek=null] - Deterministic authored-clock snapshot
    */
   loadShot(sceneId, shotId, options) {
-    if (this._destroyed) return Promise.resolve({ started: false, reason: 'destroyed' });
+    if (this._destroyed)
+      return Promise.resolve({ started: false, reason: 'destroyed' });
     this._sceneSeekGeneration++;
     return this._trackWork(this._loadShot(sceneId, shotId, options));
   }
 
-  async _loadShot(sceneId, shotId, { flyDuration = 2.2, fromCamera = null, sceneSeek = null } = {}) {
+  async _loadShot(
+    sceneId,
+    shotId,
+    { flyDuration = 2.2, fromCamera = null, sceneSeek = null } = {},
+  ) {
     if (this._running) return { started: false, reason: 'already-running' };
     const { scene, shot } = this._getShot(sceneId, shotId);
     if (!scene || !shot) return { started: false, reason: 'shot-not-found' };
-    const previousScene = this._project.scenes.find((item) => (
-      item.id === this._loadedSceneId
-    )) || null;
+    const previousScene =
+      this._project.scenes.find((item) => item.id === this._loadedSceneId) ||
+      null;
 
-    if (!this._claimCameraOwnership()) return { started: false, reason: 'camera-unavailable' };
+    if (!this._claimCameraOwnership())
+      return { started: false, reason: 'camera-unavailable' };
     if (fromCamera) this._setCameraView(fromCamera);
 
     // Supersede the previous LOAD before reserving this one: aborting first
@@ -1145,7 +1312,8 @@ export class SceneDirector {
     if (previousScene && previousScene.id !== scene.id) {
       const released = await this._releaseSceneLayers(previousScene, token);
       if (!released || token.cancelled) {
-        if (!token.cancelled) this._updateStatus(`Could not leave scene: ${previousScene.title}`);
+        if (!token.cancelled)
+          this._updateStatus(`Could not leave scene: ${previousScene.title}`);
         return;
       }
       this._loadedSceneId = null;
@@ -1156,16 +1324,19 @@ export class SceneDirector {
     this._renderSceneSelect();
     this._renderShotList();
 
-    await this.styleManager.applyVisualState(
-      this._visualStateForShot(shot),
-      { isCurrent: () => !token.cancelled },
-    );
+    await this.styleManager.applyVisualState(this._visualStateForShot(shot), {
+      isCurrent: () => !token.cancelled,
+    });
     if (token.cancelled) return;
-    const seekState = sceneSeek && typeof sceneSeek === 'object' ? sceneSeek : null;
-    const layerResult = await this._applyLayerStates(this._layerStatesForShot(scene, shot, {
-      cameraSettled: seekState ? seekState.cameraProgress >= 1 : false,
-      sceneSeek: seekState,
-    }), token);
+    const seekState =
+      sceneSeek && typeof sceneSeek === 'object' ? sceneSeek : null;
+    const layerResult = await this._applyLayerStates(
+      this._layerStatesForShot(scene, shot, {
+        cameraSettled: seekState ? seekState.cameraProgress >= 1 : false,
+        sceneSeek: seekState,
+      }),
+      token,
+    );
     if (token.cancelled) return;
     // Layer state is already user-visible before the camera flight settles.
     // Record its owner now so a newer cross-scene LOAD can release it even if
@@ -1189,13 +1360,18 @@ export class SceneDirector {
     const holdSec = this._effectiveShotHoldSec(scene, shot);
     const flightShare = flyDuration / Math.max(0.001, flyDuration + holdSec);
     const sceneTiming = this._sceneTimingForShot(scene, shot);
-    this._startShotProgress(token, flyDuration, sceneTiming.startProgress,
-      sceneTiming.startProgress + sceneTiming.durationProgress * flightShare, {
+    this._startShotProgress(
+      token,
+      flyDuration,
+      sceneTiming.startProgress,
+      sceneTiming.startProgress + sceneTiming.durationProgress * flightShare,
+      {
         scene,
         shot,
         sceneElapsedFrom: sceneTiming.startElapsedSec,
         sceneElapsedTo: sceneTiming.startElapsedSec + flyDuration,
-      });
+      },
+    );
     const cameraTravel = this._beginShotTravel(scene, shot, flyDuration);
     try {
       // _flyCamera calls Cesium's flyTo synchronously before yielding. Publish
@@ -1215,14 +1391,18 @@ export class SceneDirector {
     if (token.cancelled) return;
     this._settleShotLayerStates(scene, shot, token, cameraTravel);
     if (token.cancelled) return;
-    this._startShotProgress(token, holdSec,
+    this._startShotProgress(
+      token,
+      holdSec,
       sceneTiming.startProgress + sceneTiming.durationProgress * flightShare,
-      sceneTiming.endProgress, {
+      sceneTiming.endProgress,
+      {
         scene,
         shot,
         sceneElapsedFrom: sceneTiming.startElapsedSec + flyDuration,
         sceneElapsedTo: sceneTiming.endElapsedSec,
-      });
+      },
+    );
 
     if (this._loadAbort === controller) this._loadAbort = null;
     this._shotOutcome('shot-loaded', scene, shot);
@@ -1235,22 +1415,30 @@ export class SceneDirector {
    * This keeps an appended event lens from leaking backward into the scene's
    * original authored shots while leaving ordinary sparse layer state intact.
    */
-  _layerStatesForShot(scene, shot, {
-    cameraSettled = false,
-    cameraTravel = null,
-    sceneSeek = null,
-  } = {}) {
+  _layerStatesForShot(
+    scene,
+    shot,
+    { cameraSettled = false, cameraTravel = null, sceneSeek = null } = {},
+  ) {
     const states = deepClone(shot?.layers || {});
-    const shotIndex = scene?.shots?.findIndex(({ id }) => id === shot?.id) ?? -1;
-    const sceneShotDurations = scene?.shots?.map(
-      (sceneShot) => this._shotRuntimeDurationSec(scene, sceneShot),
-    ) || [];
-    const sceneDurationSec = sceneShotDurations.reduce((sum, duration) => sum + duration, 0);
+    const shotIndex =
+      scene?.shots?.findIndex(({ id }) => id === shot?.id) ?? -1;
+    const sceneShotDurations =
+      scene?.shots?.map((sceneShot) =>
+        this._shotRuntimeDurationSec(scene, sceneShot),
+      ) || [];
+    const sceneDurationSec = sceneShotDurations.reduce(
+      (sum, duration) => sum + duration,
+      0,
+    );
     const authoredSceneElapsedSec = sceneShotDurations
       .slice(0, Math.max(0, shotIndex))
       .reduce((sum, duration) => sum + duration, 0);
     const sceneElapsedSec = sceneSeek
-      ? Math.max(0, Math.min(sceneDurationSec, Number(sceneSeek.sceneElapsedSec) || 0))
+      ? Math.max(
+          0,
+          Math.min(sceneDurationSec, Number(sceneSeek.sceneElapsedSec) || 0),
+        )
       : authoredSceneElapsedSec;
     const sourceRecipe = getSceneAppendRecipeById(shot?.sourcePackId);
     for (const state of Object.values(states)) {
@@ -1258,22 +1446,29 @@ export class SceneDirector {
       state.params.sceneSurface ||= shot.sourcePackId
         ? 'evidence-beat'
         : 'panel-only';
-      const runtimeControls = sourceRecipe?.runtimeControlsByBeat?.[state.params.beatId];
+      const runtimeControls =
+        sourceRecipe?.runtimeControlsByBeat?.[state.params.beatId];
       if (runtimeControls) {
         state.params.sceneControls = {
           ...state.params.sceneControls,
           ...runtimeControls,
-          ...(runtimeControls.deferEvidenceUntilCameraSettled ? { cameraSettled } : {}),
-          ...(sceneSeek ? {
-            timelineSeek: {
-              shotElapsedSec: Number(sceneSeek.shotElapsedSec) || 0,
-              flightDurationSec: Number(sceneSeek.flightDurationSec) || 0,
-              holdDurationSec: Number(sceneSeek.holdDurationSec) || 0,
-              holdElapsedSec: Number(sceneSeek.holdElapsedSec) || 0,
-              cameraProgress: clamp01(Number(sceneSeek.cameraProgress) || 0),
-              holdProgress: clamp01(Number(sceneSeek.holdProgress) || 0),
-            },
-          } : {}),
+          ...(runtimeControls.deferEvidenceUntilCameraSettled
+            ? { cameraSettled }
+            : {}),
+          ...(sceneSeek
+            ? {
+                timelineSeek: {
+                  shotElapsedSec: Number(sceneSeek.shotElapsedSec) || 0,
+                  flightDurationSec: Number(sceneSeek.flightDurationSec) || 0,
+                  holdDurationSec: Number(sceneSeek.holdDurationSec) || 0,
+                  holdElapsedSec: Number(sceneSeek.holdElapsedSec) || 0,
+                  cameraProgress: clamp01(
+                    Number(sceneSeek.cameraProgress) || 0,
+                  ),
+                  holdProgress: clamp01(Number(sceneSeek.holdProgress) || 0),
+                },
+              }
+            : {}),
         };
         if (runtimeControls.evidencePathDuringCamera && cameraTravel) {
           state.params.sceneControls.cameraTravel = { ...cameraTravel };
@@ -1290,12 +1485,15 @@ export class SceneDirector {
         holdSec: this._effectiveShotHoldSec(scene, shot, states),
         sceneElapsedSec,
         sceneDurationSec,
-        sceneProgress: sceneDurationSec > 0 ? sceneElapsedSec / sceneDurationSec : 0,
-        ...(sceneSeek ? {
-          shotElapsedSec: Number(sceneSeek.shotElapsedSec) || 0,
-          shotProgress: clamp01(Number(sceneSeek.shotProgress) || 0),
-          seeking: true,
-        } : {}),
+        sceneProgress:
+          sceneDurationSec > 0 ? sceneElapsedSec / sceneDurationSec : 0,
+        ...(sceneSeek
+          ? {
+              shotElapsedSec: Number(sceneSeek.shotElapsedSec) || 0,
+              shotProgress: clamp01(Number(sceneSeek.shotProgress) || 0),
+              seeking: true,
+            }
+          : {}),
       };
     }
     for (const layerId of scene?.releaseLayerIds || []) {
@@ -1307,8 +1505,9 @@ export class SceneDirector {
   /** Keep installed append-pack shots on any surface declared by their source recipe. */
   _visualStateForShot(shot) {
     const sourceRecipe = getSceneAppendRecipeById(shot?.sourcePackId);
-    const sceneBeatState = Object.values(shot?.layers || {})
-      .find((state) => state?.params?.presentation === 'scene-beat');
+    const sceneBeatState = Object.values(shot?.layers || {}).find(
+      (state) => state?.params?.presentation === 'scene-beat',
+    );
     const controls = {
       ...sceneBeatState?.params?.sceneControls,
       ...sourceRecipe?.runtimeControlsByBeat?.[sceneBeatState?.params?.beatId],
@@ -1316,19 +1515,29 @@ export class SceneDirector {
     if (controls.imageryComparison === true) {
       return { ...(shot.visual || {}), mapStack: 'esri-imagery' };
     }
-    if (sourceRecipe?.standaloneSurfaceBeatIds?.includes(sceneBeatState?.params?.beatId)) {
+    if (
+      sourceRecipe?.standaloneSurfaceBeatIds?.includes(
+        sceneBeatState?.params?.beatId,
+      )
+    ) {
       return { ...(shot.visual || {}), mapStack: 'esri-imagery' };
     }
-    const visual = sourceRecipe?.photorealSurfaceBeatIds?.includes(sceneBeatState?.params?.beatId)
+    const visual = sourceRecipe?.photorealSurfaceBeatIds?.includes(
+      sceneBeatState?.params?.beatId,
+    )
       ? { ...(shot.visual || {}), mapStack: 'photoreal' }
-      : (shot?.visual || {});
-    const isNepalShot = shot?.layers?.['bhote-koshi-2026']?.enabled
-      || shot?.layers?.['bhote-koshi-locator']?.enabled;
+      : shot?.visual || {};
+    const isNepalShot =
+      shot?.layers?.['bhote-koshi-2026']?.enabled ||
+      shot?.layers?.['bhote-koshi-locator']?.enabled;
     // Check actual loaded capability, not the presence of a credential. A key
     // can exist even when its tileset failed to initialize. Resolve at playback
     // time so saved cameras and provider preferences remain portable.
-    if (isNepalShot && visual.mapStack === 'photoreal'
-      && !this._isMapStackAvailable('photoreal')) {
+    if (
+      isNepalShot &&
+      visual.mapStack === 'photoreal' &&
+      !this._isMapStackAvailable('photoreal')
+    ) {
       return { ...visual, mapStack: 'esri-imagery' };
     }
     return visual;
@@ -1339,20 +1548,34 @@ export class SceneDirector {
     const states = resolvedStates || this._layerStatesForShot(scene, shot);
     const recipe = getSceneAppendRecipeById(shot?.sourcePackId);
     const overrides = Object.values(states)
-      .filter(state => state?.enabled && state.params?.presentation === 'scene-beat')
-      .map(state => recipe?.runtimeHoldSecByBeat?.[state.params.beatId])
-      .filter(value => Number.isFinite(value) && value >= 0);
+      .filter(
+        (state) =>
+          state?.enabled && state.params?.presentation === 'scene-beat',
+      )
+      .map((state) => recipe?.runtimeHoldSecByBeat?.[state.params.beatId])
+      .filter((value) => Number.isFinite(value) && value >= 0);
     const authoredHoldSec = overrides.length
-      ? Math.max(...overrides) : Number(shot?.holdSec) || 0;
+      ? Math.max(...overrides)
+      : Number(shot?.holdSec) || 0;
     const overview = states['bhote-koshi-locator'];
-    const overviewHoldSec = overview?.enabled
-      && overview.params?.presentation === 'bhote-koshi-incident-places'
-      ? INCIDENT_OVERVIEW_HOLD_SEC : 0;
-    return Object.values(states).reduce((holdSec, state) => {
-      const controls = state?.params?.sceneControls;
-      return Math.max(holdSec, Number(controls?.minimumHoldSec) || 0,
-        controls?.evidenceSequence === true ? Number(controls.evidenceSequenceDurationSec) || 0 : 0);
-    }, Math.max(overviewHoldSec, authoredHoldSec));
+    const overviewHoldSec =
+      overview?.enabled &&
+      overview.params?.presentation === 'bhote-koshi-incident-places'
+        ? INCIDENT_OVERVIEW_HOLD_SEC
+        : 0;
+    return Object.values(states).reduce(
+      (holdSec, state) => {
+        const controls = state?.params?.sceneControls;
+        return Math.max(
+          holdSec,
+          Number(controls?.minimumHoldSec) || 0,
+          controls?.evidenceSequence === true
+            ? Number(controls.evidenceSequenceDurationSec) || 0
+            : 0,
+        );
+      },
+      Math.max(overviewHoldSec, authoredHoldSec),
+    );
   }
 
   /** Resolve one shot's authored flight plus any runtime-enforced hold. */
@@ -1361,35 +1584,49 @@ export class SceneDirector {
     const sourceRecipe = getSceneAppendRecipeById(shot?.sourcePackId);
     for (const state of Object.values(states)) {
       if (state?.params?.presentation !== 'scene-beat') continue;
-      const runtimeControls = sourceRecipe?.runtimeControlsByBeat?.[state.params.beatId];
+      const runtimeControls =
+        sourceRecipe?.runtimeControlsByBeat?.[state.params.beatId];
       if (runtimeControls) {
-        state.params.sceneControls = { ...state.params.sceneControls, ...runtimeControls };
+        state.params.sceneControls = {
+          ...state.params.sceneControls,
+          ...runtimeControls,
+        };
       }
     }
-    return (shot?.durationSec || DEFAULT_SHOT_DURATION_SEC)
-      + this._effectiveShotHoldSec(scene, shot, states);
+    return (
+      (shot?.durationSec || DEFAULT_SHOT_DURATION_SEC) +
+      this._effectiveShotHoldSec(scene, shot, states)
+    );
   }
 
   /** Signal camera-dependent layers only after the authored flight completes. */
   _settleShotLayerStates(scene, shot, token = null, cameraTravel = null) {
     if (token?.cancelled) return false;
-    const settledTravel = cameraTravel ? {
-      ...cameraTravel,
-      active: false,
-      completed: true,
-      cancelled: false,
-    } : null;
+    const settledTravel = cameraTravel
+      ? {
+          ...cameraTravel,
+          active: false,
+          completed: true,
+          cancelled: false,
+        }
+      : null;
     const states = this._layerStatesForShot(scene, shot, {
       cameraSettled: true,
       cameraTravel: settledTravel,
     });
     for (const [layerId, state] of Object.entries(states)) {
-      if (!state?.enabled || state.params?.sceneControls?.deferEvidenceUntilCameraSettled !== true) {
+      if (
+        !state?.enabled ||
+        state.params?.sceneControls?.deferEvidenceUntilCameraSettled !== true
+      ) {
         continue;
       }
-      this.dataManager.setLayerParams(layerId, state.params, { origin: 'scene' });
+      this.dataManager.setLayerParams(layerId, state.params, {
+        origin: 'scene',
+      });
     }
-    if (this._activeSceneTravel?.id === cameraTravel?.id) this._activeSceneTravel = null;
+    if (this._activeSceneTravel?.id === cameraTravel?.id)
+      this._activeSceneTravel = null;
     return !token?.cancelled;
   }
 
@@ -1397,7 +1634,10 @@ export class SceneDirector {
   _beginShotTravel(scene, shot, durationSec) {
     const travel = {
       id: ++this._sceneTravelGeneration,
-      durationSec: Math.max(0.2, Number(durationSec) || DEFAULT_SHOT_DURATION_SEC),
+      durationSec: Math.max(
+        0.2,
+        Number(durationSec) || DEFAULT_SHOT_DURATION_SEC,
+      ),
       active: true,
       completed: false,
       cancelled: false,
@@ -1410,8 +1650,14 @@ export class SceneDirector {
   _publishShotTravel(scene, shot, cameraTravel) {
     const states = this._layerStatesForShot(scene, shot, { cameraTravel });
     for (const [layerId, state] of Object.entries(states)) {
-      if (!state?.enabled || state.params?.sceneControls?.evidencePathDuringCamera !== true) continue;
-      this.dataManager.setLayerParams(layerId, state.params, { origin: 'scene' });
+      if (
+        !state?.enabled ||
+        state.params?.sceneControls?.evidencePathDuringCamera !== true
+      )
+        continue;
+      this.dataManager.setLayerParams(layerId, state.params, {
+        origin: 'scene',
+      });
     }
   }
 
@@ -1420,7 +1666,9 @@ export class SceneDirector {
     // The opening locator owns an additional delayed approach/orbit even after
     // the director's authored flight has settled. Revoke it before cancelling
     // the camera, whose moveEnd/complete callbacks may already be queued.
-    this.dataManager?.layers?.get('bhote-koshi-locator')?.module.cancelSceneMotion?.();
+    this.dataManager?.layers
+      ?.get('bhote-koshi-locator')
+      ?.module.cancelSceneMotion?.();
     const active = this._activeSceneTravel;
     if (!active) return false;
     this._activeSceneTravel = null;
@@ -1436,21 +1684,40 @@ export class SceneDirector {
       cameraTravel: cancelledTravel,
     });
     for (const [layerId, state] of Object.entries(states)) {
-      if (!state?.enabled || state.params?.sceneControls?.evidencePathDuringCamera !== true) continue;
+      if (
+        !state?.enabled ||
+        state.params?.sceneControls?.evidencePathDuringCamera !== true
+      )
+        continue;
       let cancelled = false;
       try {
-        cancelled = this.dataManager.setLayerParams(layerId, state.params, { origin: 'scene' }) !== false;
+        cancelled =
+          this.dataManager.setLayerParams(layerId, state.params, {
+            origin: 'scene',
+          }) !== false;
       } catch (error) {
-        console.warn(`[Scenes] Could not cancel camera-led state for ${layerId}:`, error);
+        console.warn(
+          `[Scenes] Could not cancel camera-led state for ${layerId}:`,
+          error,
+        );
       }
       if (cancelled) continue;
       // Fail closed: an exceptional manager/module must not leave its previous
       // RAF or deadline clock moving after STOP or a superseding LOAD.
       try {
-        Promise.resolve(this.dataManager.setEnabled(layerId, false, { origin: 'scene' }))
-          .catch((error) => console.warn(`[Scenes] Could not disable stale layer ${layerId}:`, error));
+        Promise.resolve(
+          this.dataManager.setEnabled(layerId, false, { origin: 'scene' }),
+        ).catch((error) =>
+          console.warn(
+            `[Scenes] Could not disable stale layer ${layerId}:`,
+            error,
+          ),
+        );
       } catch (error) {
-        console.warn(`[Scenes] Could not disable stale layer ${layerId}:`, error);
+        console.warn(
+          `[Scenes] Could not disable stale layer ${layerId}:`,
+          error,
+        );
       }
     }
     return true;
@@ -1463,7 +1730,8 @@ export class SceneDirector {
     const { scene, shot } = this._getShot(sceneId, shotId);
     if (!scene || !shot) return { started: false, reason: 'shot-not-found' };
     const shotIndex = scene.shots.findIndex(({ id }) => id === shot.id);
-    const previousShot = scene.shots[(shotIndex - 1 + scene.shots.length) % scene.shots.length];
+    const previousShot =
+      scene.shots[(shotIndex - 1 + scene.shots.length) % scene.shots.length];
     const result = await this.loadShot(sceneId, shotId, {
       flyDuration: shot.durationSec || DEFAULT_SHOT_DURATION_SEC,
       fromCamera: previousShot?.camera || null,
@@ -1475,7 +1743,11 @@ export class SceneDirector {
   async continueScene(sceneId, shotId) {
     const { scene, shot } = this._getShot(sceneId, shotId);
     if (!scene || !shot) return { started: false, reason: 'shot-not-found' };
-    return this.startScene(sceneId, { single: true, afterShotId: shotId, preview: false });
+    return this.startScene(sceneId, {
+      single: true,
+      afterShotId: shotId,
+      preview: false,
+    });
   }
 
   /** Load the adjacent shot inside one scene without wrapping at either end. */
@@ -1493,10 +1765,14 @@ export class SceneDirector {
 
   /** Resolve absolute authored-clock timing for one shot. */
   _sceneTimingForShot(scene, shot) {
-    const durations = scene?.shots?.map((item) => this._shotRuntimeDurationSec(scene, item)) || [];
-    const shotIndex = scene?.shots?.findIndex(({ id }) => id === shot?.id) ?? -1;
+    const durations =
+      scene?.shots?.map((item) => this._shotRuntimeDurationSec(scene, item)) ||
+      [];
+    const shotIndex =
+      scene?.shots?.findIndex(({ id }) => id === shot?.id) ?? -1;
     const totalSec = durations.reduce((sum, duration) => sum + duration, 0);
-    const startElapsedSec = durations.slice(0, Math.max(0, shotIndex))
+    const startElapsedSec = durations
+      .slice(0, Math.max(0, shotIndex))
       .reduce((sum, duration) => sum + duration, 0);
     const durationSec = shotIndex >= 0 ? durations[shotIndex] : 0;
     const endElapsedSec = Math.min(totalSec, startElapsedSec + durationSec);
@@ -1518,8 +1794,9 @@ export class SceneDirector {
     const source = fromCamera || target;
     if (!source || !target) return target || source || null;
     const t = clamp01(Number(progress) || 0);
-    const eased = t < 0.5 ? 4 * t ** 3 : 1 - ((-2 * t + 2) ** 3) / 2;
-    const lerp = (from, to) => Number(from) + (Number(to) - Number(from)) * eased;
+    const eased = t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2;
+    const lerp = (from, to) =>
+      Number(from) + (Number(to) - Number(from)) * eased;
     const lerpAngle = (from, to) => {
       const start = Number(from) || 0;
       const delta = ((Number(to) - start + 540) % 360) - 180;
@@ -1539,7 +1816,9 @@ export class SceneDirector {
   _sceneSeekState(scene, progress) {
     if (!scene?.shots?.length) return null;
     const normalized = clamp01(Number(progress) || 0);
-    const durations = scene.shots.map((shot) => this._shotRuntimeDurationSec(scene, shot));
+    const durations = scene.shots.map((shot) =>
+      this._shotRuntimeDurationSec(scene, shot),
+    );
     const totalSec = durations.reduce((sum, duration) => sum + duration, 0);
     const targetSec = normalized * Math.max(0, totalSec);
     let startElapsedSec = 0;
@@ -1555,11 +1834,20 @@ export class SceneDirector {
     const shot = scene.shots[shotIndex];
     const flightDurationSec = shot.durationSec || DEFAULT_SHOT_DURATION_SEC;
     const holdDurationSec = this._effectiveShotHoldSec(scene, shot);
-    const shotDurationSec = Math.max(0.001, flightDurationSec + holdDurationSec);
-    const shotElapsedSec = Math.max(0, Math.min(shotDurationSec, targetSec - startElapsedSec));
-    const cameraProgress = clamp01(shotElapsedSec / Math.max(0.001, flightDurationSec));
+    const shotDurationSec = Math.max(
+      0.001,
+      flightDurationSec + holdDurationSec,
+    );
+    const shotElapsedSec = Math.max(
+      0,
+      Math.min(shotDurationSec, targetSec - startElapsedSec),
+    );
+    const cameraProgress = clamp01(
+      shotElapsedSec / Math.max(0.001, flightDurationSec),
+    );
     const holdElapsedSec = Math.max(0, shotElapsedSec - flightDurationSec);
-    const holdProgress = holdDurationSec > 0 ? clamp01(holdElapsedSec / holdDurationSec) : 1;
+    const holdProgress =
+      holdDurationSec > 0 ? clamp01(holdElapsedSec / holdDurationSec) : 1;
     const previousCamera = scene.shots[shotIndex - 1]?.camera || shot.camera;
     return {
       sceneProgress: totalSec > 0 ? targetSec / totalSec : 0,
@@ -1574,7 +1862,11 @@ export class SceneDirector {
       holdElapsedSec,
       cameraProgress,
       holdProgress,
-      camera: this._cameraAtProgress(previousCamera, shot.camera, cameraProgress),
+      camera: this._cameraAtProgress(
+        previousCamera,
+        shot.camera,
+        cameraProgress,
+      ),
     };
   }
 
@@ -1587,10 +1879,18 @@ export class SceneDirector {
   }
 
   /** Publish one authoritative scene-clock snapshot to attached panels. */
-  _publishSceneClock(scene, shot, sceneElapsedSec, { running = this._running, seeking = false } = {}) {
+  _publishSceneClock(
+    scene,
+    shot,
+    sceneElapsedSec,
+    { running = this._running, seeking = false } = {},
+  ) {
     if (!scene || !shot) return;
     const timing = this._sceneTimingForShot(scene, shot);
-    const elapsedSec = Math.max(0, Math.min(timing.totalSec, Number(sceneElapsedSec) || 0));
+    const elapsedSec = Math.max(
+      0,
+      Math.min(timing.totalSec, Number(sceneElapsedSec) || 0),
+    );
     this._sceneClockSnapshot = {
       sceneId: scene.id,
       shotId: shot.id,
@@ -1603,7 +1903,9 @@ export class SceneDirector {
       seeking: Boolean(seeking),
     };
     for (const listener of this._sceneClockListeners) {
-      try { listener({ ...this._sceneClockSnapshot }); } catch (error) {
+      try {
+        listener({ ...this._sceneClockSnapshot });
+      } catch (error) {
         console.warn('[Scenes] Scene clock listener failed:', error);
       }
     }
@@ -1619,8 +1921,13 @@ export class SceneDirector {
   _seekLoadedShot(scene, seekState) {
     if (this._destroyed) return false;
     const shot = seekState?.shot;
-    if (!scene || !shot || this._loadedSceneId !== scene.id
-        || this._selectedShotId !== shot.id) return false;
+    if (
+      !scene ||
+      !shot ||
+      this._loadedSceneId !== scene.id ||
+      this._selectedShotId !== shot.id
+    )
+      return false;
     if (!this._claimCameraOwnership()) return false;
     this._cancelActiveSceneTravel();
     this._loadAbort?.abort();
@@ -1635,7 +1942,11 @@ export class SceneDirector {
     let applied = true;
     for (const [layerId, state] of Object.entries(states)) {
       if (!state?.enabled || !state.params) continue;
-      if (this.dataManager.setLayerParams(layerId, state.params, { origin: 'scene' }) === false) {
+      if (
+        this.dataManager.setLayerParams(layerId, state.params, {
+          origin: 'scene',
+        }) === false
+      ) {
         applied = false;
       }
     }
@@ -1664,12 +1975,19 @@ export class SceneDirector {
     if (this._running) {
       await this._waitForRunIdle();
     }
-    if (this._destroyed || generation !== this._sceneSeekGeneration) return false;
+    if (this._destroyed || generation !== this._sceneSeekGeneration)
+      return false;
     const seekState = this._sceneSeekState(scene, progress);
     if (!seekState) return false;
     if (this._seekLoadedShot(scene, seekState)) return true;
-    const result = await this._loadShot(scene.id, seekState.shot.id, { sceneSeek: seekState });
-    return !this._destroyed && generation === this._sceneSeekGeneration && result?.started === true;
+    const result = await this._loadShot(scene.id, seekState.shot.id, {
+      sceneSeek: seekState,
+    });
+    return (
+      !this._destroyed &&
+      generation === this._sceneSeekGeneration &&
+      result?.started === true
+    );
   }
 
   /**
@@ -1686,7 +2004,11 @@ export class SceneDirector {
     return {
       signal,
       get cancelled() {
-        return director._destroyed || signal?.aborted || director._loadGeneration !== generation;
+        return (
+          director._destroyed ||
+          signal?.aborted ||
+          director._loadGeneration !== generation
+        );
       },
     };
   }
@@ -1716,7 +2038,8 @@ export class SceneDirector {
 
   /** Place the camera at an authored replay start pose without an intermediate flight. */
   _setCameraView(cameraState) {
-    if (!cameraState || typeof this.viewer?.camera?.setView !== 'function') return false;
+    if (!cameraState || typeof this.viewer?.camera?.setView !== 'function')
+      return false;
     this.styleManager?.clearSearchedLocation?.();
     this.viewer.camera.cancelFlight?.();
     this.viewer.camera.setView({
@@ -1838,17 +2161,26 @@ export class SceneDirector {
    * @returns {Promise<{started: boolean, reason?: string, shots?: number}>}
    */
   startScene(sceneId, options) {
-    if (this._destroyed) return Promise.resolve({ started: false, reason: 'destroyed' });
+    if (this._destroyed)
+      return Promise.resolve({ started: false, reason: 'destroyed' });
     this._sceneSeekGeneration++;
     return this._trackWork(this._startScene(sceneId, options));
   }
 
-  async _startScene(sceneId, { single = false, afterShotId = null, preview = true } = {}) {
+  async _startScene(
+    sceneId,
+    { single = false, afterShotId = null, preview = true } = {},
+  ) {
     if (this._running) return { started: false, reason: 'already-running' };
 
-    let queue = this._buildPlaybackQueue(sceneId || this._selectedSceneId || this._project.scenes[0]?.id, { single });
+    let queue = this._buildPlaybackQueue(
+      sceneId || this._selectedSceneId || this._project.scenes[0]?.id,
+      { single },
+    );
     if (afterShotId !== null) {
-      const index = queue.findIndex(({ scene, shot }) => scene.id === sceneId && shot.id === afterShotId);
+      const index = queue.findIndex(
+        ({ scene, shot }) => scene.id === sceneId && shot.id === afterShotId,
+      );
       if (index < 0) return { started: false, reason: 'shot-not-found' };
       queue = queue.slice(index + 1);
       if (!queue.length) return { started: false, reason: 'scene-complete' };
@@ -1902,8 +2234,11 @@ export class SceneDirector {
 
     // Pre-compute total duration for the progress bar
     const estimatedDurationSec = queue.reduce((sum, item) => {
-      return sum + (item.shot.durationSec || 0)
-        + this._effectiveShotHoldSec(item.scene, item.shot);
+      return (
+        sum +
+        (item.shot.durationSec || 0) +
+        this._effectiveShotHoldSec(item.scene, item.shot)
+      );
     }, 0);
 
     // Initialize telemetry accumulator for this run
@@ -1922,10 +2257,13 @@ export class SceneDirector {
 
     let activeScene = null;
     try {
-      const loadedScene = this._project.scenes.find((scene) => scene.id === this._loadedSceneId);
+      const loadedScene = this._project.scenes.find(
+        (scene) => scene.id === this._loadedSceneId,
+      );
       if (loadedScene && loadedScene.id !== queue[0].scene.id) {
         const released = await this._releaseSceneLayers(loadedScene, token);
-        if (!released) throw new Error(`Could not leave scene: ${loadedScene.title}`);
+        if (!released)
+          throw new Error(`Could not leave scene: ${loadedScene.title}`);
         this._loadedSceneId = null;
       }
 
@@ -1948,7 +2286,9 @@ export class SceneDirector {
         this._renderSceneSelect();
         this._renderShotList();
 
-        this._updateStatus(`Running ${idx + 1}/${queue.length}: ${scene.title} / ${shot.title}`);
+        this._updateStatus(
+          `Running ${idx + 1}/${queue.length}: ${scene.title} / ${shot.title}`,
+        );
 
         this._logEvent('shot_start', {
           sceneId: scene.id,
@@ -1966,12 +2306,18 @@ export class SceneDirector {
         // switch can hold this shot for seconds; without a re-check the layer
         // pass below still runs and the operator watches layers keep toggling
         // after they hit Stop. Cancellation is re-read after each one.
-        await this.styleManager.applyVisualState(this._visualStateForShot(shot), {
-          isCurrent: () => !token.cancelled,
-        });
+        await this.styleManager.applyVisualState(
+          this._visualStateForShot(shot),
+          {
+            isCurrent: () => !token.cancelled,
+          },
+        );
         if (token.cancelled) break;
         const flightDuration = shot.durationSec || DEFAULT_SHOT_DURATION_SEC;
-        await this._applyLayerStates(this._layerStatesForShot(scene, shot), token);
+        await this._applyLayerStates(
+          this._layerStatesForShot(scene, shot),
+          token,
+        );
         if (token.cancelled) break;
         this._loadedSceneId = scene.id;
         const sceneTiming = this._startSceneClockTicker(scene, shot, token);
@@ -1987,7 +2333,9 @@ export class SceneDirector {
         if (token.cancelled) break;
         clearInterval(this._sceneClockTimer);
         this._sceneClockTimer = null;
-        this._publishSceneClock(scene, shot, sceneTiming.endElapsedSec, { running: true });
+        this._publishSceneClock(scene, shot, sceneTiming.endElapsedSec, {
+          running: true,
+        });
 
         this._logEvent('shot_end', {
           sceneId: scene.id,
@@ -2062,9 +2410,17 @@ export class SceneDirector {
     this._cancelActiveSceneTravel();
     this.viewer.camera.cancelFlight();
     if (this._sceneClockSnapshot) {
-      this._sceneClockSnapshot = { ...this._sceneClockSnapshot, running: false, stopped: true };
+      this._sceneClockSnapshot = {
+        ...this._sceneClockSnapshot,
+        running: false,
+        stopped: true,
+      };
       for (const listener of this._sceneClockListeners) {
-        try { listener({ ...this._sceneClockSnapshot }); } catch { /* Observer cannot block cancellation. */ }
+        try {
+          listener({ ...this._sceneClockSnapshot });
+        } catch {
+          /* Observer cannot block cancellation. */
+        }
       }
     }
     if (!this._running || !this._runToken) return;
@@ -2173,8 +2529,13 @@ export class SceneDirector {
     if (token?.cancelled) return abort();
 
     const signal = token?.signal;
-    const registered = new Set(this.dataManager.getAll().map((layer) => layer.id));
-    for (const { id, enabled, params } of sceneLayerPlan(targetStates, registered)) {
+    const registered = new Set(
+      this.dataManager.getAll().map((layer) => layer.id),
+    );
+    for (const { id, enabled, params } of sceneLayerPlan(
+      targetStates,
+      registered,
+    )) {
       let settled;
       if (params && typeof this.dataManager.restoreLayerState === 'function') {
         const outcome = await this.dataManager.restoreLayerState(
@@ -2221,7 +2582,9 @@ export class SceneDirector {
    * @returns {Promise<boolean>} True only when every owned layer is released
    */
   async _releaseSceneLayers(scene, token = null) {
-    const layerIds = Array.isArray(scene?.releaseLayerIds) ? scene.releaseLayerIds : [];
+    const layerIds = Array.isArray(scene?.releaseLayerIds)
+      ? scene.releaseLayerIds
+      : [];
     let released = true;
     for (const layerId of layerIds) {
       if (token?.cancelled) return false;
@@ -2232,12 +2595,20 @@ export class SceneDirector {
         });
         if (settled === false) {
           released = false;
-          console.warn(`[Scenes] Scene-owned layer refused release: ${layerId}`);
-          this._logEvent('scene_layer_release_refused', { sceneId: scene.id, layerId });
+          console.warn(
+            `[Scenes] Scene-owned layer refused release: ${layerId}`,
+          );
+          this._logEvent('scene_layer_release_refused', {
+            sceneId: scene.id,
+            layerId,
+          });
         }
       } catch (error) {
         released = false;
-        console.warn(`[Scenes] Scene-owned layer release failed: ${layerId}`, error);
+        console.warn(
+          `[Scenes] Scene-owned layer release failed: ${layerId}`,
+          error,
+        );
         this._logEvent('scene_layer_release_error', {
           sceneId: scene.id,
           layerId,
@@ -2352,12 +2723,25 @@ export class SceneDirector {
 
   /** Let an opt-in media owner finish playback and its fade before the next flight. */
   async _holdShot(scene, shot, token) {
-    const readers = Object.entries(this._layerStatesForShot(scene, shot)).flatMap(([id, state]) => {
+    const readers = Object.entries(
+      this._layerStatesForShot(scene, shot),
+    ).flatMap(([id, state]) => {
       const module = this.dataManager?.layers?.get(id)?.module;
-      if (!state.enabled || typeof module?.getSceneShotMediaHold !== 'function') return [];
+      if (!state.enabled || typeof module?.getSceneShotMediaHold !== 'function')
+        return [];
       const read = () => module.getSceneShotMediaHold(state.params?.beatId);
       const initial = read();
-      return initial ? [{ read, maxWaitMs: Math.min(20000, Math.max(0, Number(initial.maxWaitMs) || 0)) }] : [];
+      return initial
+        ? [
+            {
+              read,
+              maxWaitMs: Math.min(
+                20000,
+                Math.max(0, Number(initial.maxWaitMs) || 0),
+              ),
+            },
+          ]
+        : [];
     });
     if (!readers.length) {
       await this._sleep(this._effectiveShotHoldSec(scene, shot) * 1000, token);
@@ -2369,7 +2753,9 @@ export class SceneDirector {
       if (!pending.length) return;
       if (pending.some(({ maxWaitMs }) => Date.now() - began >= maxWaitMs)) {
         this.stopScene('Scene media timed out');
-        throw new Error('Scene media did not finish within its bounded playback window');
+        throw new Error(
+          'Scene media did not finish within its bounded playback window',
+        );
       }
       await this._sleep(70, token);
     }
@@ -2408,14 +2794,22 @@ export class SceneDirector {
     if (token.cancelled || this._running) return;
     this._setProgress(from);
     if (sceneClock) {
-      this._publishSceneClock(sceneClock.scene, sceneClock.shot,
-        sceneClock.sceneElapsedFrom, { running: false });
+      this._publishSceneClock(
+        sceneClock.scene,
+        sceneClock.shot,
+        sceneClock.sceneElapsedFrom,
+        { running: false },
+      );
     }
     if (seconds <= 0) {
       this._setProgress(to);
       if (sceneClock) {
-        this._publishSceneClock(sceneClock.scene, sceneClock.shot,
-          sceneClock.sceneElapsedTo, { running: false });
+        this._publishSceneClock(
+          sceneClock.scene,
+          sceneClock.shot,
+          sceneClock.sceneElapsedTo,
+          { running: false },
+        );
       }
       return;
     }
@@ -2432,8 +2826,9 @@ export class SceneDirector {
         this._publishSceneClock(
           sceneClock.scene,
           sceneClock.shot,
-          sceneClock.sceneElapsedFrom
-            + (sceneClock.sceneElapsedTo - sceneClock.sceneElapsedFrom) * fraction,
+          sceneClock.sceneElapsedFrom +
+            (sceneClock.sceneElapsedTo - sceneClock.sceneElapsedFrom) *
+              fraction,
           { running: false },
         );
       }
@@ -2451,17 +2846,27 @@ export class SceneDirector {
     clearInterval(this._sceneClockTimer);
     const timing = this._sceneTimingForShot(scene, shot);
     const startedAt = Date.now();
-    this._publishSceneClock(scene, shot, timing.startElapsedSec, { running: true });
+    this._publishSceneClock(scene, shot, timing.startElapsedSec, {
+      running: true,
+    });
     const timer = setInterval(() => {
       if (token.cancelled || !this._running) {
         clearInterval(timer);
         if (this._sceneClockTimer === timer) this._sceneClockTimer = null;
         return;
       }
-      const shotElapsedSec = Math.min(timing.durationSec, (Date.now() - startedAt) / 1000);
-      this._publishSceneClock(scene, shot, timing.startElapsedSec + shotElapsedSec, {
-        running: true,
-      });
+      const shotElapsedSec = Math.min(
+        timing.durationSec,
+        (Date.now() - startedAt) / 1000,
+      );
+      this._publishSceneClock(
+        scene,
+        shot,
+        timing.startElapsedSec + shotElapsedSec,
+        {
+          running: true,
+        },
+      );
     }, 50);
     timer.unref?.();
     this._sceneClockTimer = timer;
@@ -2505,13 +2910,22 @@ export class SceneDirector {
     this._runToken = null;
     this._setButtons(false);
     if (this._sceneClockSnapshot) {
-      const scene = this._project.scenes.find(({ id }) => id === this._sceneClockSnapshot.sceneId);
-      const shot = scene?.shots?.find(({ id }) => id === this._sceneClockSnapshot.shotId);
+      const scene = this._project.scenes.find(
+        ({ id }) => id === this._sceneClockSnapshot.sceneId,
+      );
+      const shot = scene?.shots?.find(
+        ({ id }) => id === this._sceneClockSnapshot.shotId,
+      );
       if (scene && shot) {
-        this._publishSceneClock(scene, shot, this._sceneClockSnapshot.sceneElapsedSec, {
-          running: false,
-          seeking: this._sceneClockSnapshot.seeking,
-        });
+        this._publishSceneClock(
+          scene,
+          shot,
+          this._sceneClockSnapshot.sceneElapsedSec,
+          {
+            running: false,
+            seeking: this._sceneClockSnapshot.seeking,
+          },
+        );
       }
     }
     for (const resolve of this._runIdleResolvers) resolve();

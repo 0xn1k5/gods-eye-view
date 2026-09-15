@@ -572,13 +572,11 @@ function drawLeader(
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   if (
-    style === 'elbow'
-    && (placement.corner === 'left' || placement.corner === 'right')
+    style === 'elbow' &&
+    (placement.corner === 'left' || placement.corner === 'right')
   ) {
-    const elbowY = placement.rect.y + Math.min(
-      Math.max(12, placement.rect.h * 0.12),
-      26,
-    );
+    const elbowY =
+      placement.rect.y + Math.min(Math.max(12, placement.rect.h * 0.12), 26);
     const verticalLength = Math.abs(elbowY - startY);
     const horizontalLength = Math.abs(placement.leadToX - startX);
     const totalLength = verticalLength + horizontalLength;
@@ -590,7 +588,10 @@ function drawLeader(
       ctx.lineTo(startX, elbowY);
       const remaining = Math.max(0, visibleLength - verticalLength);
       const direction = Math.sign(placement.leadToX - startX);
-      ctx.lineTo(startX + Math.min(horizontalLength, remaining) * direction, elbowY);
+      ctx.lineTo(
+        startX + Math.min(horizontalLength, remaining) * direction,
+        elbowY,
+      );
     }
     ctx.stroke();
     return;
@@ -615,10 +616,17 @@ function drawAnchorDot(ctx, entry, placement) {
   ctx.stroke();
 }
 
-function drawCardChrome(ctx, entry, placement, selected = false, drawLeaderLine = true) {
+function drawCardChrome(
+  ctx,
+  entry,
+  placement,
+  selected = false,
+  drawLeaderLine = true,
+) {
   const { x, y, w, h } = placement.rect;
   const accent = entry.accent || WORLD_OVERLAY_STYLE.accent;
-  if (drawLeaderLine) drawLeader(ctx, placement, accent, 1, 1, entry.leaderStyle);
+  if (drawLeaderLine)
+    drawLeader(ctx, placement, accent, 1, 1, entry.leaderStyle);
   ctx.beginPath();
   roundedRectPath(ctx, x, y, w, h);
   ctx.fillStyle = selected
@@ -893,7 +901,8 @@ export function paintCard(
       entry.leaderStyle,
     );
     drawAnchorDot(ctx, entry, placement);
-    ctx.globalAlpha = alpha * Math.max(0, Math.min(1, Number(contentAlpha) || 0));
+    ctx.globalAlpha =
+      alpha * Math.max(0, Math.min(1, Number(contentAlpha) || 0));
     drawCardChrome(ctx, entry, placement, false, false);
   } else {
     drawCardChrome(ctx, entry, placement, false);
@@ -1112,15 +1121,33 @@ export function paintOverlayEntry(
   leaderProgress = 1,
   contentAlpha = 1,
 ) {
-  if (entry.cardStyle === 'tactical') return paintTacticalCard(ctx, entry, placement, alpha);
-  if (entry.variant === 'tracked') return paintTracked(ctx, entry, placement, alpha);
-  if (entry.selected || entry.variant === 'selected') return paintSelected(ctx, entry, placement, alpha);
+  if (entry.cardStyle === 'tactical')
+    return paintTacticalCard(ctx, entry, placement, alpha);
+  if (entry.variant === 'tracked')
+    return paintTracked(ctx, entry, placement, alpha);
+  if (entry.selected || entry.variant === 'selected')
+    return paintSelected(ctx, entry, placement, alpha);
   if (entry.variant === 'thumbnail') {
-    return paintThumbnail(ctx, entry, placement, alpha, leaderProgress, contentAlpha);
+    return paintThumbnail(
+      ctx,
+      entry,
+      placement,
+      alpha,
+      leaderProgress,
+      contentAlpha,
+    );
   }
   if (entry.variant === 'card') {
-    return paintCard(ctx, entry, placement, alpha, leaderProgress, contentAlpha);
+    return paintCard(
+      ctx,
+      entry,
+      placement,
+      alpha,
+      leaderProgress,
+      contentAlpha,
+    );
   }
-  if (entry.variant === 'track') return paintTrack(ctx, entry, placement, alpha);
+  if (entry.variant === 'track')
+    return paintTrack(ctx, entry, placement, alpha);
   return paintLabel(ctx, entry, placement, alpha);
 }

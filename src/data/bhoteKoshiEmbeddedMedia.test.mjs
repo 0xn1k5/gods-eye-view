@@ -248,3 +248,98 @@ test('Mailung playback stops at source timestamp 0:07 without changing other cli
     assert.equal(url.searchParams.has('end'), false);
   }
 });
+
+function preloadFixture(options = {}) {
+  class Element extends EventTarget {
+    constructor(tag) {
+      super(); this.tag = tag; this.children = []; this.dataset = {};
+      this.classList = { add() {}, remove() {}, contains() { return false; } };
+    }
+    setAttribute() {}
+    removeAttribute() {}
+    append(...children) {
+      for (const child of children) { child.remove(); child.parent = this; this.children.push(child); }
+    }
+    remove() {
+      if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this);
+      this.parent = null;
+    }
+  }
+  const documentRef = {
+    body: new Element('body'),
+    createElement: tag => new Element(tag),
+    createElementNS: (_, tag) => new Element(tag),
+  };
+  const media = createBhoteKoshiEmbeddedMedia({ viewer: {}, documentRef, globalRef: {}, ...options });
+  return { media, root: documentRef.body.children[0] };
+}
+
+for (const operation of ['pause', 'hide', 'destroy']) {
+  test(`${operation} removes a hidden YouTube preload`, () => {
+    const { media, root } = preloadFixture();
+    media.warm({ sourceUrl: 'https://youtu.be/DbqRexFxv3k' });
+    assert.equal(root.children.length, 1);
+    media[operation]();
+    assert.equal(root.children.length, 0);
+    media.destroy();
+  });
+}
+
+test('camera updates retain a preload until the visible player loads', () => {
+  const { media, root } = preloadFixture();
+  const observation = { media: { sourceUrl: 'https://youtu.be/DbqRexFxv3k' } };
+  media.warm({ observation });
+  const frame = root.children[0];
+  media.hide({ preserveWarm: true });
+  media.warm({ observation });
+  assert.equal(root.children[0], frame);
+  assert.equal(media.show({ observation, anchor: {} }), true);
+  assert.equal(frame.parent, root, 'keep the preload while the visible player starts');
+  const card = root.children.find(node => node.tag === 'section');
+  const body = card.children.find(node => node.className === 'bhote-embedded-callout-body');
+  const player = body.children.find(node => node.className === 'bhote-embedded-callout-player');
+  player.children.find(node => node.tag === 'iframe').dispatchEvent(new Event('load'));
+  assert.equal(frame.parent, null, 'visible player readiness releases the preload');
+  media.destroy();
+  assert.equal(root.children.length, 0);
+});
+
+test('hiding revokes a pending Facebook SDK before it can mount or subscribe', async () => {
+  let resolveApi;
+  const calls = [];
+  const { media, root } = preloadFixture({
+    facebookLoader: () => new Promise(resolve => { resolveApi = resolve; }),
+  });
+  media.warm({ sourceUrl: 'https://www.facebook.com/reel/1571491657757829' });
+  assert.equal(root.children.length, 1);
+  media.hide();
+  assert.equal(root.children.length, 0);
+  resolveApi({ Event: { subscribe() { calls.push('subscribe'); } }, XFBML: { parse() { calls.push('parse'); } } });
+  await Promise.resolve(); await Promise.resolve();
+  assert.deepEqual(calls, []);
+  media.destroy();
+});
+
+test('pausing cancels a mounted Facebook preload and rejects its late ready callback', async () => {
+  let ready;
+  let unsubscribed = 0;
+  const timers = new Set();
+  const playerCalls = [];
+  const { media, root } = preloadFixture({
+    globalRef: { setTimeout(fn) { timers.add(fn); return fn; }, clearTimeout(fn) { timers.delete(fn); } },
+    facebookLoader: async () => ({
+      Event: { subscribe(_name, callback) { ready = callback; }, unsubscribe() { unsubscribed++; } },
+      XFBML: { parse() {} },
+    }),
+  });
+  media.warm({ sourceUrl: 'https://www.facebook.com/reel/1571491657757829' });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(timers.size, 1);
+  media.pause();
+  assert.equal(root.children.length, 0);
+  assert.equal(timers.size, 0);
+  assert.equal(unsubscribed, 1);
+  ready({ type: 'video', instance: { play() { playerCalls.push('play'); }, pause() { playerCalls.push('pause'); } } });
+  assert.deepEqual(playerCalls, []);
+  media.destroy();
+});

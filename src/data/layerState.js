@@ -302,10 +302,26 @@ export const SHARE_TRACKING_RESTORE_POLICIES = Object.freeze({
  * owns stable URL ordering.
  */
 export const LAYER_STATE_REGISTRY = Object.freeze([
-  Object.freeze({ id: 'ais-live-vessels', token: 'a', disposition: 'enabled-only' }),
-  Object.freeze({ id: 'alpr-cameras', token: 'p', disposition: 'enabled-only' }),
-  Object.freeze({ id: 'bhote-koshi-2026', token: 'h', disposition: 'enabled-only' }),
-  Object.freeze({ id: 'bhote-koshi-locator', token: 'z', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'ais-live-vessels',
+    token: 'a',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'alpr-cameras',
+    token: 'p',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'bhote-koshi-2026',
+    token: 'h',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'bhote-koshi-locator',
+    token: 'z',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'bikeshare', token: 'b', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'cctv',
