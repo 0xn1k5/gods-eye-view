@@ -659,5 +659,14 @@
   "src/voice/sessionCommands.js",
   "src/voice/realtimeSession.js",
   "src/voice/realtimeEvents.js",
-  "src/voice/session.test.mjs"
+  "src/voice/session.test.mjs",
+  "src/layers/alpr/records.js",
+  "src/layers/earthquakes/records.js",
+  "src/sources/sourceSlot.js",
+  "src/data/feedState.js",
+  "src/app/localGeojsonServices.js",
+  "src/layers/cctv/sourcePolicy.js",
+  "scripts/module-analysis.mjs",
+  "scripts/check-import-directions.mjs",
+  "src/tooling/importDirections.test.mjs"
 ]
