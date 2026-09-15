@@ -591,6 +591,9 @@ Replacing that service with a different query language requires operation-level
 feature/geometry adapters, not just changing its URL. Rendering and geometry
 selection remain consumers of those results.
 
+`./sources/nominatim` exports the lower-level JSONv2 client and normalizers for
+server adapters without importing search composition.
+
 `./sources/http-body` exports bounded text/JSON readers using web primitives;
 `./sources/overpass` exports the quoted-string/comment lexer. The lexer alone is
 not a query validator: spatial bounds, timeouts and other policy remain in the

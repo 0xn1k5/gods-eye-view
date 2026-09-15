@@ -298,7 +298,8 @@
       "src/search/nominatim.js",
       "src/nominatimGeocode.js",
       "src/data/regionalModel.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/nominatim.js"
     ],
     "external": []
   },
@@ -1636,7 +1637,8 @@
       "src/sources/reference.js",
       "src/search/nominatim.js",
       "src/nominatimGeocode.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/nominatim.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1992,7 +1994,8 @@
       "src/search/nominatim.js",
       "src/nominatimGeocode.js",
       "src/data/regionalModel.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/nominatim.js"
     ],
     "external": [
       "cesium",
@@ -2040,7 +2043,8 @@
       "src/search/nominatim.js",
       "src/nominatimGeocode.js",
       "src/data/regionalModel.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/nominatim.js"
     ],
     "external": [
       "cesium",
@@ -2287,7 +2291,8 @@
       "src/search/google.js",
       "src/search/geospatial.js",
       "src/data/regionalModel.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/nominatim.js"
     ],
     "external": []
   },
@@ -2299,6 +2304,17 @@
   "overpass-lexer": {
     "exports": ["./sources/overpass"],
     "modules": ["src/sources/overpass.js"],
+    "external": []
+  },
+  "nominatim-source": {
+    "exports": ["./sources/nominatim"],
+    "modules": [
+      "src/sources/nominatim.js",
+      "src/nominatimGeocode.js",
+      "src/search/geospatial.js",
+      "src/data/regionalModel.js",
+      "src/sources/httpBody.js"
+    ],
     "external": []
   }
 }
