@@ -30,6 +30,12 @@
 
 ## ALPR camera locations
 
+- Port Manjunath's (@manjunath22466) cyan camera badges, coral selection brackets,
+  gradient direction wedges and animated tactical labels into the reusable ALPR
+  layer. Keep bounded source loading, stable entities, selection and SHOW NEAREST.
+- Align the ALPR layer-row header with other layers, keeping the toggle beside
+  the name instead of wrapping it onto its own line.
+
 - Label the loaded camera count as nearby, show a purple-dot legend, and add
   SHOW NEAREST to frame and select a loaded camera when none are on screen,
   using the available 3D-tile or globe terrain height.
