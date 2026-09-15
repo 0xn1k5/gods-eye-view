@@ -654,5 +654,10 @@
   "src/sources/protocols.test.mjs",
   "src/voice/actionSchemas.js",
   "src/voice/actionSchemas.test.mjs",
-  "server/providers/openai/toolDescriptions.js"
+  "server/providers/openai/toolDescriptions.js",
+  "src/voice/session.js",
+  "src/voice/sessionCommands.js",
+  "src/voice/realtimeSession.js",
+  "src/voice/realtimeEvents.js",
+  "src/voice/session.test.mjs"
 ]

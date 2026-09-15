@@ -1,5 +1,6 @@
 # Changelog
 
+- Separate voice session lifetime and common controls from the default Realtime protocol adapter.
 - Separate canonical voice action arguments from descriptive wording, preserving the existing Realtime tool inventory.
 
 - Expose portable radio, camera-type and regional source helpers; keep HTTP transport separate from record normalization.
