@@ -72,7 +72,10 @@ function normalizeLayerEntry(entry) {
   if (entry && typeof entry === 'object') {
     return {
       enabled: !!entry.enabled,
-      params: entry.params && typeof entry.params === 'object' ? deepClone(entry.params) : undefined,
+      params:
+        entry.params && typeof entry.params === 'object'
+          ? deepClone(entry.params)
+          : undefined,
     };
   }
   return { enabled: !!entry };
@@ -87,13 +90,18 @@ function normalizeLayerEntry(entry) {
  * @param {number} [options.fallbackIntensity] - Default intensity if not stored
  * @returns {{ enabled: boolean, intensity: number, version: number }}
  */
-function normalizeBloomState(rawBloom = {}, { projectVersion = PROJECT_VERSION, fallbackIntensity = 50 } = {}) {
+function normalizeBloomState(
+  rawBloom = {},
+  { projectVersion = PROJECT_VERSION, fallbackIntensity = 50 } = {},
+) {
   // Determine which bloom scale the stored value was encoded under.
   // Older projects (version < PROJECT_VERSION) used scale version 1.
   const explicitVersion = Number(rawBloom.version);
   const bloomVersion = Number.isFinite(explicitVersion)
     ? explicitVersion
-    : (projectVersion >= PROJECT_VERSION ? BLOOM_SCALE_VERSION : 1);
+    : projectVersion >= PROJECT_VERSION
+      ? BLOOM_SCALE_VERSION
+      : 1;
 
   const rawIntensity = Number.isFinite(Number(rawBloom.intensity))
     ? Number(rawBloom.intensity)
@@ -116,9 +124,10 @@ function normalizeBloomState(rawBloom = {}, { projectVersion = PROJECT_VERSION, 
 function recipeToScene(recipe) {
   const post = recipe.post || {};
   const ui = recipe.ui || {};
-  const styleParams = post.styleParams && typeof post.styleParams === 'object'
-    ? deepClone(post.styleParams)
-    : {};
+  const styleParams =
+    post.styleParams && typeof post.styleParams === 'object'
+      ? deepClone(post.styleParams)
+      : {};
 
   // Normalize layer targets from the recipe into canonical form
   const layers = {};
@@ -220,7 +229,11 @@ function createDefaultProject() {
  * @param {number} [options.projectVersion] - Schema version of the enclosing project
  * @returns {Object} Fully normalized shot
  */
-function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } = {}) {
+function normalizeShot(
+  rawShot,
+  index = 0,
+  { projectVersion = PROJECT_VERSION } = {},
+) {
   const camera = rawShot?.camera || {};
   const visual = rawShot?.visual || {};
   const bloom = visual.bloom || {};
@@ -231,7 +244,10 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
   return {
     id: rawShot?.id || uid('shot'),
     title: rawShot?.title || `Shot ${index + 1}`,
-    durationSec: Math.max(0.2, Number(rawShot?.durationSec) || DEFAULT_SHOT_DURATION_SEC),
+    durationSec: Math.max(
+      0.2,
+      Number(rawShot?.durationSec) || DEFAULT_SHOT_DURATION_SEC,
+    ),
     holdSec: Math.max(0, Number(rawShot?.holdSec) || 0),
     camera: {
       lat: Number(camera.lat) || 0,
@@ -243,10 +259,21 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
     },
     visual: {
       style: visual.style || 'normal',
-      bloom: normalizeBloomState(bloom, { projectVersion, fallbackIntensity: 50 }),
+      bloom: normalizeBloomState(bloom, {
+        projectVersion,
+        fallbackIntensity: 50,
+      }),
       sharpen: {
         enabled: !!sharpen.enabled,
-        intensity: Math.max(0, Math.min(100, Number.isFinite(Number(sharpen.intensity)) ? Number(sharpen.intensity) : 65)),
+        intensity: Math.max(
+          0,
+          Math.min(
+            100,
+            Number.isFinite(Number(sharpen.intensity))
+              ? Number(sharpen.intensity)
+              : 65,
+          ),
+        ),
       },
       hud: {
         visible: typeof hud.visible === 'boolean' ? hud.visible : true,
@@ -254,13 +281,24 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
       },
       detection: {
         mode: typeof detection.mode === 'string' ? detection.mode : 'OFF',
-        density: Math.max(0, Math.min(100, Number.isFinite(Number(detection.density)) ? Number(detection.density) : 35)),
+        density: Math.max(
+          0,
+          Math.min(
+            100,
+            Number.isFinite(Number(detection.density))
+              ? Number(detection.density)
+              : 35,
+          ),
+        ),
       },
       ...(SCENE_MAP_STACK_IDS.has(visual.mapStack) ? { mapStack: visual.mapStack } : {}),
       styleParams: visual.styleParams && typeof visual.styleParams === 'object' ? deepClone(visual.styleParams) : {},
     },
     layers: Object.fromEntries(
-      Object.entries(rawShot?.layers || {}).map(([layerId, value]) => [layerId, normalizeLayerEntry(value)])
+      Object.entries(rawShot?.layers || {}).map(([layerId, value]) => [
+        layerId,
+        normalizeLayerEntry(value),
+      ]),
     ),
     ...(typeof rawShot?.sourcePackId === 'string' ? { sourcePackId: rawShot.sourcePackId } : {}),
     ...(Number.isFinite(Number(rawShot?.sourcePackVersion))
@@ -276,7 +314,8 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
  * @returns {Object} Fully normalized project at the current PROJECT_VERSION
  */
 function normalizeProject(rawProject) {
-  if (!rawProject || typeof rawProject !== 'object') return createDefaultProject();
+  if (!rawProject || typeof rawProject !== 'object')
+    return createDefaultProject();
   const projectVersion = Number.isFinite(Number(rawProject.version))
     ? Number(rawProject.version)
     : 1;
@@ -285,7 +324,9 @@ function normalizeProject(rawProject) {
   const scenes = scenesRaw
     .map((scene, sceneIdx) => {
       const shotsRaw = Array.isArray(scene?.shots) ? scene.shots : [];
-      const shots = shotsRaw.map((shot, shotIdx) => normalizeShot(shot, shotIdx, { projectVersion }));
+      const shots = shotsRaw.map((shot, shotIdx) =>
+        normalizeShot(shot, shotIdx, { projectVersion }),
+      );
       return {
         id: scene?.id || uid('scene'),
         title: scene?.title || `Scene ${sceneIdx + 1}`,
@@ -413,7 +454,6 @@ export class SceneDirector {
     });
   }
 
-
   _trackWork(promise) {
     this._pendingWork ||= new Set();
     this._pendingWork.add(promise);
@@ -505,7 +545,10 @@ export class SceneDirector {
       // Private browsing / block-all-cookies / quota-exceeded throws here. The
       // in-memory project stays usable this session, but persistence failed —
       // tell the user instead of crashing the caller (M11).
-      console.warn('[Scenes] Could not persist project (storage unavailable):', e);
+      console.warn(
+        '[Scenes] Could not persist project (storage unavailable):',
+        e,
+      );
       this._toastStorageError();
     }
   }
@@ -524,17 +567,30 @@ export class SceneDirector {
           toast.classList.remove('visible');
         }, 2600);
       }
-    } catch { /* toast is best-effort */ }
+    } catch {
+      /* toast is best-effort */
+    }
   }
 
   /** Immutable playback snapshots and completed editing actions. */
-  subscribe(listener, options) { return this._state.subscribe(listener, options); }
+  subscribe(listener, options) {
+    return this._state.subscribe(listener, options);
+  }
 
-  _publish(change) { this._state?.publish(change); }
+  _publish(change) {
+    this._state?.publish(change);
+  }
 
   _shotOutcome(type, scene, shot, index = scene.shots.indexOf(shot)) {
-    if (type === 'shot-loaded') this._presentation.status = `Loaded: ${scene.title} / ${shot.title}`;
-    this._publish({ type, sceneId: scene.id, sceneTitle: scene.title, shot, index });
+    if (type === 'shot-loaded')
+      this._presentation.status = `Loaded: ${scene.title} / ${shot.title}`;
+    this._publish({
+      type,
+      sceneId: scene.id,
+      sceneTitle: scene.title,
+      shot,
+      index,
+    });
   }
 
   /**
@@ -557,7 +613,10 @@ export class SceneDirector {
           this._selectedShotId = this._getSelectedScene()?.shots[0]?.id || null;
           this._renderShotList();
         },
-        selectShot: (id) => { this._selectedShotId = id; this._publish({ type: 'selection-changed' }); },
+        selectShot: (id) => {
+          this._selectedShotId = id;
+          this._publish({ type: 'selection-changed' });
+        },
         renameShot: (sceneId, shotId, title) => {
           const { scene, shot } = this._getShot(sceneId, shotId);
           if (!shot) return;
@@ -583,7 +642,9 @@ export class SceneDirector {
 
   /** Rebuild the scene dropdown options and sync the selected value. */
   _renderSceneSelect() {
-    if (!this._project.scenes.some((scene) => scene.id === this._selectedSceneId)) {
+    if (
+      !this._project.scenes.some((scene) => scene.id === this._selectedSceneId)
+    ) {
       this._selectedSceneId = this._project.scenes[0]?.id || null;
     }
     this._publish({ type: 'scene-options-changed' });
@@ -596,7 +657,10 @@ export class SceneDirector {
    */
   _renderShotList() {
     const scene = this._getSelectedScene();
-    if (scene?.shots.length && !scene.shots.some((shot) => shot.id === this._selectedShotId)) {
+    if (
+      scene?.shots.length &&
+      !scene.shots.some((shot) => shot.id === this._selectedShotId)
+    ) {
       this._selectedShotId = scene.shots[0].id;
     }
     this._publish({ type: 'shots-changed' });
@@ -607,7 +671,11 @@ export class SceneDirector {
    * @returns {Object|null} The scene, or null if no valid selection
    */
   _getSelectedScene() {
-    return this._project.scenes.find((scene) => scene.id === this._selectedSceneId) || null;
+    return (
+      this._project.scenes.find(
+        (scene) => scene.id === this._selectedSceneId,
+      ) || null
+    );
   }
 
   /**
@@ -644,7 +712,9 @@ export class SceneDirector {
     const scene = this._getSelectedScene();
     if (!scene) return;
 
-    this._project.scenes = this._project.scenes.filter((item) => item.id !== scene.id);
+    this._project.scenes = this._project.scenes.filter(
+      (item) => item.id !== scene.id,
+    );
     // Restore default recipes if the user deleted all scenes
     if (!this._project.scenes.length) {
       this._project = createDefaultProject();
@@ -964,15 +1034,18 @@ export class SceneDirector {
       return;
     }
 
-    const shot = normalizeShot({
-      id: uid('shot'),
-      title: `Shot ${scene.shots.length + 1}`,
-      durationSec: DEFAULT_SHOT_DURATION_SEC,
-      holdSec: DEFAULT_HOLD_SEC,
-      camera,
-      visual: this.styleManager.getVisualState(),
-      layers: this._captureLayerStates(),
-    }, scene.shots.length);
+    const shot = normalizeShot(
+      {
+        id: uid('shot'),
+        title: `Shot ${scene.shots.length + 1}`,
+        durationSec: DEFAULT_SHOT_DURATION_SEC,
+        holdSec: DEFAULT_HOLD_SEC,
+        camera,
+        visual: this.styleManager.getVisualState(),
+        layers: this._captureLayerStates(),
+      },
+      scene.shots.length,
+    );
 
     scene.shots.push(shot);
     this._selectedShotId = shot.id;
@@ -1628,8 +1701,12 @@ export class SceneDirector {
    */
   _claimCameraOwnership() {
     // Older/headless style managers may predate the facade — proceed then.
-    if (typeof this.styleManager?.runImmediateNavigation !== 'function') return true;
-    const claimed = this.styleManager.runImmediateNavigation('scene', () => true);
+    if (typeof this.styleManager?.runImmediateNavigation !== 'function')
+      return true;
+    const claimed = this.styleManager.runImmediateNavigation(
+      'scene',
+      () => true,
+    );
     if (claimed === false) {
       this._updateStatus('Camera unavailable — exit cockpit first');
       return false;
@@ -1667,13 +1744,16 @@ export class SceneDirector {
     if (!this._project.scenes.length) return [];
 
     // Rotate the scene list so startSceneId comes first
-    const startIdx = Math.max(0, this._project.scenes.findIndex((scene) => scene.id === startSceneId));
+    const startIdx = Math.max(
+      0,
+      this._project.scenes.findIndex((scene) => scene.id === startSceneId),
+    );
     const ordered = single
       ? this._project.scenes.slice(startIdx, startIdx + 1)
       : [
-        ...this._project.scenes.slice(startIdx),
-        ...this._project.scenes.slice(0, startIdx),
-      ];
+          ...this._project.scenes.slice(startIdx),
+          ...this._project.scenes.slice(0, startIdx),
+        ];
 
     // Flatten scenes into a sequential shot queue
     const queue = [];
@@ -1703,12 +1783,17 @@ export class SceneDirector {
    * @returns {{id: string, title: string, shots: number}|null}
    */
   findSceneByQuery(query) {
-    const q = String(query ?? '').trim().toLowerCase();
+    const q = String(query ?? '')
+      .trim()
+      .toLowerCase();
     if (!q) return null;
-    const scene = this._project.scenes.find((item) => item.id === query)
-      || this._project.scenes.find((item) => item.title.toLowerCase() === q)
-      || this._project.scenes.find((item) => item.title.toLowerCase().includes(q));
-    return scene ? { id: scene.id, title: scene.title, shots: scene.shots.length } : null;
+    const scene =
+      this._project.scenes.find((item) => item.id === query) ||
+      this._project.scenes.find((item) => item.title.toLowerCase() === q) ||
+      this._project.scenes.find((item) => item.title.toLowerCase().includes(q));
+    return scene
+      ? { id: scene.id, title: scene.title, shots: scene.shots.length }
+      : null;
   }
 
   /**
@@ -1720,8 +1805,12 @@ export class SceneDirector {
       running: this._running,
       selectedSceneId: this._selectedSceneId,
       selectedShotId: this._selectedShotId,
-      elapsedMs: this._activeRun ? Math.max(0, Date.now() - Date.parse(this._activeRun.startedAt)) : null,
-      estimatedDurationMs: this._activeRun ? Math.round(this._activeRun.estimatedDurationSec * 1000) : null,
+      elapsedMs: this._activeRun
+        ? Math.max(0, Date.now() - Date.parse(this._activeRun.startedAt))
+        : null,
+      estimatedDurationMs: this._activeRun
+        ? Math.round(this._activeRun.estimatedDurationSec * 1000)
+        : null,
       sceneCount: this._project.scenes.length,
     };
   }
@@ -1914,7 +2003,9 @@ export class SceneDirector {
       }
     } catch (error) {
       this._updateStatus(`Error: ${error.message || 'run failed'}`);
-      this._logEvent('scene_run_error', { message: error.message || 'unknown error' });
+      this._logEvent('scene_run_error', {
+        message: error.message || 'unknown error',
+      });
     } finally {
       if (preview) {
         await this._releaseSceneLayers(activeScene);
@@ -1931,13 +2022,17 @@ export class SceneDirector {
   async runNextScene() {
     if (this._destroyed || this._running) return;
 
-    const queue = this._buildPlaybackQueue(this._selectedSceneId || this._project.scenes[0]?.id);
+    const queue = this._buildPlaybackQueue(
+      this._selectedSceneId || this._project.scenes[0]?.id,
+    );
     if (!queue.length) return;
 
     // Find the shot after the current selection, wrapping to the start
     let next = queue[0];
     if (this._selectedShotId) {
-      const idx = queue.findIndex((item) => item.shot.id === this._selectedShotId);
+      const idx = queue.findIndex(
+        (item) => item.shot.id === this._selectedShotId,
+      );
       if (idx >= 0) next = queue[(idx + 1) % queue.length];
     }
 
@@ -2097,7 +2192,9 @@ export class SceneDirector {
       if (token?.cancelled) return abort();
       if (settled === false) {
         refused.push(id);
-        console.warn(`[Scenes] Layer refused: ${id} → ${enabled ? 'on' : 'off'}`);
+        console.warn(
+          `[Scenes] Layer refused: ${id} → ${enabled ? 'on' : 'off'}`,
+        );
         continue;
       }
       if (params && typeof this.dataManager.restoreLayerState !== 'function') {
@@ -2170,7 +2267,8 @@ export class SceneDirector {
    */
   async _exitIsolatingContextMode() {
     // Older/headless style managers may predate the Context facade.
-    if (typeof this.styleManager?.getContextModeState !== 'function') return false;
+    if (typeof this.styleManager?.getContextModeState !== 'function')
+      return false;
     if (typeof this.styleManager?.setContextMode !== 'function') return false;
 
     const state = this.styleManager.getContextModeState() || {};
@@ -2180,9 +2278,17 @@ export class SceneDirector {
 
     const result = await this.styleManager.setContextMode('off');
     if (result && result.ok === false) {
-      console.warn(`[Scenes] Could not exit ${mode}:`, result.error || 'unknown reason');
-      this._updateStatus(`Could not exit ${mode} — scene layers may be refused`);
-      this._logEvent('context_mode_exit_failed', { mode, error: result.error || null });
+      console.warn(
+        `[Scenes] Could not exit ${mode}:`,
+        result.error || 'unknown reason',
+      );
+      this._updateStatus(
+        `Could not exit ${mode} — scene layers may be refused`,
+      );
+      this._logEvent('context_mode_exit_failed', {
+        mode,
+        error: result.error || null,
+      });
       return false;
     }
     this._logEvent('context_mode_exited', { mode });
@@ -2205,11 +2311,14 @@ export class SceneDirector {
     // a free-text search the shot has already flown away from.
     this.styleManager?.clearSearchedLocation?.();
 
-    const duration = Math.max(0.2, Number(durationSec) || DEFAULT_SHOT_DURATION_SEC);
+    const duration = Math.max(
+      0.2,
+      Number(durationSec) || DEFAULT_SHOT_DURATION_SEC,
+    );
     const destination = Cesium.Cartesian3.fromDegrees(
       cameraState.lon,
       cameraState.lat,
-      cameraState.alt
+      cameraState.alt,
     );
 
     await new Promise((resolve) => {
@@ -2414,7 +2523,9 @@ export class SceneDirector {
    * Editing controls are disabled during a run; stop is disabled when idle.
    * @param {boolean} isRunning
    */
-  _setButtons(isRunning) { this._publish({ type: 'buttons-changed', running: isRunning }); }
+  _setButtons(isRunning) {
+    this._publish({ type: 'buttons-changed', running: isRunning });
+  }
 
   _setPlaybackActive(active) {
     this._presentation.playbackActive = active;
@@ -2467,5 +2578,4 @@ export class SceneDirector {
       payload: payload || null,
     });
   }
-
 }

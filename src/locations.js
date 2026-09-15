@@ -1336,7 +1336,12 @@ function buildingPitch(bounds) {
   return -32;
 }
 
-async function resolveBuildingBounds(lat, lon, query, boundaries = applicationServices.boundaries) {
+async function resolveBuildingBounds(
+  lat,
+  lon,
+  query,
+  boundaries = applicationServices.boundaries,
+) {
   const overpassQuery = `
     [out:json][timeout:10];
     (
@@ -1352,8 +1357,15 @@ async function resolveBuildingBounds(lat, lon, query, boundaries = applicationSe
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 6000);
   try {
-    const elements = await boundaries.query(overpassQuery, { signal: controller.signal });
-    return selectBuildingBounds(Array.isArray(elements) ? elements : [], lat, lon, query);
+    const elements = await boundaries.query(overpassQuery, {
+      signal: controller.signal,
+    });
+    return selectBuildingBounds(
+      Array.isArray(elements) ? elements : [],
+      lat,
+      lon,
+      query,
+    );
   } catch {
     return null;
   } finally {

@@ -119,7 +119,7 @@ export function createApplicationCatalog({
         createApplicationRadio({ surface, source: sources.radio }),
         createApplicationBikeshare({ source: sources.bikeshare }),
         createApplicationDirections(),
-        createApplicationTransit({ surface }),
+        createApplicationTransit({ surface, source: sources.transit }),
         vessels,
         installations,
         createApplicationAwareness({

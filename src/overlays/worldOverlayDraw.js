@@ -49,22 +49,34 @@ export function clearWorldOverlayTextMeasureCache() {
 
 /** Install the font-loading invalidation hooks once, when the API exists. */
 export function installWorldOverlayFontInvalidation() {
-  if (_fontInvalidationInstalled || typeof document === 'undefined' || !document.fonts) return;
+  if (
+    _fontInvalidationInstalled ||
+    typeof document === 'undefined' ||
+    !document.fonts
+  )
+    return;
   _fontInvalidationInstalled = true;
   _observedFontSet = document.fonts;
   const generation = ++_fontInvalidationGeneration;
   Promise.resolve(document.fonts.ready)
     .then(() => {
-      if (generation === _fontInvalidationGeneration) clearWorldOverlayTextMeasureCache();
+      if (generation === _fontInvalidationGeneration)
+        clearWorldOverlayTextMeasureCache();
     })
     .catch(() => {});
-  _observedFontSet.addEventListener?.('loadingdone', clearWorldOverlayTextMeasureCache);
+  _observedFontSet.addEventListener?.(
+    'loadingdone',
+    clearWorldOverlayTextMeasureCache,
+  );
 }
 
 /** Remove font hooks and cached measurements when the overlay host is destroyed. */
 export function destroyWorldOverlayDraw() {
   _fontInvalidationGeneration++;
-  _observedFontSet?.removeEventListener?.('loadingdone', clearWorldOverlayTextMeasureCache);
+  _observedFontSet?.removeEventListener?.(
+    'loadingdone',
+    clearWorldOverlayTextMeasureCache,
+  );
   _observedFontSet = null;
   _fontInvalidationInstalled = false;
   clearWorldOverlayTextMeasureCache();
@@ -95,7 +107,8 @@ export function measureWorldOverlayText(ctx, text, font) {
   }
   fontCache.set(normalizedText, { width, usedAt: ++_textMeasureClock });
   _textMeasureCacheSize++;
-  if (_textMeasureCacheSize > TEXT_MEASURE_CACHE_LIMIT) evictOldestTextMeasureEntry();
+  if (_textMeasureCacheSize > TEXT_MEASURE_CACHE_LIMIT)
+    evictOldestTextMeasureEntry();
   return width;
 }
 
@@ -113,7 +126,14 @@ export function getWorldOverlayTextMeasureCacheSize() {
  * @param {number} h
  * @param {number} radius
  */
-export function roundedRectPath(path, x, y, w, h, radius = WORLD_OVERLAY_STYLE.radius) {
+export function roundedRectPath(
+  path,
+  x,
+  y,
+  w,
+  h,
+  radius = WORLD_OVERLAY_STYLE.radius,
+) {
   if (typeof path.roundRect === 'function') {
     path.roundRect(x, y, w, h, radius);
     return;
@@ -137,11 +157,14 @@ export function roundedRectPath(path, x, y, w, h, radius = WORLD_OVERLAY_STYLE.r
  * @param {number} [options.fadeStartRatio]
  * @returns {number}
  */
-export function distanceFade(distanceM, {
-  minDistance = 0,
-  maxDistance = Number.POSITIVE_INFINITY,
-  fadeStartRatio = 0.7,
-} = {}) {
+export function distanceFade(
+  distanceM,
+  {
+    minDistance = 0,
+    maxDistance = Number.POSITIVE_INFINITY,
+    fadeStartRatio = 0.7,
+  } = {},
+) {
   if (!Number.isFinite(distanceM)) return 0;
   const min = Number.isFinite(minDistance) ? Math.max(0, minDistance) : 0;
   if (distanceM < min) return 0;
@@ -192,17 +215,27 @@ export function altitudeScale(altitudeM, curve = null) {
   const end = Number(curve.end);
   const midValue = Number(curve.midValue);
   const endValue = Number(curve.endValue);
-  if (!Number.isFinite(fullEnd) || !Number.isFinite(midEnd) || !Number.isFinite(end)
-    || !Number.isFinite(midValue) || !Number.isFinite(endValue)) return 1;
+  if (
+    !Number.isFinite(fullEnd) ||
+    !Number.isFinite(midEnd) ||
+    !Number.isFinite(end) ||
+    !Number.isFinite(midValue) ||
+    !Number.isFinite(endValue)
+  )
+    return 1;
   if (altitudeM <= fullEnd) return 1;
   if (altitudeM <= midEnd) {
     const span = Math.max(1, midEnd - fullEnd);
     let progress = Math.max(0, Math.min(1, (altitudeM - fullEnd) / span));
-    if (curve.smoothToMid === true) progress = progress * progress * (3 - 2 * progress);
+    if (curve.smoothToMid === true)
+      progress = progress * progress * (3 - 2 * progress);
     return 1 + (midValue - 1) * progress;
   }
   if (altitudeM >= end) return endValue;
-  const progress = Math.max(0, Math.min(1, (altitudeM - midEnd) / Math.max(1, end - midEnd)));
+  const progress = Math.max(
+    0,
+    Math.min(1, (altitudeM - midEnd) / Math.max(1, end - midEnd)),
+  );
   return midValue + (endValue - midValue) * progress;
 }
 
@@ -215,11 +248,14 @@ export function altitudeScale(altitudeM, curve = null) {
  * @param {number} [options.fadeEnd]
  * @returns {number}
  */
-export function altitudeFade(altitudeM, {
-  minAltitude = Number.NEGATIVE_INFINITY,
-  fadeStart = Number.POSITIVE_INFINITY,
-  fadeEnd = Number.POSITIVE_INFINITY,
-} = {}) {
+export function altitudeFade(
+  altitudeM,
+  {
+    minAltitude = Number.NEGATIVE_INFINITY,
+    fadeStart = Number.POSITIVE_INFINITY,
+    fadeEnd = Number.POSITIVE_INFINITY,
+  } = {},
+) {
   if (!Number.isFinite(altitudeM)) return 1;
   if (Number.isFinite(minAltitude) && altitudeM < minAltitude) return 0;
   if (!Number.isFinite(fadeEnd)) return 1;
@@ -238,24 +274,32 @@ export function combinedOverlayAlpha({
   altitudeFade: altitudeAlpha = 1,
   keyholeEdgeFade = 1,
 } = {}) {
-  return clampUnit(sourceAlpha)
-    * clampUnit(temporalFade)
-    * clampUnit(distanceAlpha)
-    * clampUnit(altitudeAlpha)
-    * clampUnit(keyholeEdgeFade);
+  return (
+    clampUnit(sourceAlpha) *
+    clampUnit(temporalFade) *
+    clampUnit(distanceAlpha) *
+    clampUnit(altitudeAlpha) *
+    clampUnit(keyholeEdgeFade)
+  );
 }
 
 function clampUnit(value) {
-  return Number.isFinite(Number(value)) ? Math.max(0, Math.min(1, Number(value))) : 1;
+  return Number.isFinite(Number(value))
+    ? Math.max(0, Math.min(1, Number(value)))
+    : 1;
 }
 
 function trackDisplayText(entry) {
   const title = entry?.title || '';
   const detail = Array.isArray(entry?.details) ? entry.details[0] || '' : '';
-  if (entry._overlayTrackDisplayTitle !== title || entry._overlayTrackDisplayDetail !== detail) {
+  if (
+    entry._overlayTrackDisplayTitle !== title ||
+    entry._overlayTrackDisplayDetail !== detail
+  ) {
     entry._overlayTrackDisplayTitle = title;
     entry._overlayTrackDisplayDetail = detail;
-    entry._overlayTrackDisplayText = title && detail ? `${title} · ${detail}` : title || detail;
+    entry._overlayTrackDisplayText =
+      title && detail ? `${title} · ${detail}` : title || detail;
   }
   return entry._overlayTrackDisplayText || '';
 }
@@ -268,16 +312,23 @@ function trackDisplayText(entry) {
  * @returns {{w:number,h:number,padX:number,padY:number,titleH:number,lineH:number,thumbW:number,thumbH:number}}
  */
 export function measureOverlayEntry(ctx, entry, out = {}) {
-  const variant = entry?.selected ? 'selected' : String(entry?.variant || 'label');
+  const variant = entry?.selected
+    ? 'selected'
+    : String(entry?.variant || 'label');
   const details = Array.isArray(entry?.details) ? entry.details : [];
   const selected = variant === 'selected';
   const tracked = variant === 'tracked';
   const tactical = entry?.cardStyle === 'tactical';
   const titleFont = tracked
     ? WORLD_OVERLAY_STYLE.fontTrackedTitle
-    : selected ? WORLD_OVERLAY_STYLE.fontSelected : WORLD_OVERLAY_STYLE.fontTitle;
-  let titleWidth = measureWorldOverlayText(ctx, entry?.title || '',
-    variant === 'label' ? WORLD_OVERLAY_STYLE.fontLabel : titleFont);
+    : selected
+      ? WORLD_OVERLAY_STYLE.fontSelected
+      : WORLD_OVERLAY_STYLE.fontTitle;
+  let titleWidth = measureWorldOverlayText(
+    ctx,
+    entry?.title || '',
+    variant === 'label' ? WORLD_OVERLAY_STYLE.fontLabel : titleFont,
+  );
   if (variant === 'track' && details[0]) {
     titleWidth = measureWorldOverlayText(
       ctx,
@@ -292,16 +343,38 @@ export function measureOverlayEntry(ctx, entry, out = {}) {
       measureWorldOverlayText(
         ctx,
         details[i],
-        tracked ? WORLD_OVERLAY_STYLE.fontTrackedDetail : WORLD_OVERLAY_STYLE.fontDetail,
+        tracked
+          ? WORLD_OVERLAY_STYLE.fontTrackedDetail
+          : WORLD_OVERLAY_STYLE.fontDetail,
       ),
     );
   }
 
-  out.padX = tracked ? 13 : selected ? 12 : variant === 'label' || variant === 'track' ? 6 : 9;
-  out.padY = tracked ? 9 : selected ? 8 : variant === 'label' || variant === 'track' ? 4 : 6;
+  out.padX = tracked
+    ? 13
+    : selected
+      ? 12
+      : variant === 'label' || variant === 'track'
+        ? 6
+        : 9;
+  out.padY = tracked
+    ? 9
+    : selected
+      ? 8
+      : variant === 'label' || variant === 'track'
+        ? 4
+        : 6;
   out.titleH = tactical
-    ? (selected ? 14 : 12)
-    : tracked ? 13 : selected ? 15 : variant === 'label' || variant === 'track' ? 11 : 13;
+    ? selected
+      ? 14
+      : 12
+    : tracked
+      ? 13
+      : selected
+        ? 15
+        : variant === 'label' || variant === 'track'
+          ? 11
+          : 13;
   out.lineH = tracked ? 17 : selected ? 15 : 13;
   out.thumbW = 0;
   out.thumbH = 0;
@@ -328,7 +401,17 @@ export function measureOverlayEntry(ctx, entry, out = {}) {
   return out;
 }
 
-function writePlacement(out, corner, x, y, w, h, anchorX, anchorY, signedLeaderOffset = 0) {
+function writePlacement(
+  out,
+  corner,
+  x,
+  y,
+  w,
+  h,
+  anchorX,
+  anchorY,
+  signedLeaderOffset = 0,
+) {
   const placement = out || {};
   placement.corner = corner;
   placement.rect ||= {};
@@ -353,12 +436,17 @@ function writePlacement(out, corner, x, y, w, h, anchorX, anchorY, signedLeaderO
     // pushed the card sideways off its anchor, which reads as "the card isn't
     // attached to that camera".
     placement.leadToX = anchorX;
-    placement.leadToY = corner === 'above' ? placement.rect.y + h : placement.rect.y;
+    placement.leadToY =
+      corner === 'above' ? placement.rect.y + h : placement.rect.y;
   } else {
     placement.leadFromX = anchorX;
     placement.leadFromY = anchorY;
-    placement.leadToX = corner === 'left' ? placement.rect.x + w : placement.rect.x;
-    placement.leadToY = Math.max(placement.rect.y, Math.min(anchorY, placement.rect.y + h));
+    placement.leadToX =
+      corner === 'left' ? placement.rect.x + w : placement.rect.x;
+    placement.leadToY = Math.max(
+      placement.rect.y,
+      Math.min(anchorY, placement.rect.y + h),
+    );
   }
   return placement;
 }
@@ -376,7 +464,10 @@ const VERTICAL_PLACEMENT_ORDERS = Object.freeze({
 });
 
 function clampPlacementCoordinate(value, size, viewportSize, margin = 4) {
-  return Math.max(margin, Math.min(value, Math.max(margin, viewportSize - size - margin)));
+  return Math.max(
+    margin,
+    Math.min(value, Math.max(margin, viewportSize - size - margin)),
+  );
 }
 
 /**
@@ -397,19 +488,22 @@ function clampPlacementCoordinate(value, size, viewportSize, margin = 4) {
  * @param {Array<object>} [out]
  * @returns {Array<object>}
  */
-export function placementVariants({
-  anchorX,
-  anchorY,
-  width,
-  height,
-  viewportWidth,
-  viewportHeight,
-  gap = 12,
-  preferred = 'auto',
-  leaderOffset = 0,
-  verticalOnly = false,
-  viewportMargin = 4,
-}, out = []) {
+export function placementVariants(
+  {
+    anchorX,
+    anchorY,
+    width,
+    height,
+    viewportWidth,
+    viewportHeight,
+    gap = 12,
+    preferred = 'auto',
+    leaderOffset = 0,
+    verticalOnly = false,
+    viewportMargin = 4,
+  },
+  out = [],
+) {
   const automatic = anchorY - gap - height >= 4 ? 'above' : 'below';
   const orders = verticalOnly ? VERTICAL_PLACEMENT_ORDERS : PLACEMENT_ORDERS;
   const order = orders[preferred] || orders[automatic];
@@ -440,7 +534,9 @@ export function placementVariants({
       height,
       anchorX,
       anchorY,
-      corner === 'above' || corner === 'left' ? negativeLeaderOffset : positiveLeaderOffset,
+      corner === 'above' || corner === 'left'
+        ? negativeLeaderOffset
+        : positiveLeaderOffset,
     );
   }
   out.length = order.length;
@@ -525,9 +621,13 @@ function drawCardChrome(ctx, entry, placement, selected = false, drawLeaderLine 
   if (drawLeaderLine) drawLeader(ctx, placement, accent, 1, 1, entry.leaderStyle);
   ctx.beginPath();
   roundedRectPath(ctx, x, y, w, h);
-  ctx.fillStyle = selected ? WORLD_OVERLAY_STYLE.selectedBackground : WORLD_OVERLAY_STYLE.background;
+  ctx.fillStyle = selected
+    ? WORLD_OVERLAY_STYLE.selectedBackground
+    : WORLD_OVERLAY_STYLE.background;
   ctx.fill();
-  ctx.strokeStyle = selected ? WORLD_OVERLAY_STYLE.selectedBorder : WORLD_OVERLAY_STYLE.border;
+  ctx.strokeStyle = selected
+    ? WORLD_OVERLAY_STYLE.selectedBorder
+    : WORLD_OVERLAY_STYLE.border;
   ctx.lineWidth = selected ? 1.25 : 1;
   ctx.stroke();
   ctx.fillStyle = accent;
@@ -539,7 +639,9 @@ function drawCardText(ctx, entry, placement, selected = false, topOffset = 0) {
   const x = placement.rect.x + (selected ? 12 : 9);
   let y = placement.rect.y + (selected ? 8 : 6) + topOffset;
   ctx.fillStyle = WORLD_OVERLAY_STYLE.title;
-  ctx.font = selected ? WORLD_OVERLAY_STYLE.fontSelected : WORLD_OVERLAY_STYLE.fontTitle;
+  ctx.font = selected
+    ? WORLD_OVERLAY_STYLE.fontSelected
+    : WORLD_OVERLAY_STYLE.fontTitle;
   ctx.textBaseline = 'top';
   ctx.fillText(String(entry.title || ''), x, y);
   y += selected ? 15 : 13;
@@ -554,7 +656,8 @@ function drawCardText(ctx, entry, placement, selected = false, topOffset = 0) {
 function colorWithAlpha(color, alpha) {
   const text = String(color || WORLD_OVERLAY_STYLE.accent).trim();
   const triplet = text.match(/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/);
-  if (triplet) return `rgba(${triplet[1]}, ${triplet[2]}, ${triplet[3]}, ${alpha})`;
+  if (triplet)
+    return `rgba(${triplet[1]}, ${triplet[2]}, ${triplet[3]}, ${alpha})`;
   const hex = text.match(/^#([0-9a-f]{6})$/i);
   if (hex) {
     const value = Number.parseInt(hex[1], 16);
@@ -591,33 +694,57 @@ function leaderDrawRatio(entry) {
   return Number.isFinite(ratio) ? Math.max(0.1, Math.min(0.9, ratio)) : 0.68;
 }
 
-export function leaderRevealProgress(entry, timestamp = globalThis.performance?.now?.() ?? Date.now()) {
-  const linear = Math.min(1, animationLinearProgress(entry, timestamp) / leaderDrawRatio(entry));
+export function leaderRevealProgress(
+  entry,
+  timestamp = globalThis.performance?.now?.() ?? Date.now(),
+) {
+  const linear = Math.min(
+    1,
+    animationLinearProgress(entry, timestamp) / leaderDrawRatio(entry),
+  );
   return 1 - Math.pow(1 - linear, 3);
 }
 
-export function tacticalCardRevealAlpha(entry, timestamp = globalThis.performance?.now?.() ?? Date.now()) {
+export function tacticalCardRevealAlpha(
+  entry,
+  timestamp = globalThis.performance?.now?.() ?? Date.now(),
+) {
   if (!(Math.max(0, Number(entry?.leaderAnimationMs) || 0) > 0)) return 1;
   const start = leaderDrawRatio(entry);
-  const linear = Math.max(0, Math.min(1,
-    (animationLinearProgress(entry, timestamp) - start) / Math.max(0.1, 1 - start)));
+  const linear = Math.max(
+    0,
+    Math.min(
+      1,
+      (animationLinearProgress(entry, timestamp) - start) /
+        Math.max(0.1, 1 - start),
+    ),
+  );
   return linear * linear * (3 - 2 * linear);
 }
 
 function drawTacticalLeader(ctx, entry, placement, accent, timestamp) {
   ctx.strokeStyle = accent;
-  ctx.lineWidth = (entry.leaderStyle === 'elbow' ? 1.5 : 1) / (placement.paintScale || 1);
+  ctx.lineWidth =
+    (entry.leaderStyle === 'elbow' ? 1.5 : 1) / (placement.paintScale || 1);
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.beginPath();
-  if (entry.leaderStyle !== 'elbow'
-    || (placement.corner !== 'above' && placement.corner !== 'below')) {
+  if (
+    entry.leaderStyle !== 'elbow' ||
+    (placement.corner !== 'above' && placement.corner !== 'below')
+  ) {
     if (placement.leaderOffset === 0) {
       ctx.moveTo(placement.leadFromX, placement.leadFromY);
     } else if (placement.corner === 'above' || placement.corner === 'below') {
-      ctx.moveTo(placement.leadFromX, placement.leadFromY + placement.leaderOffset);
+      ctx.moveTo(
+        placement.leadFromX,
+        placement.leadFromY + placement.leaderOffset,
+      );
     } else {
-      ctx.moveTo(placement.leadFromX + placement.leaderOffset, placement.leadFromY);
+      ctx.moveTo(
+        placement.leadFromX + placement.leaderOffset,
+        placement.leadFromY,
+      );
     }
     ctx.lineTo(placement.leadToX, placement.leadToY);
     ctx.stroke();
@@ -632,7 +759,9 @@ function drawTacticalLeader(ctx, entry, placement, accent, timestamp) {
   const anchorY = placement.leadFromY;
   const horizontalLength = Math.abs(anchorX - cardX);
   const verticalLength = Math.abs(anchorY - cardY);
-  let remaining = leaderRevealProgress(entry, timestamp) * (horizontalLength + verticalLength);
+  let remaining =
+    leaderRevealProgress(entry, timestamp) *
+    (horizontalLength + verticalLength);
   ctx.moveTo(anchorX, anchorY);
   if (remaining <= horizontalLength) {
     const direction = Math.sign(cardX - anchorX) || -1;
@@ -641,7 +770,10 @@ function drawTacticalLeader(ctx, entry, placement, accent, timestamp) {
     ctx.lineTo(cardX, anchorY);
     remaining -= horizontalLength;
     const direction = Math.sign(cardY - anchorY) || -1;
-    ctx.lineTo(cardX, anchorY + direction * Math.min(verticalLength, remaining));
+    ctx.lineTo(
+      cardX,
+      anchorY + direction * Math.min(verticalLength, remaining),
+    );
   }
   ctx.stroke();
 }
@@ -657,9 +789,15 @@ export function paintTacticalCard(ctx, entry, placement, alpha = 1) {
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  drawTacticalLeader(ctx, entry, placement, entry.leaderStyle === 'elbow'
-    ? colorWithAlpha(entry.accent, 0.95)
-    : accentColors.leader, animationTimestamp);
+  drawTacticalLeader(
+    ctx,
+    entry,
+    placement,
+    entry.leaderStyle === 'elbow'
+      ? colorWithAlpha(entry.accent, 0.95)
+      : accentColors.leader,
+    animationTimestamp,
+  );
 
   ctx.globalAlpha = alpha * tacticalCardRevealAlpha(entry, animationTimestamp);
 
@@ -682,13 +820,19 @@ export function paintTacticalCard(ctx, entry, placement, alpha = 1) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = WORLD_OVERLAY_STYLE.title;
-  ctx.font = selected ? WORLD_OVERLAY_STYLE.fontSelected : WORLD_OVERLAY_STYLE.fontTitle;
+  ctx.font = selected
+    ? WORLD_OVERLAY_STYLE.fontSelected
+    : WORLD_OVERLAY_STYLE.fontTitle;
   const titleBaseline = y + layout.padY + layout.titleH - 2;
   ctx.fillText(String(entry.title || ''), x + layout.padX, titleBaseline);
   ctx.fillStyle = WORLD_OVERLAY_STYLE.detail;
   ctx.font = WORLD_OVERLAY_STYLE.fontDetail;
   for (let i = 0; i < details.length; i++) {
-    ctx.fillText(String(details[i]), x + layout.padX, titleBaseline + (i + 1) * layout.lineH);
+    ctx.fillText(
+      String(details[i]),
+      x + layout.padX,
+      titleBaseline + (i + 1) * layout.lineH,
+    );
   }
   ctx.restore();
   return placement.rect;
@@ -702,7 +846,11 @@ export function paintLabel(ctx, entry, placement, alpha = 1) {
   ctx.fillStyle = WORLD_OVERLAY_STYLE.title;
   ctx.font = WORLD_OVERLAY_STYLE.fontLabel;
   ctx.textBaseline = 'top';
-  ctx.fillText(String(entry.title || ''), placement.rect.x + 6, placement.rect.y + 4);
+  ctx.fillText(
+    String(entry.title || ''),
+    placement.rect.x + 6,
+    placement.rect.y + 4,
+  );
   ctx.restore();
   return placement.rect;
 }
@@ -805,13 +953,17 @@ export function paintThumbnail(
   if (ruleHeight > 0) {
     ctx.beginPath();
     roundedRectPath(ctx, x, y, w, ruleHeight, Math.min(1, ruleHeight));
-    ctx.fillStyle = entry.thumbnailRuleColor || entry.accent || WORLD_OVERLAY_STYLE.accent;
+    ctx.fillStyle =
+      entry.thumbnailRuleColor || entry.accent || WORLD_OVERLAY_STYLE.accent;
     ctx.fill();
   }
 
-  const titleChars = Math.max(0, Math.floor(Number(entry.thumbnailTitleChars) || 0));
-  const title = entry._overlayThumbnailTitle
-    || String(entry.title || '').toUpperCase();
+  const titleChars = Math.max(
+    0,
+    Math.floor(Number(entry.thumbnailTitleChars) || 0),
+  );
+  const title =
+    entry._overlayThumbnailTitle || String(entry.title || '').toUpperCase();
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = entry.thumbnailTitleColor || WORLD_OVERLAY_STYLE.title;
@@ -865,7 +1017,11 @@ export function paintTracked(ctx, entry, placement, alpha = 1) {
   ctx.fillStyle = WORLD_OVERLAY_STYLE.detail;
   ctx.font = WORLD_OVERLAY_STYLE.fontTrackedDetail;
   for (let i = 0; i < details.length; i++) {
-    ctx.fillText(String(details[i]), centerX, titleBaseline + (i + 1) * layout.lineH);
+    ctx.fillText(
+      String(details[i]),
+      centerX,
+      titleBaseline + (i + 1) * layout.lineH,
+    );
   }
   ctx.restore();
   return placement.rect;
@@ -938,7 +1094,8 @@ export function paintDetectionCallout(ctx, callout, alpha = 1) {
   ctx.globalAlpha = alpha;
   ctx.fillStyle = callout.label;
   ctx.font = callout.font;
-  if (callout.primary) ctx.fillText(callout.primary, callout.primaryX, callout.baseline);
+  if (callout.primary)
+    ctx.fillText(callout.primary, callout.primaryX, callout.baseline);
   if (callout.micro) {
     ctx.globalAlpha = alpha * 0.8;
     ctx.font = callout.microFont;
