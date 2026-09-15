@@ -1,5 +1,29 @@
 # God's Eye View Current State
 
+Nepal flood lines classify the active terrain or photoreal surface, and the surge marker follows that surface. Geographic route coordinates are unchanged; dynamic lines do not rely on unsupported depth-failure materials. Later media-only shots keep their completed source-path history throughout arrival and card reveal.
+
+Scene Stop, replacement, seek, and teardown revoke the Upper Valley locator's delayed camera approach and orbit while preserving its visible callout. A revoked timer or camera callback cannot start another flight or interfere with a newer shot.
+
+Nepal scene ownership follows the parameters prepared by the public layer manager before activation, without depending on enable-time origin metadata. Enabling a scene beat preserves its selected map and camera; passive restoration does not schedule standalone playback.
+
+Animated scene cards sample their optional scale, opacity and leader callbacks once per projected frame. A failed callback suppresses that frame and can recover on the next one; ordinary layers keep the shared projection path without animation evaluation.
+
+Nepal Flood Incident is accessed through Scenes. Its flood and locator components remain registered for scene playback but are hidden from the Data Layers menu. Closing the event stops the active scene, including pending loads and media. The default catalog does not install a separate reconstruction scene; existing saved scenes remain untouched.
+
+Double-click a shot name to edit it inline. Enter or moving focus saves a nonempty name, Escape cancels, and saved names persist with the scene project.
+
+The Nepal overview route and lake-shot trail share the river-centerline starting point nearest Debris-Dammed Lake. No earlier upstream section is included; evidence pins remain separate from the schematic river geometry.
+
+The event panel omits the WITNESS shortcut. Shot media, source attribution, Open Original links and corridor navigation remain available.
+
+The Mailung Bazzar, Dandaguan YouTube embed follows the provider's playback clock through 0:07, then the scene advances after its 0.65-second media exit. The controller reconciles provider state and source time when the API attaches and while waiting for playback, including missed PLAYING notifications and an already-ended clip. Startup is bounded to five seconds, and stalled playback has a bounded timeout; unavailable or blocked media cannot strand the scene. The authored estimate remains seven seconds plus the exit, replacing older saved holds at runtime without rewriting them. Stop, replacement and teardown revoke pending playback callbacks.
+
+Persistent media-led Nepal shots preserve their completed upstream flood path during camera travel. The next reach still reveals after arrival; direct loads reconstruct the prefix and backward replay trims downstream history.
+
+Repeated map-stack requests retain the live imagery layer when its provider is unchanged. Scene handoffs keep loaded tiles while real source changes, switch cancellation, and tile-error fallbacks retain their existing behavior.
+
+Nepal Flood Incident is available in Scenes, with a 25-shot sequence, geographic labels, an event panel, scene scrubbing and shot playback. Comparison shots use Esri beneath Vantor imagery. Other Nepal shots use Google 3D when its tileset is available and fall back to Esri otherwise; without an ion token, the existing map stack uses Re:Earth terrain. Saved shots retain their authored camera and map preferences across keyed and keyless runtimes. The bundled pack contains historical 2021 and post-event 2026 imagery, not an isolated before/after measurement; the animated flood path is schematic, not a hazard model. Witness media opens or embeds original sources without bundled clips. See `public/events/bhote-koshi-2026/README.md` for provenance and non-commercial data terms.
+
 Place search accepts an explicit Nominatim provider with independently configured search and reverse endpoints. The default offline/Google/Photon/local-fallback order is unchanged when no provider is selected. Provider adapters share normalized coordinates, viewport framing and reverse labels; roads and boundary geometry remain separate services. Portable capped-response and Overpass lexical helpers are exported independently of the Node server.
 
 Reference feed construction is exported through `sources/reference`; the cable source also has a dedicated `layers/submarine-cables/source` entry. Standalone catalog compatibility remains available. Source choices, data and attribution are unchanged.
@@ -731,7 +755,7 @@ Non-object or array-valued properties reject the response instead of being treat
 
 Launch payloads with missing records now say PAYLOAD DATA UNAVAILABLE. Missing names use Unnamed payload; absent or invalid mass stays unknown instead of appearing as 0 KG.
 
-Updated: August 24, 2026
+Updated: September 15, 2026
 
 ## Aircraft and vessel server modules
 
