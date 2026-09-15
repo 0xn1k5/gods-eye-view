@@ -1058,7 +1058,8 @@
       "./voice/control",
       "./voice/realtime-backend",
       "./voice/commands",
-      "./voice/cost"
+      "./voice/cost",
+      "./voice/realtime-session"
     ],
     "modules": [
       "src/voice/realtimeController.js",
@@ -1066,7 +1067,11 @@
       "src/voice/control.js",
       "src/voice/layerSummary.js",
       "src/voice/voiceCost.js",
-      "src/voice/commands.js"
+      "src/voice/commands.js",
+      "src/voice/session.js",
+      "src/voice/sessionCommands.js",
+      "src/voice/realtimeSession.js",
+      "src/voice/realtimeEvents.js"
     ],
     "external": []
   },
@@ -1599,7 +1604,11 @@
       "src/app/layers/directions.js",
       "src/search/coordinateGeocoder.js",
       "src/search/coordinateParser.js",
-      "src/search/presetGeocoder.js"
+      "src/search/presetGeocoder.js",
+      "src/voice/session.js",
+      "src/voice/sessionCommands.js",
+      "src/voice/realtimeSession.js",
+      "src/voice/realtimeEvents.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -2142,6 +2151,20 @@
   "voice-action-schemas": {
     "exports": ["./voice/action-schemas"],
     "modules": ["src/voice/actionSchemas.js"],
+    "external": []
+  },
+  "voice-session": {
+    "exports": ["./voice/session"],
+    "modules": ["src/voice/session.js"],
+    "external": []
+  },
+  "voice-session-controls": {
+    "exports": ["./voice/session-controls"],
+    "modules": [
+      "src/voice/sessionCommands.js",
+      "src/voice/session.js",
+      "src/voice/control.js"
+    ],
     "external": []
   }
 }

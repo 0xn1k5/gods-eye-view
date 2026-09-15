@@ -211,6 +211,9 @@
     "./sources/radio-browser": "./src/sources/radioBrowser.js",
     "./sources/cctv-types": "./src/sources/cctvTypes.js",
     "./sources/regional": "./src/data/regionalModel.js",
-    "./voice/action-schemas": "./src/voice/actionSchemas.js"
+    "./voice/action-schemas": "./src/voice/actionSchemas.js",
+    "./voice/session": "./src/voice/session.js",
+    "./voice/session-controls": "./src/voice/sessionCommands.js",
+    "./voice/realtime-session": "./src/voice/realtimeSession.js"
   }
 }
