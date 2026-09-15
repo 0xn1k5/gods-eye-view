@@ -273,6 +273,15 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
   and environment the code builds; the Windows onboarding CI job now also runs
   this file, where its one Windows-only case exercises the real hardener against
   real native tools. Contributed by michaelhan1208 (#161).
+- The panel-recovery instructions in `docs/KNOWN-ISSUES.md`, `docs/CURRENT-STATE.md`
+  and `scripts/dev-fresh.sh` describe what the interface does. The rails lay panels
+  out themselves and write no stored position, so a CCTV panel that looks missing
+  is collapsed or its layer is off; the collapsed-state key is what opens it, and
+  the value to store is `'0'`, since removing the key returns the panel to its
+  default, which is collapsed. A view opened from a share link is laid out from
+  the link and ignores the stored value, so the console workaround is for ordinary
+  loads only. A check keeps the documented keys and outcomes in step with the
+  code. Contributed by vegettto (#408).
 
 - Extract panel disclosure and hover/focus controls into a reusable module;
   cancel their listeners and pending work during replacement and teardown.
