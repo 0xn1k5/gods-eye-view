@@ -648,5 +648,8 @@
   "src/data/directions.js",
   "src/data/directions.test.mjs",
   "src/app/layers/directions.js",
-  "src/layers/directions/index.js"
+  "src/layers/directions/index.js",
+  "src/sources/radioBrowser.js",
+  "src/sources/cctvTypes.js",
+  "src/sources/protocols.test.mjs"
 ]
