@@ -223,6 +223,15 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ### Fixed
 
+- `DATA_SOURCES.md` states what the project does with camera frame content: a
+  successful upstream response is relayed as the provider served it, nothing in
+  the camera pipeline enhances it or recognises what is in it, resampling for
+  display is the only change made to the picture, and no frame is written to disk.
+  It also names what a viewer sees when an upstream has no frame — including a
+  last good picture kept after a failed refresh — and the one feature that sends
+  imagery anywhere: the voice assistant's viewport screenshot. Contributed by
+  Lob26 (#357).
+
 - Extract panel disclosure and hover/focus controls into a reusable module;
   cancel their listeners and pending work during replacement and teardown.
 
