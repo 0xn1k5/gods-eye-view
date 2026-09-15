@@ -384,7 +384,10 @@ export function measureOverlayEntry(ctx, entry, out = {}) {
     out.padY = Math.max(0, Number(entry?.thumbnailPadTop) || 0);
     out.padBottom = Math.max(0, Number(entry?.thumbnailPadBottom) || 0);
     out.titleGap = Math.max(0, Number(entry?.thumbnailTitleGap) || 0);
-    out.titleH = Math.max(0, Number(entry?.thumbnailTitleHeight) || out.titleH);
+    const thumbnailTitleHeight = Number(entry?.thumbnailTitleHeight);
+    out.titleH = Number.isFinite(thumbnailTitleHeight)
+      ? Math.max(0, thumbnailTitleHeight)
+      : out.titleH;
     out.thumbW = Math.max(1, Number(entry?.thumbnailWidth) || 96);
     out.thumbH = Math.max(1, Number(entry?.thumbnailHeight) || 54);
     out.w = out.thumbW + out.padX * 2;
@@ -540,34 +543,90 @@ export function placementVariants(
   return out;
 }
 
-function drawLeader(ctx, placement, accent) {
+function drawLeader(
+  ctx,
+  placement,
+  accent,
+  progress = 1,
+  width = 1,
+  style = 'straight',
+) {
+  const reveal = Math.max(0, Math.min(1, Number(progress) || 0));
+  if (reveal <= 0) return;
   ctx.strokeStyle = accent || WORLD_OVERLAY_STYLE.leader;
   // Leaders are screen-space strokes. Card content may be painted inside an
   // altitude/distance scale transform, so counter-scale the canvas width to
   // retain the shipped one-CSS-pixel leader at every card size.
-  ctx.lineWidth = 1 / (placement.paintScale || 1);
-  ctx.beginPath();
-  if (placement.leaderOffset === 0) {
-    ctx.moveTo(placement.leadFromX, placement.leadFromY);
-  } else if (placement.corner === 'above' || placement.corner === 'below') {
-    ctx.moveTo(
-      placement.leadFromX,
-      placement.leadFromY + placement.leaderOffset,
-    );
-  } else {
-    ctx.moveTo(
-      placement.leadFromX + placement.leaderOffset,
-      placement.leadFromY,
-    );
+  ctx.lineWidth = width / (placement.paintScale || 1);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  let startX = placement.leadFromX;
+  let startY = placement.leadFromY;
+  if (placement.leaderOffset !== 0) {
+    if (placement.corner === 'above' || placement.corner === 'below') {
+      startY += placement.leaderOffset;
+    } else {
+      startX += placement.leaderOffset;
+    }
   }
-  ctx.lineTo(placement.leadToX, placement.leadToY);
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  if (
+    style === 'elbow' &&
+    (placement.corner === 'left' || placement.corner === 'right')
+  ) {
+    const elbowY =
+      placement.rect.y + Math.min(Math.max(12, placement.rect.h * 0.12), 26);
+    const verticalLength = Math.abs(elbowY - startY);
+    const horizontalLength = Math.abs(placement.leadToX - startX);
+    const totalLength = verticalLength + horizontalLength;
+    const visibleLength = totalLength * reveal;
+    if (visibleLength <= verticalLength && verticalLength > 0) {
+      const direction = Math.sign(elbowY - startY);
+      ctx.lineTo(startX, startY + visibleLength * direction);
+    } else {
+      ctx.lineTo(startX, elbowY);
+      const remaining = Math.max(0, visibleLength - verticalLength);
+      const direction = Math.sign(placement.leadToX - startX);
+      ctx.lineTo(
+        startX + Math.min(horizontalLength, remaining) * direction,
+        elbowY,
+      );
+    }
+    ctx.stroke();
+    return;
+  }
+  ctx.lineTo(
+    startX + (placement.leadToX - startX) * reveal,
+    startY + (placement.leadToY - startY) * reveal,
+  );
   ctx.stroke();
 }
 
-function drawCardChrome(ctx, entry, placement, selected = false) {
+function drawAnchorDot(ctx, entry, placement) {
+  if (!entry.anchorDot) return;
+  const paintScale = placement.paintScale || 1;
+  const radius = WORLD_OVERLAY_STYLE.anchorDotRadius / paintScale;
+  ctx.beginPath();
+  ctx.arc(placement.anchorX, placement.anchorY, radius, 0, Math.PI * 2);
+  ctx.fillStyle = entry.accent || WORLD_OVERLAY_STYLE.accent;
+  ctx.fill();
+  ctx.strokeStyle = WORLD_OVERLAY_STYLE.anchorDotStroke;
+  ctx.lineWidth = WORLD_OVERLAY_STYLE.anchorDotStrokeWidth / paintScale;
+  ctx.stroke();
+}
+
+function drawCardChrome(
+  ctx,
+  entry,
+  placement,
+  selected = false,
+  drawLeaderLine = true,
+) {
   const { x, y, w, h } = placement.rect;
   const accent = entry.accent || WORLD_OVERLAY_STYLE.accent;
-  drawLeader(ctx, placement, accent);
+  if (drawLeaderLine)
+    drawLeader(ctx, placement, accent, 1, 1, entry.leaderStyle);
   ctx.beginPath();
   roundedRectPath(ctx, x, y, w, h);
   ctx.fillStyle = selected
@@ -821,18 +880,47 @@ export function paintTrack(ctx, entry, placement, alpha = 1) {
   return placement.rect;
 }
 
-/** Paint a standard detail card. */
-export function paintCard(ctx, entry, placement, alpha = 1) {
+/** Paint a standard detail card, with an opt-in staged anchor/leader reveal. */
+export function paintCard(
+  ctx,
+  entry,
+  placement,
+  alpha = 1,
+  leaderProgress = 1,
+  contentAlpha = 1,
+) {
   ctx.save();
   ctx.globalAlpha = alpha;
-  drawCardChrome(ctx, entry, placement, false);
+  if (entry.anchorDot) {
+    drawLeader(
+      ctx,
+      placement,
+      entry.accent || WORLD_OVERLAY_STYLE.accent,
+      leaderProgress,
+      WORLD_OVERLAY_STYLE.leaderWidth,
+      entry.leaderStyle,
+    );
+    drawAnchorDot(ctx, entry, placement);
+    ctx.globalAlpha =
+      alpha * Math.max(0, Math.min(1, Number(contentAlpha) || 0));
+    drawCardChrome(ctx, entry, placement, false, false);
+  } else {
+    drawCardChrome(ctx, entry, placement, false);
+  }
   drawCardText(ctx, entry, placement, false);
   ctx.restore();
   return placement.rect;
 }
 
 /** Paint a thumbnail card. The image slot remains source-owned. */
-export function paintThumbnail(ctx, entry, placement, alpha = 1) {
+export function paintThumbnail(
+  ctx,
+  entry,
+  placement,
+  alpha = 1,
+  leaderProgress = 1,
+  contentAlpha = 1,
+) {
   const layout = entry._overlayLayout || {};
   const { x, y, w, h } = placement.rect;
   const padX = Number.isFinite(layout.padX) ? layout.padX : 4;
@@ -848,7 +936,12 @@ export function paintThumbnail(ctx, entry, placement, alpha = 1) {
     ctx,
     placement,
     entry.thumbnailLeaderColor || WORLD_OVERLAY_STYLE.leader,
+    leaderProgress,
+    entry.anchorDot ? WORLD_OVERLAY_STYLE.leaderWidth : 1,
+    entry.leaderStyle,
   );
+  drawAnchorDot(ctx, entry, placement);
+  ctx.globalAlpha = alpha * Math.max(0, Math.min(1, Number(contentAlpha) || 0));
   ctx.beginPath();
   roundedRectPath(ctx, x, y, w, h, Number(entry.thumbnailRadius) || 4);
   ctx.fillStyle = entry.thumbnailBackground || WORLD_OVERLAY_STYLE.background;
@@ -884,11 +977,13 @@ export function paintThumbnail(ctx, entry, placement, alpha = 1) {
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = entry.thumbnailTitleColor || WORLD_OVERLAY_STYLE.title;
   ctx.font = entry.thumbnailTitleFont || WORLD_OVERLAY_STYLE.fontTitle;
-  ctx.fillText(
-    titleChars > 0 ? title.slice(0, titleChars) : title,
-    imageX,
-    imageY + thumbH + titleH - 3,
-  );
+  if (title && titleH > 0) {
+    ctx.fillText(
+      titleChars > 0 ? title.slice(0, titleChars) : title,
+      imageX,
+      imageY + thumbH + titleH - 3,
+    );
+  }
   ctx.restore();
   return placement.rect;
 }
@@ -911,7 +1006,7 @@ export function paintTracked(ctx, entry, placement, alpha = 1) {
   const accent = entry.accent || WORLD_OVERLAY_STYLE.accent;
   ctx.save();
   ctx.globalAlpha = alpha;
-  drawLeader(ctx, placement, accent);
+  drawLeader(ctx, placement, accent, 1, 1, entry.leaderStyle);
   ctx.beginPath();
   roundedRectPath(ctx, x, y, w, h, 5);
   ctx.fillStyle = WORLD_OVERLAY_STYLE.background;
@@ -1018,16 +1113,40 @@ export function paintDetectionCallout(ctx, callout, alpha = 1) {
 }
 
 /** Dispatch a normalized entry to its pure variant painter. */
-export function paintOverlayEntry(ctx, entry, placement, alpha = 1) {
+export function paintOverlayEntry(
+  ctx,
+  entry,
+  placement,
+  alpha = 1,
+  leaderProgress = 1,
+  contentAlpha = 1,
+) {
   if (entry.cardStyle === 'tactical')
     return paintTacticalCard(ctx, entry, placement, alpha);
   if (entry.variant === 'tracked')
     return paintTracked(ctx, entry, placement, alpha);
   if (entry.selected || entry.variant === 'selected')
     return paintSelected(ctx, entry, placement, alpha);
-  if (entry.variant === 'thumbnail')
-    return paintThumbnail(ctx, entry, placement, alpha);
-  if (entry.variant === 'card') return paintCard(ctx, entry, placement, alpha);
+  if (entry.variant === 'thumbnail') {
+    return paintThumbnail(
+      ctx,
+      entry,
+      placement,
+      alpha,
+      leaderProgress,
+      contentAlpha,
+    );
+  }
+  if (entry.variant === 'card') {
+    return paintCard(
+      ctx,
+      entry,
+      placement,
+      alpha,
+      leaderProgress,
+      contentAlpha,
+    );
+  }
   if (entry.variant === 'track')
     return paintTrack(ctx, entry, placement, alpha);
   return paintLabel(ctx, entry, placement, alpha);
