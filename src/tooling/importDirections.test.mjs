@@ -172,8 +172,13 @@ test('compatibility exceptions are limited to the two existing composition entri
 
 test('symlink aliases do not hide renderer ownership', (t) => {
   const { root, write } = fixture(t);
-  write('src/sources/demo.js', "import './helper.js';");
+  write('src/sources/demo.js', "import './helper/view.js';");
   write('src/ui/view.js');
-  symlinkSync('../ui/view.js', path.join(root, 'src/sources/helper.js'));
+  // Directory junctions exercise the same resolved edge without Windows symlink privileges.
+  symlinkSync(
+    path.join(root, 'src/ui'),
+    path.join(root, 'src/sources/helper'),
+    'junction',
+  );
   assert.throws(() => checkImportDirections(root), /rendering|symlinks/);
 });
