@@ -1,5 +1,7 @@
 # Changelog
 
+- Expose portable radio, camera-type and regional source helpers; keep HTTP transport separate from record normalization.
+
 - Separate vessel records and feed acquisition from rendering while preserving selection, partial-feed retention, sea-surface placement and request cancellation.
 
 - Separate military-flight records and acquisition from rendering while preserving ground-model ownership, source units and follow behavior.

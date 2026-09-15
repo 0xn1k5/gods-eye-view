@@ -161,7 +161,8 @@
       "server/providers/common/geo.js",
       "server/providers/places/google-key.js",
       "scripts/google-server-key.mjs",
-      "src/data/cctvFootprint.js"
+      "src/data/cctvFootprint.js",
+      "src/sources/cctvTypes.js"
     ],
     "external": []
   },
@@ -175,7 +176,8 @@
       "server/providers/radio/stations.js",
       "server/providers/radio/transport.js",
       "src/data/radioCountry.js",
-      "server/providers/common/http.js"
+      "server/providers/common/http.js",
+      "src/sources/radioBrowser.js"
     ],
     "external": []
   },
@@ -2119,5 +2121,20 @@
     "exports": ["./layers/directions"],
     "modules": ["src/layers/directions/index.js", "src/data/routeSteps.js"],
     "external": ["cesium"]
+  },
+  "radio-browser-source": {
+    "exports": ["./sources/radio-browser"],
+    "modules": ["src/sources/radioBrowser.js", "src/data/radioCountry.js"],
+    "external": []
+  },
+  "cctv-types-source": {
+    "exports": ["./sources/cctv-types"],
+    "modules": ["src/sources/cctvTypes.js"],
+    "external": []
+  },
+  "regional-source": {
+    "exports": ["./sources/regional"],
+    "modules": ["src/data/regionalModel.js"],
+    "external": []
   }
 }
