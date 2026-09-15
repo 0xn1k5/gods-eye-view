@@ -254,7 +254,9 @@
       "server/providers/openai/realtime.js",
       "server/providers/openai/tools.js",
       "src/hudSummaryResponse.js",
-      "src/voice/voiceCost.js"
+      "src/voice/voiceCost.js",
+      "src/voice/actionSchemas.js",
+      "server/providers/openai/toolDescriptions.js"
     ],
     "external": []
   },
@@ -2135,6 +2137,11 @@
   "regional-source": {
     "exports": ["./sources/regional"],
     "modules": ["src/data/regionalModel.js"],
+    "external": []
+  },
+  "voice-action-schemas": {
+    "exports": ["./voice/action-schemas"],
+    "modules": ["src/voice/actionSchemas.js"],
     "external": []
   }
 }

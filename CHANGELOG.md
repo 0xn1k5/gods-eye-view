@@ -1,5 +1,7 @@
 # Changelog
 
+- Separate canonical voice action arguments from descriptive wording, preserving the existing Realtime tool inventory.
+
 - Expose portable radio, camera-type and regional source helpers; keep HTTP transport separate from record normalization.
 
 - Separate vessel records and feed acquisition from rendering while preserving selection, partial-feed retention, sea-surface placement and request cancellation.

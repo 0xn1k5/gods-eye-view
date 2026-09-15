@@ -651,5 +651,8 @@
   "src/layers/directions/index.js",
   "src/sources/radioBrowser.js",
   "src/sources/cctvTypes.js",
-  "src/sources/protocols.test.mjs"
+  "src/sources/protocols.test.mjs",
+  "src/voice/actionSchemas.js",
+  "src/voice/actionSchemas.test.mjs",
+  "server/providers/openai/toolDescriptions.js"
 ]
