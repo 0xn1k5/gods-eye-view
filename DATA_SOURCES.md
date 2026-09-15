@@ -169,6 +169,39 @@ positions: RailRadar api.railradar.in" — appears in the Data attribution popov
 live source is never stored or re-published. RailRadar is community-provided and the data
 is used under its terms; it attributes live train-run data to Indian Railways.
 
+### Cell towers (OpenCelliD + mcc-mnc)
+
+The Cell Towers layer renders tower locations from the community crowdsourced
+**OpenCelliD** database. **No data is bundled and no key is required on the client.**
+The operator supplies the dataset: register a free account at https://opencellid.org,
+reveal the API token, and either grab the world `cell_towers.csv.gz` from their
+Downloads page yourself or run the one-liner
+`OPENCELLID_TOKEN=pk.xxxx node scripts/fetch-opencellid.mjs` (a token allows at most
+2 downloads per file per day, and OpenCelliD currently publishes only a subset of
+per-country slices — India/404-405 is not among them, so use the world dump and
+keep only India with `OPENCELLID_MCC_FILTER=404,405` in `.env`). It lands in
+`.gev-cache/opencellid/` (or point `OPENCELLID_CSV_PATH` at any path — see
+`.env.example`). On first request the `/api/towers` server-side proxy streams the
+CSV and keeps a bounded index of the most-measured towers
+(`OPENCELLID_MAX_TOWERS`, default 250,000, choosing by the OpenCelliD `samples`
+column so the retained set represents strong, well-observed sites), optionally
+restricted to a comma-separated MCC list via `OPENCELLID_MCC_FILTER`, indexed into
+a coarse lat/lon grid (`OPENCELLID_GRID_DEGREES`, default 1°) for bounded bbox
+queries. Without a data file, `/api/towers` answers 503 `no_data` and the layer
+renders an add-the-dump notice (not a "key required" — no provider key is
+involved); `/api/towers/status` reports the state. The client layer polls the
+viewport-bounded snapshot at most every `VITE_TOWERS_UPDATE_MS` (default 15 minutes).
+
+Attribution: OpenCelliD is licensed under a
+[Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+license (© OpenCelliD contributors) — an updated share-alike obligation applies to any
+redistributed derivative of the OpenCelliD database, and the MIT grant here does not cover
+it. Operator display (network name/brand, network types, frequency bands, generations,
+country) is joined at query time from the bundled `mcc-mnc.org` networks table
+(`server/providers/towers/mcc-mnc-networks.json`, generated from mcc-mnc.org's public
+`/downloads/networks.csv`, which is released under a permissive public-domain-style
+grant). The OpenCelliD + mcc-mnc attribution appears in the Data attribution popover.
+
 ### Natural Earth physical regions (`natural_earth/`)
 
 Curated from the **Natural Earth 10m physical vectors** (https://www.naturalearthdata.com/ —
@@ -209,4 +242,4 @@ Douglas-Peucker simplification, 6-decimal rounding).
 
 ## In-app attribution
 
-The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream, OpenCelliD) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.

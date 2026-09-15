@@ -119,6 +119,12 @@
     "./server/providers/railways": {
       "node": "./server/providers/railways.js"
     },
+    "./server/providers/towers": {
+      "node": "./server/providers/towers.js"
+    },
+    "./server/providers/towers/table": {
+      "node": "./server/providers/towers/mcc-mnc-networks.json"
+    },
     "./server/standalone/key-setup": {
       "node": "./server/standalone/key-setup.js"
     },
@@ -167,6 +173,8 @@
     "./layers/radio": "./src/layers/radio/index.js",
     "./layers/submarine-cables": "./src/layers/submarineCables/index.js",
     "./sources/bundled-cables": "./src/layers/submarineCables/bundledSource.js",
+    "./layers/towers": "./src/layers/towers/index.js",
+    "./layers/towers/source": "./src/layers/towers/source.js",
     "./geography/natural-earth": "./src/data/naturalEarthRegions.js",
     "./geography/neighborhoods": "./src/data/neighborhoodPolygons.js",
     "./maps/controller": "./src/maps/controller.js",

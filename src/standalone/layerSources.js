@@ -14,6 +14,7 @@ import { createLaunchSource } from '../layers/launches/source.js';
 import { createOverpassAlprSource } from '../layers/alpr/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createRailwaySource } from '../layers/railways/source.js';
+import { createTowerSource } from '../layers/towers/source.js';
 import { createReferenceSources } from '../sources/reference.js';
 export { createReferenceSources as createStandaloneReferenceSources } from '../sources/reference.js';
 
@@ -37,5 +38,6 @@ export function createStandaloneLayerSources() {
     alpr: createOverpassAlprSource(),
     firms: createFirmsSource(),
     railways: createRailwaySource(),
+    towers: createTowerSource(),
   };
 }
