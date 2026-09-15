@@ -110,3 +110,32 @@ test('source retains history validation and never retries through another transp
   );
   assert.equal(calls, 1);
 });
+
+test('snapshot cancellation covers headers and body parsing', async () => {
+  for (const phase of ['headers', 'body']) {
+    const controller = new AbortController();
+    const source = createTransitSource({
+      fetchImpl: async () => {
+        if (phase === 'headers') controller.abort();
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers(),
+          json: async () => {
+            controller.abort();
+            return { vehicles: [] };
+          },
+        };
+      },
+    });
+    await assert.rejects(
+      async () => {
+        const response = await source.requestSnapshot('mbta', {
+          signal: controller.signal,
+        });
+        await response.json();
+      },
+      { name: 'AbortError' },
+    );
+  }
+});
