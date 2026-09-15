@@ -1,4 +1,3 @@
-import { fetchTransitHistory } from '../../data/transitProxy.js';
 import { getRegisteredTransitFeed } from '../../data/transitFeeds.js';
 import * as Cesium from 'cesium';
 import {
@@ -23,7 +22,7 @@ export const TRAIL_VERTEX_LIMIT = 2048;
 const STEP_M = 25;
 
 /** Shared prepared paths. Floors are aligned to work with Google 3D tiles. */
-export function createTrails({ state, services, parts }) {
+export function createTrails({ state, services, parts, source }) {
   let historyRequest = null;
   let requestCount = 0,
     abortCount = 0;
@@ -233,7 +232,10 @@ export function createTrails({ state, services, parts }) {
       const controller = new AbortController();
       historyRequest = controller;
       requestCount++;
-      fetchTransitHistory(entry.feedId, entry.record.id, controller.signal)
+      source
+        .getHistory(entry.feedId, entry.record.id, {
+          signal: controller.signal,
+        })
         .then((payload) => {
           if (
             controller.signal.aborted ||
