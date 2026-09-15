@@ -8,7 +8,8 @@
     "modules": [
       "src/data/infrastructure.js",
       "src/data/localGeojsonCore.js",
-      "src/data/localGeojsonLod.js"
+      "src/data/localGeojsonLod.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -64,7 +65,8 @@
       "server/providers/common/geo.js",
       "server/providers/common/http.js",
       "scripts/google-server-key.mjs",
-      "src/data/placeProviderPayloads.js"
+      "src/data/placeProviderPayloads.js",
+      "src/data/routeSteps.js"
     ],
     "external": []
   },
@@ -152,7 +154,9 @@
       "server/providers/cctv/constants.js",
       "server/providers/cctv/media.js",
       "server/providers/cctv/normalize.js",
+      "server/providers/cctv/range.js",
       "server/providers/cctv/sources.js",
+      "server/providers/common/http.js",
       "src/data/directionText.js",
       "server/providers/common/geo.js",
       "server/providers/places/google-key.js",
@@ -190,7 +194,8 @@
       "server/providers/overpass/query.js",
       "server/providers/overpass/transport.js",
       "server/providers/places/routes.js",
-      "src/data/placeProviderPayloads.js"
+      "src/data/placeProviderPayloads.js",
+      "src/data/routeSteps.js"
     ],
     "external": []
   },
@@ -626,7 +631,8 @@
       "src/layers/flights/tracking.js",
       "src/layers/flights/records.js",
       "src/layers/flights/recordPolicy.js",
-      "src/layers/flights/snapshotRenderer.js"
+      "src/layers/flights/snapshotRenderer.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -660,7 +666,8 @@
       "src/layers/military/tracking.js",
       "src/layers/military/records.js",
       "src/layers/military/recordPolicy.js",
-      "src/layers/military/snapshotRenderer.js"
+      "src/layers/military/snapshotRenderer.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -683,7 +690,8 @@
       "src/data/trackedModelRegime.js",
       "src/data/trackingClickGesture.js",
       "src/layers/aircraft/classification.js",
-      "src/layers/aircraft/index.js"
+      "src/layers/aircraft/index.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -706,7 +714,8 @@
       "src/data/vesselLabels.js",
       "src/layers/vessels/records.js",
       "src/layers/vessels/recordPolicy.js",
-      "src/layers/vessels/snapshotRenderer.js"
+      "src/layers/vessels/snapshotRenderer.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -737,7 +746,8 @@
       "src/layers/firms/selection.js",
       "src/layers/firms/source.js",
       "src/layers/firms/state.js",
-      "src/layers/firms/viewport.js"
+      "src/layers/firms/viewport.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -759,7 +769,8 @@
       "src/layers/satellites/source.js",
       "src/layers/satellites/state.js",
       "src/layers/satellites/testing.js",
-      "src/layers/satellites/tracking.js"
+      "src/layers/satellites/tracking.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium", "satellite.js"]
   },
@@ -784,7 +795,8 @@
       "src/layers/launches/selection.js",
       "src/layers/launches/source.js",
       "src/layers/launches/state.js",
-      "src/layers/launches/testing.js"
+      "src/layers/launches/testing.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -803,7 +815,8 @@
       "src/layers/installations/selection.js",
       "src/layers/installations/source.js",
       "src/layers/installations/state.js",
-      "src/layers/installations/viewport.js"
+      "src/layers/installations/viewport.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -877,7 +890,8 @@
       "src/layers/bikeshare/source.js",
       "src/layers/bikeshare/state.js",
       "src/layers/bikeshare/testing.js",
-      "src/layers/bikeshare/viewport.js"
+      "src/layers/bikeshare/viewport.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -914,7 +928,8 @@
       "src/layers/cctv/state.js",
       "src/layers/cctv/testing.js",
       "src/overlays/worldOverlayTokens.js",
-      "src/data/cctvFootprint.js"
+      "src/data/cctvFootprint.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -925,7 +940,8 @@
       "src/layers/alpr/model.js",
       "src/layers/alpr/policy.js",
       "src/layers/alpr/presentation.js",
-      "src/layers/alpr/source.js"
+      "src/layers/alpr/source.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -957,7 +973,8 @@
       "src/layers/radio/tuning.js",
       "src/layers/radio/tuningNoise.js",
       "src/layers/radio/volume.js",
-      "src/ui/radioTunerModel.js"
+      "src/ui/radioTunerModel.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -973,7 +990,8 @@
       "src/layers/submarineCables/policy.js",
       "src/layers/submarineCables/rendering.js",
       "src/layers/submarineCables/state.js",
-      "src/layers/submarineCables/surface.js"
+      "src/layers/submarineCables/surface.js",
+      "src/data/inputOwnership.js"
     ],
     "external": ["cesium"]
   },
@@ -1555,7 +1573,14 @@
       "src/layers/military/snapshotRenderer.js",
       "src/layers/vessels/records.js",
       "src/layers/vessels/recordPolicy.js",
-      "src/layers/vessels/snapshotRenderer.js"
+      "src/layers/vessels/snapshotRenderer.js",
+      "src/data/inputOwnership.js",
+      "src/annotations/drawMode.js",
+      "src/annotations/drawTool.js",
+      "src/data/routeSteps.js",
+      "src/layers/directions/index.js",
+      "src/data/directions.js",
+      "src/app/layers/directions.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -1887,7 +1912,18 @@
       "src/layers/military/snapshotRenderer.js",
       "src/layers/vessels/records.js",
       "src/layers/vessels/recordPolicy.js",
-      "src/layers/vessels/snapshotRenderer.js"
+      "src/layers/vessels/snapshotRenderer.js",
+      "src/data/inputOwnership.js",
+      "src/annotations/worldAnnotationRenderer.js",
+      "src/cameraVerbs.js",
+      "src/services/groundFloor.js",
+      "src/data/routeSteps.js",
+      "src/layers/directions/index.js",
+      "src/services/terrainHeights.js",
+      "src/data/terrainHeights.js",
+      "src/data/groundFloor.js",
+      "src/data/directions.js",
+      "src/app/layers/directions.js"
     ],
     "external": [
       "cesium",
@@ -2055,5 +2091,10 @@
       "src/layers/vessels/recordPolicy.js"
     ],
     "external": []
+  },
+  "directions-layer": {
+    "exports": ["./layers/directions"],
+    "modules": ["src/layers/directions/index.js", "src/data/routeSteps.js"],
+    "external": ["cesium"]
   }
 }

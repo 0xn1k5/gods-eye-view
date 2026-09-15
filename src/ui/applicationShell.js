@@ -265,6 +265,7 @@ export class StyleManager {
     // Bloom/sharpen state
     this._globeResetPromise = null;
     this._dataManager = null;
+    this._directionsShellModule = null;
 
     this._windowResizeHandler = null;
     this._cctvRequestFocusHandler = null;
@@ -927,6 +928,34 @@ export class StyleManager {
   /** Public authority facade used by validated voice camera destinations. */
   runImmediateNavigation(noun, navigate, releaseOptions = undefined) {
     return this._runExplicitNavigation(noun, navigate, releaseOptions);
+  }
+
+  /**
+   * Hand the Directions layer the camera seams its FLY chip needs: the same
+   * immediate-navigation facade voice route flights go through, so there is
+   * one camera owner rather than a second one inside a data layer, the shared
+   * ground-floor read/warm the route dolly flies over, and the app's own toast
+   * so the layer can speak where the rest of the UI speaks.
+   * @returns {void}
+   */
+  _connectDirectionsCamera() {
+    if (!this._dataManager) {
+      // Detaching: the layer outlives this shell, so it must not keep calling
+      // a facade whose viewer is going away.
+      this._directionsShellModule?.attachShellServices?.(null);
+      this._directionsShellModule = null;
+      return;
+    }
+    const directions = this._dataManager.layers?.get('directions')?.module;
+    if (typeof directions?.attachShellServices !== 'function') return;
+    this._directionsShellModule = directions;
+    directions.attachShellServices({
+      runNavigation: (navigate) =>
+        this.runImmediateNavigation('route', navigate),
+      floorFn: (lat, lon) => this.services.cachedGroundFloor(lat, lon),
+      warmFn: (cells) => this.services.warmGroundFloor(cells),
+      showToast: (message) => this._showToast(message),
+    });
   }
 
   /** Supersede deferred work when an owner-specific route handles release. */
@@ -1654,6 +1683,7 @@ export class StyleManager {
     this._syncContextModeButtons();
     this._cctvControls.connect();
     this._radioControls.connect();
+    this._connectDirectionsCamera();
     if (!this._awarenessSelectedHandler) {
       this._awarenessSelectedHandler = (event) =>
         this._persistAwarenessSelection(event, false);
@@ -3683,6 +3713,8 @@ export class StyleManager {
     this._contextControls.disconnect();
     this._dataManagerUnsubscribe?.();
     this._dataManagerUnsubscribe = null;
+    this._directionsShellModule?.attachShellServices?.(null);
+    this._directionsShellModule = null;
 
     if (this._windowResizeHandler) {
       window.removeEventListener('resize', this._windowResizeHandler);
