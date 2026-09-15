@@ -89,8 +89,15 @@ registration supplies selection, picking, terrain and
 render services. Selected cards and Data attribution identify OpenStreetMap.
 Layer state and the existing voice layer tools include `alpr-cameras`.
 The row count explicitly says **nearby**: loaded records can be outside the
-screen. A purple-dot legend identifies the fixed 8-pixel markers (12 pixels when
-selected). **SHOW NEAREST** frames and selects the nearest loaded camera; it is
+screen. Cyan camera badges use Manjunath's camera artwork; selection switches to a
+larger coral badge with corner brackets and an animated tactical card. Numeric
+mapped bearings draw illustrative 90 m direction wedges (not measured coverage).
+The shared overlay paints gradients for at most 64 nearby cameras, promoting the
+selected camera; farther cameras retain native Cesium badges and ground-clamped
+wedges. Unknown bearings never acquire a wedge. Asset URLs resolve relative to
+the reusable layer, and the caller supplies overlay and map-stack services.
+The ALPR row uses the same header layout as other data layers. **SHOW NEAREST**
+frames and selects the nearest loaded camera; it is
 disabled with no loaded cameras or while following a tracked entity. This action
 chooses from the current source snapshot and uses rendered surface height from
 3D tiles or globe terrain when available.

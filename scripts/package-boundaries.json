@@ -925,6 +925,8 @@
       "src/layers/alpr/model.js",
       "src/layers/alpr/policy.js",
       "src/layers/alpr/presentation.js",
+      "src/layers/alpr/visuals.js",
+      "src/layers/alpr/overlay.js",
       "src/layers/alpr/source.js"
     ],
     "external": ["cesium"]
@@ -1215,6 +1217,8 @@
       "src/layers/alpr/model.js",
       "src/layers/alpr/policy.js",
       "src/layers/alpr/presentation.js",
+      "src/layers/alpr/visuals.js",
+      "src/layers/alpr/overlay.js",
       "src/layers/alpr/source.js",
       "src/layers/awareness/controls.js",
       "src/layers/awareness/dependencies.js",
@@ -1665,6 +1669,8 @@
       "src/layers/alpr/model.js",
       "src/layers/alpr/policy.js",
       "src/layers/alpr/presentation.js",
+      "src/layers/alpr/visuals.js",
+      "src/layers/alpr/overlay.js",
       "src/layers/alpr/source.js",
       "src/layers/awareness/controls.js",
       "src/layers/awareness/dependencies.js",
