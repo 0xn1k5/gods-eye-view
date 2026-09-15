@@ -1,3 +1,4 @@
+import { requireFeatureSource } from '../sources/featureSource.js';
 import { createOverpassFeatureSource } from '../sources/overpassFeatures.js';
 import { createSurfaceServices } from './surfaceServices.js';
 import { createAnnotationResolver } from '../annotations/resolver.js';
@@ -14,17 +15,18 @@ export function createApplicationOperations({ requests, signal, eventTarget }) {
     if (typeof requests?.[name]?.[method] !== 'function')
       throw new TypeError(`Missing application request service: ${name}`);
   }
+  const features = requireFeatureSource(
+    requests.features ??
+      createOverpassFeatureSource({
+        boundarySource: requests.boundaries,
+        signal,
+      }),
+  );
   const surface = createSurfaceServices({
     terrainSource: requests.terrain,
     signal,
     eventTarget,
   });
-  const features =
-    requests.features ??
-    createOverpassFeatureSource({
-      boundarySource: requests.boundaries,
-      signal,
-    });
   const annotationResolver = createAnnotationResolver({
     featureSource: features,
     signal,
