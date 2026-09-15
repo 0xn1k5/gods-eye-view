@@ -723,5 +723,6 @@
   "scripts/qa-transit-controls.mjs",
   "src/tooling/transitQa.test.mjs",
   "scripts/qa-transit-browser.mjs",
-  "scripts/format-runtime.json"
+  "scripts/format-runtime.json",
+  "src/tooling/transitService.test.mjs"
 ]

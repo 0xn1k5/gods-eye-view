@@ -150,6 +150,7 @@ function groundStub(floorAt) {
 function harness(
   t,
   {
+    source,
     altitude = 4_000,
     floorAt = () => 12,
     at = BOSTON,
@@ -263,6 +264,7 @@ function harness(
   /** Every call the floor cycle makes to the rendered-mesh sampler. */
   const meshCalls = [];
   const layer = createTransitLayer({
+    source,
     services: {
       ground,
       mesh: {
@@ -3638,4 +3640,36 @@ test('moving and stationary transit stay adjacent above CCTV and Bikeshare durin
     );
     assert.equal(entry.marker.id, entry.key);
   }
+});
+
+test('transit polls the supplied source and cancels it when disabled', async (t) => {
+  const calls = [];
+  const source = {
+    async requestSnapshot(feedId, { signal }) {
+      calls.push({ feedId, signal });
+      return Response.json(
+        snapshot(
+          feedId,
+          'MBTA',
+          [vehicle('injected', 42.36, -71.06, reported())],
+          { fetchedAt: Date.now() },
+        ),
+      );
+    },
+    async getHistory() {
+      throw new Error('No selected vehicle');
+    },
+  };
+  const app = harness(t, { source });
+  globalThis.fetch = () => {
+    throw new Error('Unexpected global fetch');
+  };
+  app.layer.enable(app.viewer);
+  await app.layer.update();
+  assert.ok(calls.some(({ feedId }) => feedId === 'mbta'));
+  assert.ok(app.vehicles().some((entry) => entry.record.id === 'injected'));
+  const before = calls.length;
+  app.layer.disable(app.viewer);
+  await app.layer.update();
+  assert.equal(calls.length, before);
 });

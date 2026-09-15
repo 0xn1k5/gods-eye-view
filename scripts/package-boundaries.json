@@ -68,7 +68,8 @@
       "scripts/google-server-key.mjs",
       "src/data/placeProviderPayloads.js",
       "src/data/routeSteps.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/rateLimit.js"
     ],
     "external": []
   },
@@ -205,7 +206,8 @@
       "src/data/placeProviderPayloads.js",
       "src/data/routeSteps.js",
       "src/sources/httpBody.js",
-      "src/sources/overpass.js"
+      "src/sources/overpass.js",
+      "src/sources/rateLimit.js"
     ],
     "external": []
   },
@@ -223,7 +225,8 @@
       "server/providers/overpass/constants.js",
       "server/providers/overpass/geometry.js",
       "server/providers/overpass/transport.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/rateLimit.js"
     ],
     "external": []
   },
@@ -244,7 +247,8 @@
       "server/providers/regional/weather.js",
       "src/data/regionalModel.js",
       "src/nominatimGeocode.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/rateLimit.js"
     ],
     "external": []
   },
@@ -266,7 +270,8 @@
       "src/hudSummaryResponse.js",
       "src/voice/voiceCost.js",
       "src/voice/actionSchemas.js",
-      "server/providers/openai/toolDescriptions.js"
+      "server/providers/openai/toolDescriptions.js",
+      "src/sources/rateLimit.js"
     ],
     "external": []
   },
@@ -1665,7 +1670,9 @@
       "src/data/gtfsRealtime.js",
       "src/layers/transit/trails.js",
       "src/layers/transit/movement.js",
-      "src/layers/transit/qaMetrics.js"
+      "src/layers/transit/qaMetrics.js",
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -2046,7 +2053,9 @@
       "src/data/gtfsRealtime.js",
       "src/layers/transit/trails.js",
       "src/layers/transit/movement.js",
-      "src/layers/transit/qaMetrics.js"
+      "src/layers/transit/qaMetrics.js",
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
     ],
     "external": [
       "cesium",
@@ -2379,7 +2388,11 @@
       "src/data/gtfsRealtime.js",
       "src/data/transitFeeds.js",
       "src/data/transitProxy.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "src/sources/transitHistory.js",
+      "src/sources/transitService.js",
+      "src/sources/transitHistoryStore.js",
+      "src/sources/rateLimit.js"
     ],
     "external": ["pbf"]
   },
@@ -2388,7 +2401,8 @@
     "modules": [
       "src/data/gtfsRealtime.js",
       "src/data/transitFeeds.js",
-      "src/data/transitProxy.js"
+      "src/data/transitProxy.js",
+      "src/sources/transitHistory.js"
     ],
     "external": ["pbf"]
   },
@@ -2442,7 +2456,9 @@
       "src/services/meshFloorSampler.js",
       "src/services/requests.js",
       "src/services/terrainHeights.js",
-      "src/sources/sourceSlot.js"
+      "src/sources/sourceSlot.js",
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
     ],
     "external": ["cesium", "egm96-universal", "pbf"]
   },
@@ -2477,8 +2493,32 @@
       "src/layers/transit/qaMetrics.test.mjs",
       "scripts/qa-transit-scenes.mjs",
       "scripts/qa-transit-controls.mjs",
-      "scripts/qa-transit-browser.mjs"
+      "scripts/qa-transit-browser.mjs",
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
     ],
     "external": ["cesium", "pbf"]
+  },
+  "transit-source-factory": {
+    "exports": ["./layers/transit/source"],
+    "modules": [
+      "src/layers/transit/source.js",
+      "src/sources/transitHistory.js"
+    ],
+    "external": []
+  },
+  "transit-service": {
+    "exports": ["./sources/transit-service"],
+    "modules": [
+      "src/data/transitFeeds.js",
+      "src/data/transitProxy.js",
+      "src/data/gtfsRealtime.js",
+      "src/sources/httpBody.js",
+      "src/sources/transitHistory.js",
+      "src/sources/transitService.js",
+      "src/sources/transitHistoryStore.js",
+      "src/sources/rateLimit.js"
+    ],
+    "external": ["pbf"]
   }
 }
