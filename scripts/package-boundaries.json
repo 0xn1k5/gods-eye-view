@@ -911,7 +911,8 @@
       "src/layers/traffic/state.js",
       "src/layers/traffic/style.js",
       "src/layers/traffic/timing.js",
-      "src/layers/traffic/viewport.js"
+      "src/layers/traffic/viewport.js",
+      "src/sources/overpassRoads.js"
     ],
     "external": ["cesium", "pbf", "@mapbox/vector-tile"]
   },
@@ -1685,7 +1686,12 @@
       "src/layers/transit/movement.js",
       "src/layers/transit/qaMetrics.js",
       "src/layers/transit/source.js",
-      "src/sources/transitHistory.js"
+      "src/sources/transitHistory.js",
+      "src/sources/featureGeometry.js",
+      "src/sources/overpassFeaturesRecords.js",
+      "src/sources/overpassFeatures.js",
+      "src/sources/featureSource.js",
+      "src/sources/overpassRoads.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -2074,7 +2080,12 @@
       "src/layers/transit/movement.js",
       "src/layers/transit/qaMetrics.js",
       "src/layers/transit/source.js",
-      "src/sources/transitHistory.js"
+      "src/sources/transitHistory.js",
+      "src/sources/featureGeometry.js",
+      "src/sources/overpassFeaturesRecords.js",
+      "src/sources/overpassFeatures.js",
+      "src/sources/featureSource.js",
+      "src/sources/overpassRoads.js"
     ],
     "external": [
       "cesium",
@@ -2123,7 +2134,11 @@
       "src/nominatimGeocode.js",
       "src/data/regionalModel.js",
       "src/sources/httpBody.js",
-      "src/sources/nominatim.js"
+      "src/sources/nominatim.js",
+      "src/sources/featureGeometry.js",
+      "src/sources/overpassFeaturesRecords.js",
+      "src/sources/overpassFeatures.js",
+      "src/sources/featureSource.js"
     ],
     "external": [
       "cesium",
@@ -2324,7 +2339,10 @@
   },
   "installations-source": {
     "exports": ["./layers/installations/source"],
-    "modules": ["src/layers/installations/source.js"],
+    "modules": [
+      "src/layers/installations/source.js",
+      "src/data/militaryInstallationData.js"
+    ],
     "external": []
   },
   "launches-source": {
@@ -2348,7 +2366,8 @@
       "src/data/tomtomTiles.js",
       "src/layers/traffic/flowDecode.js",
       "src/layers/traffic/flowSource.js",
-      "src/layers/traffic/source.js"
+      "src/layers/traffic/source.js",
+      "src/sources/overpassRoads.js"
     ],
     "external": ["@mapbox/vector-tile", "pbf"]
   },
@@ -2477,7 +2496,11 @@
       "src/services/terrainHeights.js",
       "src/sources/sourceSlot.js",
       "src/layers/transit/source.js",
-      "src/sources/transitHistory.js"
+      "src/sources/transitHistory.js",
+      "src/sources/featureGeometry.js",
+      "src/sources/overpassFeaturesRecords.js",
+      "src/sources/overpassFeatures.js",
+      "src/sources/featureSource.js"
     ],
     "external": ["cesium", "egm96-universal", "pbf"]
   },
@@ -2539,5 +2562,15 @@
       "src/sources/rateLimit.js"
     ],
     "external": ["pbf"]
+  },
+  "map-feature-source": {
+    "exports": ["./sources/map-features"],
+    "modules": [
+      "src/sources/featureGeometry.js",
+      "src/sources/overpassFeaturesRecords.js",
+      "src/sources/overpassFeatures.js",
+      "src/sources/featureSource.js"
+    ],
+    "external": []
   }
 }

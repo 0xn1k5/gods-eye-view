@@ -239,6 +239,7 @@
     "./layers/transit": "./src/layers/transit/index.js",
     "./layers/transit/standalone": "./src/data/transit.js",
     "./layers/transit/source": "./src/layers/transit/source.js",
-    "./sources/transit-service": "./src/sources/transitService.js"
+    "./sources/transit-service": "./src/sources/transitService.js",
+    "./sources/map-features": "./src/sources/overpassFeatures.js"
   }
 }
