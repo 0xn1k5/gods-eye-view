@@ -121,13 +121,44 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 - Separate submarine cable sources and rendering components, and export bundled geography lookup modules.
 
+### Added
+
+- DISPLAY ▸ Draw: draw on the world by hand. Pick Area, Line or Pin, click the
+  vertices, double-click or press Enter to finish, label and colour it; Backspace
+  undoes a vertex, Esc cancels the shape and a second Esc leaves draw mode, and
+  Clear wipes the board. Drawn shapes go through the same annotation engine as
+  spoken ones, so they render with the whiteboard look, persist, de-dup and clear
+  together. While you are drawing, the draw tool owns the pointer and no layer
+  selects what you click through (#235 — thanks @cora-fresh-labs).
+
 ### Fixed
+
+- Draped annotation geometry — area fills and outlines, routes and arrows —
+  classifies onto terrain as well as 3D tiles. On a keyless boot, where Cesium's
+  own globe carries the imagery, marks previously rendered their labels and no
+  geometry at all. This affected spoken annotations as much as hand-drawn ones.
+
+- A finished drawn area closes its ring, so its outline no longer misses the
+  edge back to the first vertex.
+
+- Areas measured and anchored across the antimeridian use unwrapped longitudes:
+  a shape straddling 180° reported an area thousands of times too large and
+  placed its label on the opposite side of the world.
 
 - Traffic now retries a failed destination after city navigation without a layer
   toggle. Camera departure cancels pending work, arrival checks the final view,
   and superseded requests cannot keep a newer view loading.
 
 ### Added
+
+- Add Open Calgary traffic cameras as a keyless CCTV source pack (thanks
+  @rileygramlich): the public City of Calgary catalog, frames pinned to the
+  city's own host and upgraded to HTTPS, with the Open Government Licence –
+  City of Calgary attribution. The dataset publishes no camera facing — its
+  quadrant field and the quadrant suffix on each camera name are Calgary's
+  address grid — so headings use the shared id-hash fallback at low confidence
+  and are corrected with the calibration gizmo. `CCTV_CALGARY_MAX_SOURCES` sets
+  the cap and `CCTV_CALGARY_ENABLED=0` turns the pack off.
 
 - Add Ontario 511 as a keyless CCTV source pack, including Kitchener-area
   highway cameras, with server-registered still URLs and attribution.
@@ -218,6 +249,28 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 ### Security
 
+- The CCTV media route no longer forwards a client `Range` header to the upstream
+  camera host as it arrived. A single `bytes=` range is canonicalized and
+  forwarded, with every accepted form — explicit span, open-ended and suffix —
+  bounded to 64 MiB, the ceiling the relay already applies to a response that
+  declares its length. A response that declares no length has no ceiling — live
+  streamed media, and anything an upstream sends chunked while ignoring the
+  `Range` — which is unchanged. Multi-range, malformed, inverted, non-`bytes` and
+  unsafe-integer values are dropped and the request proceeds without a `Range`,
+  as RFC 7233 §3.1 prescribes; a multi-range value previously invited a
+  `multipart/byteranges` answer, whose parts nothing here reads. A value carrying
+  CR or LF made the outbound request throw, and the route recorded the thrown
+  message — which contains the caller's own string — as that camera's entry in
+  the health report. A request the browser has stopped waiting for is now
+  released: whether the viewer leaves while the camera is still answering or
+  part-way through the picture, the upstream request is cancelled rather than
+  left running, and neither case marks the camera degraded. Ordinary seeking is
+  unaffected. Contributed by Maher-Reven (#253).
+- CI pins `actions/checkout` and `actions/setup-node` to the commits their
+  `v4.4.0` tags name, so a repointed tag cannot change what runs in CI. The
+  version stays in a trailing comment, and moving to a later release is a
+  deliberate edit. Contributed by SurefireStudios (#309).
+
 - Validate configured Google Places coordinates and text queries before rate
   limiting or upstream requests; preserve the keyless capability response.
 - Bound CCTV media response headers to 15 seconds and cancel error bodies.
@@ -228,6 +281,44 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 
 ### Fixed
+
+- `DATA_SOURCES.md` states what the project does with camera frame content: a
+  successful upstream response is relayed as the provider served it, nothing in
+  the camera pipeline enhances it or recognises what is in it, resampling for
+  display is the only change made to the picture, and no frame is written to disk.
+  It also names what a viewer sees when an upstream has no frame — including a
+  last good picture kept after a failed refresh — and the one feature that sends
+  imagery anywhere: the voice assistant's viewport screenshot. Contributed by
+  Lob26 (#357).
+- Pinokio's Update shows what it is about to install before it installs it: the
+  tracking branch, the remote it fetched from, the incoming commits and their
+  diffstat. The remote is printed as host and path — a password or token in the
+  URL's user field is replaced and any query string dropped, though a secret
+  spelled as an ordinary path segment cannot be told from a repository name. It
+  fetches once and applies exactly the revision it named, so a commit that lands
+  mid-update cannot be installed unannounced. A git read it cannot complete is
+  reported as such instead of as "already up to date", and if the revision to
+  apply cannot be resolved at all the update stops without installing anything
+  and exits unsuccessfully. Contributed by Lob26 (#356).
+- On Windows, the credential-file hardening step verifies the file's permissions
+  through the system PowerShell. A side-by-side PowerShell 7 install prepends its
+  own module directories, which the 5.1 verifier cannot load, so the check failed
+  and the credential was refused. The verify script now sets its module path from
+  the running interpreter's own home, and the environment it is launched with
+  carries that one value and no differently cased alias of it. The tests that
+  cover it drive a stubbed process launcher, so what they check is the command
+  and environment the code builds; the Windows onboarding CI job now also runs
+  this file, where its one Windows-only case exercises the real hardener against
+  real native tools. Contributed by michaelhan1208 (#161).
+- The panel-recovery instructions in `docs/KNOWN-ISSUES.md`, `docs/CURRENT-STATE.md`
+  and `scripts/dev-fresh.sh` describe what the interface does. The rails lay panels
+  out themselves and write no stored position, so a CCTV panel that looks missing
+  is collapsed or its layer is off; the collapsed-state key is what opens it, and
+  the value to store is `'0'`, since removing the key returns the panel to its
+  default, which is collapsed. A view opened from a share link is laid out from
+  the link and ignores the stored value, so the console workaround is for ordinary
+  loads only. A check keeps the documented keys and outcomes in step with the
+  code. Contributed by vegettto (#408).
 
 - Extract panel disclosure and hover/focus controls into a reusable module;
   cancel their listeners and pending work during replacement and teardown.
@@ -271,6 +362,15 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 
 ### Changed
+
+- The interface asks Google Fonts for only the icon glyphs it draws, instead of
+  the whole variable icon font, and no longer requests a second icon family that
+  nothing renders. A check fails when a source names a glyph the request is
+  missing, because an absent glyph does not draw a placeholder — the element
+  renders the glyph's name as text. The check reads the panel templates as well
+  as the scripts, and reads glyph names written as literals, so a glyph chosen
+  through a variable has to be added to the request by hand. Contributed by
+  mml-studio (#239).
 - Separate explicit browser build settings from standalone environment loading
   and local provider middleware. Preserve provider behavior and root named exports.
 - Rename standalone browser startup to `src/standalone/` and add a Node-only
@@ -298,6 +398,9 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
   whoever adds the next destination; it passes on the current entries and makes
   no claim about how well any destination is framed. Contributed by daikaginza
   (#168).
+- Drop `CCTV_AUTO_CALIBRATE` and `CCTV_DRAPE_MESH` from `.env.example`. Nothing
+  reads either name; the features they once switched no longer exist, so setting
+  them did nothing. Contributed by dajiaohuang (#283).
 
 - Extract application lifecycle and viewer exports. Split standalone startup into
   scene setup, controls, layer registration, tools and loading UI. Startup failure
