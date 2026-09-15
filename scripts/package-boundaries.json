@@ -593,6 +593,7 @@
       "src/ui/styles/radio.css",
       "src/ui/styles/cctv.css",
       "src/ui/styles/scenes.css",
+      "src/ui/styles/bhote-koshi.css",
       "src/ui/styles/recording.css",
       "src/ui/styles/responsive.css",
       "src/ui/styles/command-dock.css",
@@ -608,6 +609,11 @@
   "scenes": {
     "exports": ["./scenes"],
     "modules": [
+      "src/scenes/nepalEvidencePack.js",
+      "src/data/bhoteKoshiIncidentPlaces.js",
+      "src/data/bhoteKoshiShotPaths.js",
+      "src/data/bhoteKoshiFloodPath.js",
+      "src/maps/catalog.js",
       "src/scenes/director.js",
       "src/scenes/recipes.js",
       "src/scenes/scenePolicy.js",
@@ -1123,6 +1129,13 @@
       "./standalone/catalog"
     ],
     "modules": [
+      "src/scenes/nepalEvidencePack.js",
+      "src/data/bhoteKoshiEvent.js",
+      "src/data/bhoteKoshiEmbeddedMedia.js",
+      "src/data/bhoteKoshiLocator.js",
+      "src/data/bhoteKoshiIncidentPlaces.js",
+      "src/data/bhoteKoshiFloodPath.js",
+      "src/data/bhoteKoshiShotPaths.js",
       "src/annotations/annotationEngine.js",
       "src/annotations/annotationResolver.js",
       "src/annotations/hybridAnnotationRenderer.js",
@@ -1697,6 +1710,12 @@
   "application-layer-construction": {
     "exports": ["./application/layers"],
     "modules": [
+      "src/data/bhoteKoshiEvent.js",
+      "src/data/bhoteKoshiEmbeddedMedia.js",
+      "src/data/bhoteKoshiLocator.js",
+      "src/data/bhoteKoshiIncidentPlaces.js",
+      "src/data/bhoteKoshiFloodPath.js",
+      "src/data/bhoteKoshiShotPaths.js",
       "src/annotations/annotationResolver.js",
       "src/annotations/resolver.js",
       "src/app/catalog.js",

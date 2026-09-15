@@ -112,6 +112,7 @@ export const WORLD_OVERLAY_OCCLUDER_SELECTORS = Object.freeze([
   '#space-mission-panel',
   '#space-mission-panel-host',
   '#military-awareness-panel',
+  '#bhote-koshi-event-panel',
   // Cockpit: solid backdrop-filled windows only (both bounded to
   // `min(340px, 28vw)` wide and `min(42vh, 410px)` tall, both `hidden` until
   // toggled). Every other cockpit selector was removed — see the block comment.
@@ -503,7 +504,24 @@ export function normalizeOverlayEntry(sourceId, entry) {
         : 'keyhole',
     horizonCull: entry.horizonCull !== false,
     terrainOcclusion: entry.terrainOcclusion === true,
-    sourceAlpha: clamp01(entry.sourceAlpha ?? entry.alpha, 1),
+    sourceAlpha:
+      typeof (entry.sourceAlpha ?? entry.alpha) === 'function'
+        ? (entry.sourceAlpha ?? entry.alpha)
+        : clamp01(entry.sourceAlpha ?? entry.alpha, 1),
+    presentationScale:
+      typeof entry.presentationScale === 'function'
+        ? entry.presentationScale
+        : Math.max(0, Number(entry.presentationScale) || 1),
+    leaderProgress:
+      typeof entry.leaderProgress === 'function'
+        ? entry.leaderProgress
+        : clamp01(entry.leaderProgress, 1),
+    contentAlpha:
+      typeof entry.contentAlpha === 'function'
+        ? entry.contentAlpha
+        : clamp01(entry.contentAlpha, 1),
+    anchorDot: entry.anchorDot === true,
+    leaderStyle: entry.leaderStyle === 'elbow' ? 'elbow' : 'straight',
     temporalAlpha: clamp01(entry.temporalAlpha, 1),
     gapPx: Number.isFinite(Number(entry.gapPx))
       ? Math.max(0, Number(entry.gapPx))
@@ -1722,6 +1740,8 @@ function getProjectionRecord(entry) {
       candidate: null,
       distanceAlpha: 1,
       paintScale: 1,
+      leaderProgress: 1,
+      contentAlpha: 1,
       altitudeAlpha: 1,
       sourceAlpha: 1,
       protectedPlacement: null,
@@ -1781,6 +1801,47 @@ function resetFrameDomains() {
     domain.capacity = 0;
     domain.moving = false;
     domain.solveIntervalMs = Number.POSITIVE_INFINITY;
+  }
+}
+
+// Evaluate optional scene presentation outside the shared projection hot path.
+// Passing records (rather than intermediate doubles) also avoids boxing the
+// ordinary moving-source workload at a non-inlined call boundary.
+function applyPresentation(entry, source, record) {
+  try {
+    const scale = Number(
+      typeof entry.presentationScale === 'function'
+        ? entry.presentationScale()
+        : entry.presentationScale,
+    );
+    record.paintScale *= Number.isFinite(scale) ? Math.max(0, scale) : 1;
+    const alpha = Number(
+      typeof entry.sourceAlpha === 'function'
+        ? entry.sourceAlpha()
+        : entry.sourceAlpha,
+    );
+    record.sourceAlpha =
+      source.options.alpha *
+      (Number.isFinite(alpha) ? Math.max(0, Math.min(1, alpha)) : 1);
+    const leader = Number(
+      typeof entry.leaderProgress === 'function'
+        ? entry.leaderProgress()
+        : entry.leaderProgress,
+    );
+    record.leaderProgress = Number.isFinite(leader)
+      ? Math.max(0, Math.min(1, leader))
+      : 1;
+    const content = Number(
+      typeof entry.contentAlpha === 'function'
+        ? entry.contentAlpha()
+        : entry.contentAlpha,
+    );
+    record.contentAlpha = Number.isFinite(content)
+      ? Math.max(0, Math.min(1, content))
+      : 1;
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -1908,7 +1969,18 @@ function snapshotAndProject(entry, source, viewProjection, keyhole) {
         ? 0
         : 1
       : altitudeFade(cameraAltitude, record.altitudeOptions);
-  record.sourceAlpha = source.options.alpha * entry.sourceAlpha;
+  record.leaderProgress = 1;
+  record.contentAlpha = 1;
+  if (
+    entry.presentationScale !== 1 ||
+    entry.leaderProgress !== 1 ||
+    entry.contentAlpha !== 1 ||
+    typeof entry.sourceAlpha === 'function'
+  ) {
+    if (!applyPresentation(entry, source, record)) return null;
+  } else {
+    record.sourceAlpha = source.options.alpha * entry.sourceAlpha;
+  }
   if (
     record.distanceAlpha <= 0 ||
     record.paintScale <= 0 ||
@@ -2398,7 +2470,14 @@ function paintEntryItem(item, keyhole) {
     keyholeAlpha;
   if (finalAlpha <= 0.001) return;
   if (record.paintScale === 1) {
-    paintOverlayEntry(_ctx, entry, placement, finalAlpha);
+    paintOverlayEntry(
+      _ctx,
+      entry,
+      placement,
+      finalAlpha,
+      record.leaderProgress,
+      record.contentAlpha,
+    );
   } else {
     const scaled = localizeScaledPlacement(
       placement,
@@ -2408,7 +2487,14 @@ function paintEntryItem(item, keyhole) {
     _ctx.save();
     _ctx.translate(placement.rect.x, placement.rect.y);
     _ctx.scale(record.paintScale, record.paintScale);
-    paintOverlayEntry(_ctx, entry, scaled, finalAlpha);
+    paintOverlayEntry(
+      _ctx,
+      entry,
+      scaled,
+      finalAlpha,
+      record.leaderProgress,
+      record.contentAlpha,
+    );
     _ctx.restore();
   }
   publishPaintRect(item);
