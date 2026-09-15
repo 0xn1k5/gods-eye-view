@@ -2377,10 +2377,94 @@ its criteria cannot be silently ignored.
 | CCTV | Austin + Caltrans (CA) + TfL London + Ontario 511 + Fintraffic (FI) + DriveBC (BC) + TxDOT (TX) + Estonia (Tallinn, Tarktee) + Live Traffic NSW + Open Calgary Open Data + Street View fallback | `src/data/cctv.js` | `/api/cctv` | 10s (active) |
 | Radio | Radio Browser (public-domain station directory) | `src/data/radio.js` | `/api/radio/stations`, `/api/radio/click/:uuid` | 45 min directory refresh |
 | Bikeshare 🚲 | GBFS (Lyft + BCycle) | `src/data/bikeshare.js` | `/api/gbfs` | 60s |
+| Directions 🧭 | OSRM on FOSSGIS servers (OpenStreetMap) | `src/data/directions.js` | `/api/route` (`steps=1`) | on placement / mode change |
 | Datacenters ▣ | OSM extract (bundled) | `src/data/localLayers.js` | — | static |
 | Dams ▰ | OpenInfraMap/OSM extract (bundled) | `src/data/localLayers.js` | — | static |
 | Submarine Cables ◠ | TeleGeography public map (bundled) | `src/data/telegeographySubmarineCables.js` | — | static |
 | FIRMS Active Fires ▲ | NASA FIRMS live (VIIRS ×3 NRT, trailing 24h) | `src/data/firmsHeatmap.js` | `/api/firms` (`FIRMS_MAP_KEY`) | 10 min (proxy TTL 30 min) |
+
+Directions is a keyless front end to the routing the voice agent already
+uses. Its row chips are the whole interface: DRIVE / WALK / BIKE pick the
+profile; SET A and SET B arm the next globe click (Escape or a second press
+cancels), placing clamped A/B markers; with both placed the layer requests
+`/api/route?…&steps=1`, drapes the geometry as a `ClassificationType.BOTH`
+ground polyline with the annotation renderer's flowing-dash material (so it
+reads on the keyless terrain globe and on 3D tiles alike), and drops one white
+point primitive per intermediate maneuver. Those dots are anchored on the
+shared ground floor (`cachedGroundFloor` — the rendered mesh cell on the
+photoreal stack, the Re:Earth DEM cell on the keyless terrain stacks) and stay
+hidden until their cell answers, so a route through Denver is not marked a
+kilometre and a half below the city. Clicking a dot opens a protected
+shared-host card with the instruction, the leg after it, and the next
+instruction; Escape or a click on empty globe clears it. Below the chips the
+row lists the turns in order — distance and instruction per step, each one a
+button a keyboard can reach; clicking one opens that maneuver's card once its
+ground cell has resolved, and the step the camera is on is highlighted and
+scrolled into view during FLY. SWAP
+reverses the endpoints and reroutes; changing the mode reroutes; CLEAR removes
+everything. The row meta reads `OSM routing · 21 km · 25 min · Drive`; while
+routing it shows `Routing…`, and a router miss reads
+`No route found between A and B` — the layer never substitutes a straight line.
+The layer holds continuous render only while a route is drawn (the dashes
+animate). Disable clears all state.
+
+**Keys needed: none.** Directions works on a keyless boot, and the layer is off
+until the operator turns it on.
+
+**Context behavior.** Directions is not a Context layer: neither Contacts nor
+Space Missions reads it, depends on it, or lists it as a companion. It is
+therefore one of the layers an exclusive Context mode switches off on entry
+(`_clearLayersOutsideContextMode`) and restores on exit, like every other
+non-participating layer — the route and both endpoints are cleared with it, and
+placing them again is the way back. Cockpit does not touch the layer either,
+but it does own the camera: pressing FLY inside Cockpit is refused with the
+shell's "Exit cockpit to fly to a route" toast, because FLY now goes through
+the same navigation authority as every other camera destination.
+
+**Clicks and the camera.** Arming SET A or SET B claims the shared pointer
+(`src/data/inputOwnership.js`) as owner `directions` and keeps the lease it is
+given; re-arming for the other endpoint reuses that lease rather than asking
+for a second claim, and every release names the lease, so a superseded instance
+can never free the claim its replacement holds. The claim is held until
+the click that uses it has finished being dispatched — every layer binds its
+own handler to the same canvas and they all run inside one browser event, so a
+claim dropped the instant the endpoint is placed would hand the rest of that
+same click to the ambient handlers bound after this one. It is returned on the
+next tick after placement, and immediately on cancel, Escape, CLEAR, disable
+and destroy; if another tool already holds it nothing is armed and the row says
+so. Maneuver-dot selection is an ordinary ambient handler and yields while any
+tool holds the pointer. FLY runs through the UI shell's immediate-navigation
+facade — the same camera authority validated voice destinations use — and is
+handed the shared ground-floor read and corridor warm, so the dolly does not
+fly a mountain corridor at sea level. A reroute (SWAP, or a profile change),
+CLEAR, disable and destroy stop the flight *this layer started* and only that
+one: `flyRoute` returns a motion id and `interruptCameraMotionIfActive` refuses
+to stop a motion someone else began.
+
+`/api/route` (`server/providers/places/routes.js`) asks OSRM for maneuvers only
+when the request does (`steps=1`), so a caller that does not read them — the
+voice route annotation, `fly_route` — gets the same small response it always
+did; a cached response that carries steps still serves those callers their own
+shape. Identical requests that are in flight at the same time share one
+upstream call. Outbound calls pass a shared gate that spaces them at least one
+second apart across every client and profile, which is the rate the routing
+service's usage policy states; past a bounded queue the answer is a 429 with a
+`Retry-After` rather than a queue that grows until everything times out. The
+upstream host is pinned and a redirect is refused rather than followed, and a
+rate limit from the routing service is reported as one instead of as "no route
+found". `src/data/routeSteps.js` turns OSRM maneuver type / modifier / exit /
+road name into one plain-English sentence per decision, folding
+`exit roundabout` steps into the roundabout they leave, and caps one route at
+200 maneuvers — a route past that cap is reported as cut off, in the row
+summary and as the last line of the list, because the arrival step is among
+the ones dropped.
+
+A step's card opens from its dot on the globe or from its line in the list, and
+the list covers every step including departure and arrival, which have no dot.
+What a card needs is a resolved ground anchor: a step whose ground cell has not
+answered yet opens nothing rather than a card hanging at sea level. The cells
+are re-read for up to 90 seconds, which outlasts a cold terrain round trip;
+reroute, CLEAR and disable cancel that.
 
 `src/data/militaryAwareness.js` remains registered internally as the Contacts
 coordinator, but it is not a user-visible Data Layers entry. Its visible entry
