@@ -115,7 +115,29 @@ of current runtime behavior, see [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md
 
 - Separate submarine cable sources and rendering components, and export bundled geography lookup modules.
 
+### Added
+
+- DISPLAY ▸ Draw: draw on the world by hand. Pick Area, Line or Pin, click the
+  vertices, double-click or press Enter to finish, label and colour it; Backspace
+  undoes a vertex, Esc cancels the shape and a second Esc leaves draw mode, and
+  Clear wipes the board. Drawn shapes go through the same annotation engine as
+  spoken ones, so they render with the whiteboard look, persist, de-dup and clear
+  together. While you are drawing, the draw tool owns the pointer and no layer
+  selects what you click through (#235 — thanks @cora-fresh-labs).
+
 ### Fixed
+
+- Draped annotation geometry — area fills and outlines, routes and arrows —
+  classifies onto terrain as well as 3D tiles. On a keyless boot, where Cesium's
+  own globe carries the imagery, marks previously rendered their labels and no
+  geometry at all. This affected spoken annotations as much as hand-drawn ones.
+
+- A finished drawn area closes its ring, so its outline no longer misses the
+  edge back to the first vertex.
+
+- Areas measured and anchored across the antimeridian use unwrapped longitudes:
+  a shape straddling 180° reported an area thousands of times too large and
+  placed its label on the opposite side of the world.
 
 - Traffic now retries a failed destination after city navigation without a layer
   toggle. Camera departure cancels pending work, arrival checks the final view,
