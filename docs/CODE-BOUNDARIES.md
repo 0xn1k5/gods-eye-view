@@ -545,3 +545,56 @@ geometry and billboard resources used by cards, picking and trails.
 source instances independently of standalone setup. Individual sources remain
 available through `layers/earthquakes/source` and `layers/submarine-cables/source`.
 The latter retains the bundled dataset’s attribution and licensing requirements.
+
+## Geocoding and feature-query providers
+
+`createDefaultPlaceSearch` accepts an explicit Nominatim selection:
+
+```js
+const places = createDefaultPlaceSearch({
+  geocoding: {
+    provider: 'nominatim',
+    searchEndpoint: '/places/search',
+    reverseEndpoint: '/places/reverse',
+  },
+  fetchImpl,
+  signal,
+});
+```
+
+The endpoints must return Nominatim JSONv2. They are supplied by application
+composition; no instance is selected automatically and this does not install
+those routes. For a remote instance, configure its full URLs and transport
+requirements. The caller owns request scheduling, identifying headers and any
+instance-specific usage policy. The existing public fallback retains its shared
+queue, pacing and cache. `endpoints.nominatim` still names the legacy
+Google-shaped `/api/geocode` fallback; it is not a raw Nominatim endpoint.
+
+Coordinates and supplied presets remain offline. Explicit Nominatim selection
+replaces the network forward-geocoder chain; it does not silently fall back to
+another instance. Reverse geocoding is available only when a reverse endpoint
+is configured. Other operations (Places text/nearby search and routing) retain
+their independent providers. For custom compositions, `createNominatimProvider`
+from `./search/nominatim` can be passed to `createPlaceSearch` and
+`createGeospatialServices`; it exposes no route or nearby-search capability.
+An empty search array is a definitive miss. HTTP failures, malformed results
+and oversized responses remain retryable. Attribution identifies OpenStreetMap /
+Nominatim.
+
+Overpass currently supplies traffic road geometry, ALPR camera records, military
+installation footprints, and annotation geometry (administrative boundaries,
+neighborhoods, streets, building/grounds outlines and monument candidates).
+Nominatim forward/reverse lookup does not replace those queries. Layer source
+interfaces select traffic, camera and installation ingestion separately;
+annotation `boundaries.query` still uses Overpass QL and OSM-shaped elements.
+Replacing that service with a different query language requires operation-level
+feature/geometry adapters, not just changing its URL. Rendering and geometry
+selection remain consumers of those results.
+
+`./sources/nominatim` exports the lower-level JSONv2 client and normalizers for
+server adapters without importing search composition.
+
+`./sources/http-body` exports bounded text/JSON readers using web primitives;
+`./sources/overpass` exports the quoted-string/comment lexer. The lexer alone is
+not a query validator: spatial bounds, timeouts and other policy remain in the
+server sanitizer. Existing server imports keep their compatibility exports.
