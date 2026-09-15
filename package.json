@@ -224,6 +224,8 @@
     "./layers/launches/source": "./src/layers/launches/source.js",
     "./layers/radio/source": "./src/layers/radio/source.js",
     "./layers/satellites/source": "./src/layers/satellites/source.js",
-    "./layers/traffic/source": "./src/layers/traffic/source.js"
+    "./layers/traffic/source": "./src/layers/traffic/source.js",
+    "./sources/reference": "./src/sources/reference.js",
+    "./layers/submarine-cables/source": "./src/layers/submarineCables/bundledSource.js"
   }
 }

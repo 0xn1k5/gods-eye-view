@@ -1618,7 +1618,8 @@
       "src/data/feedState.js",
       "src/layers/alpr/records.js",
       "src/layers/earthquakes/records.js",
-      "src/layers/cctv/sourcePolicy.js"
+      "src/layers/cctv/sourcePolicy.js",
+      "src/sources/reference.js"
     ],
     "external": [
       "@mapbox/vector-tile",
@@ -2242,5 +2243,15 @@
       "src/layers/traffic/source.js"
     ],
     "external": ["@mapbox/vector-tile", "pbf"]
+  },
+  "reference-sources": {
+    "exports": ["./sources/reference", "./layers/submarine-cables/source"],
+    "modules": [
+      "src/sources/reference.js",
+      "src/layers/earthquakes/source.js",
+      "src/layers/earthquakes/records.js",
+      "src/layers/submarineCables/bundledSource.js"
+    ],
+    "external": []
   }
 }

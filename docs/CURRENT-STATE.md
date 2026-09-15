@@ -1,5 +1,7 @@
 # God's Eye View Current State
 
+Reference feed construction is exported through `sources/reference`; the cable source also has a dedicated `layers/submarine-cables/source` entry. Standalone catalog compatibility remains available. Source choices, data and attribution are unchanged.
+
 Source factories have dedicated `layers/<family>/source` exports. ALPR and earthquake record normalization and CCTV source policy no longer pull rendering into source consumers. Catalog construction and voice feed reads use their focused owners; compatibility entries remain available. Settings filesystem hardening lives under `server/standalone/`. Import-direction checks complement export ownership checks; source behavior, settings policy and rendering are unchanged.
 
 Voice controls bind to a protocol-independent session factory. The default WebRTC adapter preserves the existing Realtime connection, push-to-talk, cost controls and radio handoff. Session subscriptions expose state, transcript, action call/result, interruption and completion events; stopping or replacing a session cancels pending actions. Alternate adapters can use the same controls and action runner.
