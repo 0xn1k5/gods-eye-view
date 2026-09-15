@@ -860,6 +860,20 @@ const schemas = [
       },
     },
   },
+  {
+    name: 'spatial_selection',
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['context', 'color_by_use', 'recorded_height'],
+        },
+      },
+      required: ['action'],
+    },
+  },
 ];
 
 function freeze(value) {

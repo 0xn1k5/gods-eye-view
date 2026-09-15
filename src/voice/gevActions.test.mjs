@@ -21,6 +21,25 @@ import {
 import { MAP_STACKS } from '../mapStackController.js';
 import { GEV_REALTIME_TOOLS } from '../../server/providers/openai/tools.js';
 
+test('spatial voice actions use the active selection and honor cancellation', async () => {
+  globalThis.window = globalThis.window || { clearTimeout, setTimeout, requestIdleCallback: null };
+  const { viewer, styleManager } = createVoiceNavigationHarness();
+  let active = true;
+  const calls = [];
+  const runner = createGevActionRunner({ viewer, styleManager, spatialWorkspace: {
+    getContext: () => ({ active, count: 2, revision: 4, evidence: [{ id: 'osm:way/1' }, { id: 'osm:way/2' }] }),
+    query: async (args) => { calls.push(args.kind); return { ok: true }; },
+  } });
+  const context = await runner('spatial_selection', { action: 'context' });
+  assert.equal(context.ok, true); assert.equal(context.revision, 4); assert.equal(context.evidence.length, 2);
+  active = false;
+  assert.equal((await runner('spatial_selection', { action: 'context' })).ok, false);
+  await runner('spatial_selection', { action: 'color_by_use' });
+  await runner('spatial_selection', { action: 'recorded_height' });
+  const stopped = await runner('spatial_selection', { action: 'color_by_use' }, { isCurrent: () => false });
+  assert.equal(stopped.ok, false); assert.deepEqual(calls, ['use', 'height']);
+});
+
 test('every live basemap is reachable by its own id — no enum value without a voice alias', () => {
   // B1 regression: a stack added to MAP_STACKS (and the set_map_stack enum)
   // without a matching STACK_ALIASES entry resolves to null and throws

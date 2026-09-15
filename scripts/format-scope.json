@@ -675,5 +675,13 @@
   "src/search/nominatim.test.mjs",
   "src/sources/httpBody.js",
   "src/sources/overpass.js",
-  "src/sources/nominatim.js"
+  "src/sources/nominatim.js",
+  "scripts/qa-spatial-workspace.mjs",
+  "scripts/review-spatial-gemini.mjs",
+  "server/providers/openai/spatial-answer.js",
+  "src/sources/spatialBuildings.js",
+  "src/spatial/buildings.js",
+  "src/spatial/renderer.js",
+  "src/spatial/workspace.js",
+  "src/ui/styles/spatial.css"
 ]

@@ -661,7 +661,8 @@ test('the voice TOOL SCHEMA matches the pinned release — the mission mapping i
   // Canonical serialization pins every tool name, description, property and
   // ordering while allowing source formatting. Derived from the unchanged
   // release schema before formatting (the previous source-byte pin passed).
-  const block = JSON.stringify(GEV_REALTIME_TOOLS);
+  // Spatial selection is an intentional additive tool; preserve every shipped tool.
+  const block = JSON.stringify(GEV_REALTIME_TOOLS.filter(tool => tool.name !== 'spatial_selection'));
   assert.equal(block.length, 26208, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),

@@ -15,9 +15,31 @@ const stable = (value) =>
         )
       : value;
 
+test('spatial selection exposes only explicit bounded actions', () => {
+  const tool = GEV_REALTIME_TOOLS.find(
+    (tool) => tool.name === 'spatial_selection',
+  );
+  assert.deepEqual(tool.parameters.properties.action.enum, [
+    'context',
+    'color_by_use',
+    'recorded_height',
+  ]);
+  assert.deepEqual(tool.parameters.required, ['action']);
+  assert.equal(tool.parameters.additionalProperties, false);
+  assert.match(tool.description, /explicitly selected/);
+});
+
 test('the complete Realtime tool payload retains its pre-extraction contract and wording', () => {
   const digest = createHash('sha256')
-    .update(JSON.stringify(stable(GEV_REALTIME_TOOLS)))
+    .update(
+      JSON.stringify(
+        stable(
+          GEV_REALTIME_TOOLS.filter(
+            (tool) => tool.name !== 'spatial_selection',
+          ),
+        ),
+      ),
+    )
     .digest('hex');
   assert.equal(
     digest,

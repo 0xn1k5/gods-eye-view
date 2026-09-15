@@ -1,4 +1,16 @@
 export const ACTION_DESCRIPTIONS = {
+  spatial_selection: {
+    description:
+      'Read the buildings explicitly selected or enclosed by a drawing in the spatial workspace. Use this FIRST when the user asks about this building, these buildings, or the drawn area. Returns selected OSM identities, calculated footprint areas, known/unknown heights, categories and coverage. Do not infer unrecorded facts. Can color the selection by recorded use or highlight the greatest recorded height. This does not move the camera.',
+    parameters: {
+      properties: {
+        action: {
+          description:
+            'context reads evidence; color_by_use colors selected buildings; recorded_height highlights the greatest recorded height and reports missing heights.',
+        },
+      },
+    },
+  },
   fly_to_location: {
     description:
       "Fly the God's Eye View camera to a known city, geocoded country/region/city/landmark, or explicit WGS84 coordinate. Countries/cities frame the whole place; landmarks/buildings use close framing.",

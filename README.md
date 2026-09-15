@@ -83,6 +83,8 @@ Start with the included data sources, then add your own. Each layer is a separat
 
 ## ⚡ Quick Start
 
+**Spatial conversations:** open **Ask the world · 3D**, load nearby buildings, and click or draw a selection to ask questions about it. Building-use colors, recorded-height comparisons and source evidence stay tied to the selected geometry. [Interaction guide and data limits](docs/SPATIAL_CONVERSATIONS.md).
+
 **Start without an account or API keys.** Both paths open the same app with
 Esri satellite imagery and keyless terrain. OSM is the fallback if Esri is
 unreachable. Flights, military traffic, satellites, earthquakes, public

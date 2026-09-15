@@ -1,6 +1,7 @@
 import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
+import { initSpatialWorkspace } from '../spatial/workspace.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
 import {
@@ -45,6 +46,8 @@ export function createApplicationTools({
   // lifetime rather than to whoever last pressed the button.
   const drawTool = initDrawTool({ viewer, annotations });
   defer(() => drawTool?.destroy());
+  const spatialWorkspace = initSpatialWorkspace({ viewer });
+  defer(() => spatialWorkspace?.destroy());
   if (startChrome)
     defer(startChrome({ loadingScreen, styleManager, dataManager, signal }));
   // Idle render governor: flips the scene into requestRenderMode whenever
@@ -101,6 +104,7 @@ export function createApplicationTools({
     mapStackController,
     annotations,
     weatherEffects,
+    spatialWorkspace,
     cockpitCloudEffects,
     getRenderGovernorDiagnostics,
     surfaceServices: operations.surface,
@@ -122,6 +126,7 @@ export function createApplicationTools({
     dataManager,
     sceneDirector,
     annotations,
+    spatialWorkspace,
   });
   defer(() => {
     voiceCommands.stop({ removeUi: true });
